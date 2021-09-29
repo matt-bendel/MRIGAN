@@ -27,7 +27,9 @@ def create_arg_parser():
     parser.add_argument('--resume', action='store_true',
                         help='If set, resume the training from a previous model checkpoint. '
                              '"--checkpoint" should be set with this')
-    parser.add_argument('--checkpoint', type=str,
+    parser.add_argument('--checkpoint_gen', type=str,
+                        help='Path to an existing checkpoint. Used along with "--resume"')
+    parser.add_argument('--checkpoint_dis', type=str,
                         help='Path to an existing checkpoint. Used along with "--resume"')
 
 

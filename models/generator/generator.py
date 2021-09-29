@@ -87,7 +87,7 @@ class FullDownBlock(nn.Module):
             (torch.Tensor): Output tensor of shape [batch_size, self.out_chans, height, width]
         """
 
-        return self.resblocl(self.downsample(input))
+        return self.resblock(self.downsample(input))
 
     def __repr__(self):
         return f'AvgPool(in_chans={self.in_chans}, out_chans={self.out_chans}\nResBlock(in_chans={self.out_chans}, out_chans={self.out_chans}'

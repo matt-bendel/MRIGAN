@@ -13,8 +13,6 @@ NOTE: z_location tells the network where to use the latent variable. It has opti
 
 import torch
 from torch import nn
-from torch.nn import functional as F
-
 
 class ResidualBlock(nn.Module):
     """
