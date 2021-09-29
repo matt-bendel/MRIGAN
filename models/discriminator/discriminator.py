@@ -100,8 +100,8 @@ class DiscriminatorModel(nn.Module):
         """
         super().__init__()
 
-        self.in_chans = in_chans
-        self.out_chans = out_chans
+        self.in_chans = 2
+        self.out_chans = 2
         self.z_location = z_location
         self.model_type = model_type
 
