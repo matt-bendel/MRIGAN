@@ -103,11 +103,11 @@ class FullUpBlock(nn.Module):
             out_chans (int): Number of channels in the output.
         """
         super().__init__()
-        self.in_chans = in_chans
+        self.in_chans = in_chans*2
         self.out_chans = out_chans
 
         self.upsample = nn.Sequential(
-            nn.Conv2d(self.in_chans, self.out_chans, kernel_size=(3, 3), padding=1),
+            nn.Conv2d(self.in_chans*2, self.out_chans, kernel_size=(3, 3), padding=1),
             nn.LeakyReLU(negative_slope=0.2),
         )
 
@@ -196,5 +196,6 @@ class GeneratorModel(nn.Module):
         for layer in self.decoder_layers:
             output = F.interpolate(output, scale_factor=2, mode='bilinear', align_corners=False)
             output = layer(output, stack.pop())
+            print(layer.shape)
 
         return self.final_conv(output)
