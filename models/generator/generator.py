@@ -121,9 +121,9 @@ class FullUpBlock(nn.Module):
         Returns:
             (torch.Tensor): Output tensor of shape [batch_size, self.out_chans, height, width]
         """
+        print(input.shape)
         output = self.upsample(input)
         output = torch.cat([self.upsample(output), old], dim=1)
-        print(output.shape)
         return self.resblock(output)
 
     def __repr__(self):
