@@ -37,9 +37,11 @@ def resume_train(args):
 
 
 def fresh_start(args):
-    model = build_model(args)
+    generator = build_model(args)
     if args.data_parallel:
-        model = torch.nn.DataParallel(model)
+        generator = torch.nn.DataParallel(generator)
+
+    #TODO: Implement and get discriminator model here
     best_dev_loss = 1e9
     start_epoch = 0
-    return model, best_dev_loss, start_epoch
+    return generator, generator, best_dev_loss, start_epoch
