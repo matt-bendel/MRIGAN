@@ -20,6 +20,7 @@ def create_arg_parser():
     parser.add_argument('--num-epochs', type=int, default=300, help='Number of training epochs')
 
     # DATA ARGS
+    parser.add_argument('--data-path')
     parser.add_argument('--data-parallel', required=True, action='store_true', help='If set, use multiple GPUs using data parallelism')
     parser.add_argument('--num_of_top_slices', default=6, type=int, help='top slices have bigger brain image and less air region')
     parser.add_argument('--use-middle-slices', action='store_true', help='If set, only uses central slice of every data collection')
