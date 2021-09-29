@@ -123,7 +123,7 @@ class FullUpBlock(nn.Module):
         """
         output = self.upsample(input)
         output = torch.cat([self.upsample(output), old], dim=1)
-        print(output.shape)
+
         return self.resblock(output)
 
     def __repr__(self):
@@ -198,6 +198,5 @@ class GeneratorModel(nn.Module):
         for layer in self.decoder_layers:
             output = F.interpolate(output, scale_factor=2, mode='bilinear', align_corners=False)
             output = layer(output, stack.pop())
-            print(layer.shape)
 
         return self.final_conv(output)
