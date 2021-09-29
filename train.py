@@ -36,6 +36,32 @@ from tensorboardX import SummaryWriter
 
 from torch.nn import functional as F
 
+Tensor = torch.cuda.FloatTensor if cuda else torch.FloatTensor
+inverse_mask = get_inverse_mask()
+
+def add_z_to_input(args, input):
+    """
+                    0: No latent vector
+                    1: Add latent vector to zero filled areas
+                    2: Add latent vector to middle of network (between encoder and decoder)
+                    3: Add as an extra input channel
+                    """
+    for i in input.shape[0]:
+        if args.z_location == 1 or args.z_location == 3:
+            z = np.random.normal(size=(384, 384))
+            z = Tensor(z * inverse_mask) if args.z_location == 1 else Tensor(z)
+
+            if args.z_location == 1:
+                for val in range(input.shape[1]):
+                    input[i, val, :, :] = input[val, :, :].add(z)
+            else:
+                input[i, 16, :, :] = z
+        elif args.z_location == 2:
+            raise NotImplementedError
+        else:
+            raise NotImplementedError
+
+    return input
 
 def get_inverse_mask():
     a = np.array(
@@ -69,89 +95,8 @@ def save_model(args, exp_dir, epoch, model, optimizer, best_dev_loss, is_new_bes
         shutil.copyfile(exp_dir / 'model.pt', exp_dir / 'best_model.pt')
 
 
-# def train_epoch(args, epoch, model, data_loader, optimizer, writer):
-#     model.train()
-#     avg_loss = 0.
-#     start_epoch = start_iter = time.perf_counter()
-#     global_step = epoch * len(data_loader)
-#     for iter, data in enumerate(data_loader):
-#         input, target, mean, std, nnz_index_mask = data
-#         input = input.to(args.device)
-#
-#         output = model(input)  # .squeeze(1)
-#         output[:, :, :, nnz_index_mask] = 0
-#
-#         target[:, :, :, nnz_index_mask] = 0
-#
-#         target = target.to(args.device)
-#
-#         loss = F.l1_loss(output, target)
-#         optimizer.zero_grad()
-#         loss.backward()
-#         optimizer.step()
-#
-#         avg_loss = 0.99 * avg_loss + 0.01 * loss.item() if iter > 0 else loss.item()
-#
-#         writer.add_scalar('TrainLoss', loss.item(), global_step + iter)
-#
-#         if iter % args.report_interval == 0:
-#             logging.info(
-#                 f'Epoch = [{epoch:3d}/{args.num_epochs:3d}] '
-#                 f'Iter = [{iter:4d}/{len(data_loader):4d}] '
-#                 f'Loss = {loss.item():.4g} Avg Loss = {avg_loss:.4g} '
-#                 f'Time = {time.perf_counter() - start_iter:.4f}s',
-#             )
-#
-#         start_iter = time.perf_counter()
-#
-#     return avg_loss, time.perf_counter() - start_epoch
-#
-#
-# def evaluate(args, epoch, model, data_loader, writer):
-#     model.eval()
-#     losses = []
-#     start = time.perf_counter()
-#
-#     with torch.no_grad():
-#         for iter, data in enumerate(data_loader):
-#
-#             input, target_full, mean, std = data
-#             output_full = model(input.to(args.device))
-#
-#             for i in range(output_full.size(0)):
-#                 target = torch.squeeze(target_full[i, :, :, :]).to(args.device)
-#                 output = torch.squeeze(output_full[i, :, :, :])
-#
-#                 target = target * std[i] + mean[i]
-#                 output = output * std[i] + mean[i]
-#
-#                 target_tensor = torch.zeros(8, 384, 384, 2)
-#                 target_tensor[:, :, :, 0] = target[0:8, :, :]
-#                 target_tensor[:, :, :, 1] = target[8:16, :, :]
-#
-#                 output_tensor = torch.zeros(8, 384, 384, 2)
-#                 output_tensor[:, :, :, 0] = output[0:8, :, :]
-#                 output_tensor[:, :, :, 1] = output[8:16, :, :]
-#
-#                 target_ifft_1 = complex_abs(target_tensor)
-#                 target_ifft_2 = transforms.root_sum_of_squares(target_ifft_1)
-#                 target_x = target_ifft_2.cpu().numpy()
-#
-#                 output_ifft_1 = complex_abs(output_tensor)
-#                 output_ifft_2 = transforms.root_sum_of_squares(output_ifft_1)
-#                 output_x = output_ifft_2.cpu().numpy()
-#
-#                 NMSE = nmse(target_x, output_x)
-#                 losses.append(NMSE)
-#
-#         writer.add_scalar('Dev_Loss', np.mean(losses), epoch)
-#
-#     return np.mean(losses), time.perf_counter() - start
-
-
 def main(args):
     cuda = True if torch.cuda.is_available() else False
-    Tensor = torch.cuda.FloatTensor if cuda else torch.FloatTensor
 
     args.exp_dir.mkdir(parents=True, exist_ok=True)
     writer = SummaryWriter(log_dir=str(args.exp_dir / 'summary'))
@@ -179,10 +124,11 @@ def main(args):
     optimizer_G = torch.optim.Adam(generator.parameters(), lr=lr, betas=(beta_1, beta_2))
     optimizer_D = torch.optim.Adam(discriminator.parameters(), lr=lr, betas=(beta_1, beta_2))
 
-    inverse_mask = get_inverse_mask()
     for epoch in range(start_epoch, args.num_epochs):
         for i, data in enumerate(train_loader):
             input, target, mean, std, nnz_index_mask = data
+            print(input.shape)
+            input = add_z_to_input(args, input)
             print(input.shape)
             exit()
             for j in range(args.num_iters_discriminator):
@@ -190,34 +136,40 @@ def main(args):
                 #  Train Discriminator
                 # ---------------------
                 optimizer_D.zero_grad()
-                """
-                0: No latent vector
-                1: Add latent vector to zero filled areas
-                2: Add latent vector to middle of network (between encoder and decoder)
-                3: Add as an extra input channel
-                """
-                if args.z_location == 1 or args.z_location == 3:
-                    z = np.random.normal(size=(384,384))
-                    z = Tensor(z * inverse_mask) if args.z_location == 1 else Tensor(z)
-
-                    if args.z_location == 1:
-                        for val in range(input.shape[0]):
-                            input[val,:,:] = input[val, :, :].add(z)
-                    else:
-                        input[16, :, :] = z
-                    # DEBUG
-                    print(input)
-                    exit()
-                elif args.z_location == 2:
-                    raise NotImplementedError
-                else:
-                    raise NotImplementedError
 
                 input = input.to(args.device)
                 output = generator(input)
 
+                # TURN OUTPUT INTO IMAGE FOR DISCRIMINATION
+                # GET REAL IMAGES FOR DISCRIMINATION
+
                 real_pred = discriminator(data)
                 fake_pred = discriminator(output)
+
+                # Gradient penalty
+                # gradient_penalty = compute_gradient_penalty(discriminator, real_imgs.data, fake_imgs.data)
+                # Adversarial loss
+                # d_loss = -torch.mean(real_validity) + torch.mean(fake_validity) + lambda_gp * gradient_penalty
+
+                # d_loss.backward()
+                optimizer_D.step()
+
+            optimizer_G.zero_grad()
+
+            # Generate a batch of images
+            fake_imgs = generator(input)
+            # Loss measures generator's ability to fool the discriminator
+            # Train on fake images
+            fake_validity = discriminator(fake_imgs)
+            g_loss = -torch.mean(fake_validity)
+
+            g_loss.backward()
+            optimizer_G.step()
+
+            # print(
+            #     "[Epoch %d/%d] [Batch %d/%d] [D loss: %f] [G loss: %f]"
+            #     % (epoch, opt.n_epochs, i, len(dataloader), d_loss.item(), g_loss.item())
+            # )
 
 
 
