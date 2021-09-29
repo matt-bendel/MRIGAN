@@ -37,6 +37,7 @@ class ResidualBlock(nn.Module):
         if self.in_chans != self.out_chans:
             self.out_chans = self.in_chans
 
+        self.norm = nn.BatchNorm2d(self.out_chans)
         self.conv_1_x_1 = nn.Conv2d(self.in_chans, self.out_chans, kernel_size=(1, 1))
         self.layers = nn.Sequential(
             nn.LeakyReLU(negative_slope=0.2),
@@ -54,10 +55,11 @@ class ResidualBlock(nn.Module):
         Returns:
             (torch.Tensor): Output tensor of shape [batch_size, self.out_chans, height, width]
         """
+        output = input
         if self.batch_norm:
-            input = nn.BatchNorm2d(self.out_chans)(input)
+            output = self.norm(input)
 
-        return self.layers(input) + self.conv_1_x_1(input)
+        return self.layers(output) + self.conv_1_x_1(output)
 
 
 class FullDownBlock(nn.Module):
@@ -181,6 +183,7 @@ class GeneratorModel(nn.Module):
 
         # Apply down-sampling layers
         for layer in self.encoder_layers:
+            print('in')
             output = layer(output)
             stack.append(output)
 
