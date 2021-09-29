@@ -55,7 +55,7 @@ class ResidualBlock(nn.Module):
             (torch.Tensor): Output tensor of shape [batch_size, self.out_chans, height, width]
         """
         if self.batch_norm:
-            input = nn.BatchNorm2d(input)
+            input = nn.BatchNorm2d(self.out_chans)(input)
 
         return self.layers(input) + self.conv_1_x_1(input)
 
