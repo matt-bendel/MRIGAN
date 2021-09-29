@@ -231,7 +231,6 @@ def main(args):
 
 if __name__ == '__main__':
     cuda = True if torch.cuda.is_available() else False
-    print(cuda)
     Tensor = torch.FloatTensor
     inverse_mask = get_inverse_mask()
 
