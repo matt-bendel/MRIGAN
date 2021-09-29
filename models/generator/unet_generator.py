@@ -16,7 +16,7 @@ from torch import nn
 from torch.nn import functional as F
 
 
-class ConvBlock(nn.Module):
+class ResidualBlock(nn.Module):
     """
     A Convolutional Block that consists of two convolution layers each followed by
     instance normalization, relu activation and dropout.

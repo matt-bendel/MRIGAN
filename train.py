@@ -64,10 +64,10 @@ def add_z_to_input(args, input):
         if args.z_location == 1 or args.z_location == 3:
             z = np.random.normal(size=(384, 384))
             z = Tensor(z * inverse_mask) if args.z_location == 1 else Tensor(z)
-
+            print('GENERATED Z')
             if args.z_location == 1:
                 for val in range(input.shape[1]):
-                    input[i, val, :, :] = input[val, :, :].add(z)
+                    input[i, val, :, :] = input[i, val, :, :].add(z)
             else:
                 input[i, 16, :, :] = z
         elif args.z_location == 2:
