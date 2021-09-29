@@ -191,6 +191,8 @@ def main(args):
                 disc_target_batch = prep_discriminator_input(target_full, args.batch_size // 2, args.network_input, inds=i_true, mean=mean, std=std)
 
                 # TEST THAT IMAGES LOOK RIGHT
+                im_check = complex_abs(disc_target_batch[2].permute(1, 2, 0))
+                print(im_check.shape)
                 exit()
                 disc_output_batch = prep_discriminator_input(refined_out, args.batch_size // 2, args.network_input, inds=i_fake, mean=mean, std=std)
 
