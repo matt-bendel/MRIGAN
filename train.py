@@ -59,7 +59,7 @@ def add_z_to_input(args, input):
                     2: Add latent vector to middle of network (between encoder and decoder)
                     3: Add as an extra input channel
                     """
-    for i in input.shape[0]:
+    for i in range(input.shape[0]):
         if args.z_location == 1 or args.z_location == 3:
             z = np.random.normal(size=(384, 384))
             z = Tensor(z * inverse_mask) if args.z_location == 1 else Tensor(z)
