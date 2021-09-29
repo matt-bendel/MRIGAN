@@ -168,6 +168,8 @@ def main(args):
             for j in range(args.num_iters_discriminator):
                 i_true = np.random.randint(0, target_full.shape[0], args.batch_size // 2)
                 i_fake = np.random.randint(0, target_full.shape[0], args.batch_size // 2)
+                print(i_true)
+                print(i_fake)
 
                 # ---------------------
                 #  Train Discriminator
@@ -179,7 +181,9 @@ def main(args):
 
                 input_w_z = input_w_z.to(args.device)
                 output_gen = generator(input_w_z)
+                temp_dis = discriminator(prep_discriminator_input(target_full, args.batch_size, args.network_input).to(args.device))
                 print(output_gen.shape)
+                print(temp_dis)
                 exit()
 
                 # TURN OUTPUT INTO IMAGE FOR DISCRIMINATION AND GET REAL IMAGES FOR DISCRIMINATION
