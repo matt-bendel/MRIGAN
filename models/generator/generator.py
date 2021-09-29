@@ -22,7 +22,7 @@ class ResidualBlock(nn.Module):
     instance normalization, relu activation and dropout.
     """
 
-    def __init__(self, in_chans, out_chans, batch_norm=True):
+    def __init__(self, in_chans, out_chans, batch_norm=True, down=True):
         """
         Args:
             in_chans (int): Number of channels in the input.
@@ -37,12 +37,12 @@ class ResidualBlock(nn.Module):
         if self.in_chans != self.out_chans:
             self.out_chans = self.in_chans
 
-        self.norm = nn.BatchNorm2d(self.out_chans)
+        self.norm = nn.BatchNorm2d(self.out_chans if down else self.out_chans * 2)
         self.conv_1_x_1 = nn.Conv2d(self.in_chans, self.out_chans, kernel_size=(1, 1))
         self.layers = nn.Sequential(
             nn.LeakyReLU(negative_slope=0.2),
             nn.Conv2d(self.in_chans, self.out_chans, kernel_size=(3, 3), padding=1),
-            nn.BatchNorm2d(self.out_chans),
+            nn.BatchNorm2d(self.out_chans if down else self.out_chans * 2),
             nn.LeakyReLU(negative_slope=0.2),
             nn.Conv2d(self.in_chans, self.out_chans, kernel_size=(3, 3), padding=1),
         )
