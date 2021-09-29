@@ -156,13 +156,13 @@ def main(args):
     args.exp_dir.mkdir(parents=True, exist_ok=True)
     writer = SummaryWriter(log_dir=str(args.exp_dir / 'summary'))
 
+    args.in_chans = 17 if args.z_location == 3 else 16
+    args.out_chans = 16
+
     # TODO: ADD ABILITY TO RESUME
     # if args.resume:
     #     model, optimizer, args, best_dev_loss, start_epoch = resume_train(args)
     # else:
-
-    args.in_chans = 17 if args.z_location == 3 else 16
-    args.out_chans = 16
 
     generator, discriminator, best_dev_loss, start_epoch = fresh_start(args)
 
@@ -170,7 +170,7 @@ def main(args):
     logging.info(generator)
     logging.info(discriminator)
 
-    train_loader, dev_loader, display_loader = create_data_loaders(args)
+    train_loader, dev_loader = create_data_loaders(args)
     lr = 10e-4
     beta_1 = 0.5
     beta_2 = 0.999
