@@ -2,3 +2,4 @@ trained_models/image/models
 trained_models/kspace/models
 venv/
 pycache/
+env/

@@ -6,13 +6,8 @@ def create_arg_parser():
     # CREATE THE PARSER
     parser = Args()
 
-    # MODEL SPECIFIC ARGS
-    parser.add_argument('--num-pools', type=int, default=4, help='Number of U-Net pooling layers')
-    parser.add_argument('--drop-prob', type=float, default=0.0, help='Dropout probability')
-    parser.add_argument('--num-chans', type=int, default=192, help='Number of U-Net channels')
-    parser.add_argument('--network-input', type=str, required=True, help='Image or K-Space U-Net')
-
     # GAN ARGS
+    parser.add_argument('--network-input', type=str, required=True, help='Image or K-Space U-Net')
     parser.add_argument('--num-iters-discriminator', type=int, default=2, help='Number of iterations of the discriminator')
     parser.add_argument('--z-location', type=int, required=True, help='Where to put code vector')
 

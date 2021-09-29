@@ -25,8 +25,10 @@ import time
 import torch
 
 import numpy as np
+import torch.autograd as autograd
 
 from data import transforms
+from utils.fftc import ifft2c_new
 from utils.math import complex_abs
 from utils.evaluate import nmse
 from utils.training.prepare_data import create_data_loaders
@@ -34,7 +36,8 @@ from utils.training.parse_args import create_arg_parser
 from utils.training.prepare_model import resume_train, fresh_start
 from tensorboardX import SummaryWriter
 
-from torch.nn import functional as F
+# Tunable weight for gradient penalty
+lambda_gp = 10
 
 
 def get_inverse_mask():
@@ -60,25 +63,39 @@ def add_z_to_input(args, input):
                     3: Add as an extra input channel
                     """
     for i in range(input.shape[0]):
-        print(i)
         if args.z_location == 1 or args.z_location == 3:
             z = np.random.normal(size=(384, 384))
             z = Tensor(z * inverse_mask) if args.z_location == 1 else Tensor(z)
-            print('GENERATED Z')
             if args.z_location == 1:
                 for val in range(input.shape[1]):
                     input[i, val, :, :] = input[i, val, :, :].add(z)
             else:
                 input[i, 16, :, :] = z
-        elif args.z_location == 2:
-            raise NotImplementedError
-        else:
-            raise NotImplementedError
 
     return input
 
 
-def save_model(args, exp_dir, epoch, model, optimizer, best_dev_loss, is_new_best):
+def prep_discriminator_input(data_tensor, num_vals, unet_type, inds=None):
+    disc_inp = torch.zeros(num_vals, 2, 384, 384)
+
+    if unet_type == 'kspace':
+        for k in range(num_vals):
+            output = torch.squeeze(data_tensor[k]) if not inds else torch.squeeze(data_tensor[inds[k]])
+
+            output_tensor = torch.zeros(8, 384, 384, 2)
+            output_tensor[:, :, :, 0] = output[0:8, :, :]
+            output_tensor[:, :, :, 1] = output[8:16, :, :]
+
+            output_x = ifft2c_new(output_tensor)
+            output_x = transforms.root_sum_of_squares(output_x)
+            disc_inp[k, :, :, :] = output_x.transpose(2, 0, 1)
+    else:
+        raise NotImplementedError
+
+    return disc_inp
+
+
+def save_model(args, exp_dir, epoch, model, optimizer, best_dev_loss, is_new_best, m_type):
     torch.save(
         {
             'epoch': epoch,
@@ -88,11 +105,33 @@ def save_model(args, exp_dir, epoch, model, optimizer, best_dev_loss, is_new_bes
             'best_dev_loss': best_dev_loss,
             'exp_dir': exp_dir
         },
-        f=exp_dir / 'model.pt'
+        f=exp_dir / f'{m_type}_model.pt'
     )
 
     if is_new_best:
-        shutil.copyfile(exp_dir / 'model.pt', exp_dir / 'best_model.pt')
+        shutil.copyfile(exp_dir / f'{m_type}_model.pt', exp_dir / f'{m_type}_best_model.pt')
+
+
+def compute_gradient_penalty(D, real_samples, fake_samples):
+    """Calculates the gradient penalty loss for WGAN GP"""
+    # Random weight term for interpolation between real and fake samples
+    alpha = Tensor(np.random.random((real_samples.size(0), 1, 1, 1)))
+    # Get random interpolation between real and fake samples
+    interpolates = (alpha * real_samples + ((1 - alpha) * fake_samples)).requires_grad_(True)
+    d_interpolates = D(interpolates)
+    fake = Tensor(real_samples.shape[0], 1).fill_(1.0)
+    # Get gradient w.r.t. interpolates
+    gradients = autograd.grad(
+        outputs=d_interpolates,
+        inputs=interpolates,
+        grad_outputs=fake,
+        create_graph=True,
+        retain_graph=True,
+        only_inputs=True,
+    )[0]
+    gradients = gradients.view(gradients.size(0), -1)
+    gradient_penalty = ((gradients.norm(2, dim=1) - 1) ** 2).mean()
+    return gradient_penalty
 
 
 def main(args):
@@ -102,12 +141,10 @@ def main(args):
     args.in_chans = 17 if args.z_location == 3 else 16
     args.out_chans = 16
 
-    # TODO: ADD ABILITY TO RESUME
-    # if args.resume:
-    #     model, optimizer, args, best_dev_loss, start_epoch = resume_train(args)
-    # else:
-
-    generator, discriminator, best_dev_loss, start_epoch = fresh_start(args)
+    if args.resume:
+        generator, discriminator, args, best_dev_loss, start_epoch = resume_train(args)
+    else:
+        generator, discriminator, best_dev_loss, start_epoch = fresh_start(args)
 
     logging.info(args)
     logging.info(generator)
@@ -124,62 +161,72 @@ def main(args):
 
     for epoch in range(start_epoch, args.num_epochs):
         for i, data in enumerate(train_loader):
-            input, target, mean, std, nnz_index_mask = data
-            print(input.shape)
-            input = add_z_to_input(args, input)
-            print(input.shape)
-            exit()
+            input, target_full, mean, std, nnz_index_mask = data
+            old_input = input.to(args.device)
+            input_w_z = add_z_to_input(args, input)
+
             for j in range(args.num_iters_discriminator):
+                i_true = np.random.randint(0, target_full.shape[0], args.batch_size // 2)
+                i_fake = np.random.randint(0, target_full.shape[0], args.batch_size // 2)
+
                 # ---------------------
                 #  Train Discriminator
                 # ---------------------
                 optimizer_D.zero_grad()
 
-                input = input.to(args.device)
-                output = generator(input)
+                if args.network_input == 'image':
+                    raise NotImplementedError
 
-                # TURN OUTPUT INTO IMAGE FOR DISCRIMINATION
-                # GET REAL IMAGES FOR DISCRIMINATION
+                input_w_z = input_w_z.to(args.device)
+                output_gen = generator(input_w_z)
+                print(output_gen.shape)
+                exit()
 
-                real_pred = discriminator(data)
-                fake_pred = discriminator(output)
+                # TURN OUTPUT INTO IMAGE FOR DISCRIMINATION AND GET REAL IMAGES FOR DISCRIMINATION
+                if args.network_input == 'kspace':
+                    refined_out = output_gen + old_input
+                else:
+                    raise NotImplementedError
 
-                # Gradient penalty
-                # gradient_penalty = compute_gradient_penalty(discriminator, real_imgs.data, fake_imgs.data)
+                disc_target_batch = prep_discriminator_input(target_full, args.batch_size // 2, args.network_input, inds=i_true)
+                disc_output_batch = prep_discriminator_input(refined_out, args.batch_size // 2, args.network_input, inds=i_fake)
+
+                real_pred = discriminator(disc_target_batch)
+                fake_pred = discriminator(disc_output_batch)
+
+                # Gradient penalty - TODO: FIX THIS
+                gradient_penalty = compute_gradient_penalty(discriminator, disc_target_batch.data, disc_output_batch.data)
+
                 # Adversarial loss
-                # d_loss = -torch.mean(real_validity) + torch.mean(fake_validity) + lambda_gp * gradient_penalty
+                d_loss = -torch.mean(real_pred) + torch.mean(fake_pred) + lambda_gp * gradient_penalty
 
-                # d_loss.backward()
+                d_loss.backward()
                 optimizer_D.step()
 
             optimizer_G.zero_grad()
 
             # Generate a batch of images
-            fake_imgs = generator(input)
+            output_gen = generator(input_w_z)
+
+            if args.network_input == 'kspace':
+                refined_out = output_gen + old_input
+            else:
+                raise NotImplementedError
+
+            disc_inp = prep_discriminator_input(refined_out, args.batch_size, args.network_input)
+
             # Loss measures generator's ability to fool the discriminator
             # Train on fake images
-            fake_validity = discriminator(fake_imgs)
+            fake_validity = discriminator(disc_inp)
             g_loss = -torch.mean(fake_validity)
 
             g_loss.backward()
             optimizer_G.step()
 
-            # print(
-            #     "[Epoch %d/%d] [Batch %d/%d] [D loss: %f] [G loss: %f]"
-            #     % (epoch, opt.n_epochs, i, len(dataloader), d_loss.item(), g_loss.item())
-            # )
-
-    #     train_loss, train_time = train_epoch(args, epoch, model, train_loader, optimizer, writer)
-    #     dev_loss, dev_time = evaluate(args, epoch, model, dev_loader, writer)
-    #
-    #     is_new_best = dev_loss < best_dev_loss
-    #     best_dev_loss = min(best_dev_loss, dev_loss)
-    #     save_model(args, args.exp_dir, epoch, model, optimizer, best_dev_loss, is_new_best)
-    #     logging.info(
-    #         f'Epoch = [{epoch:4d}/{args.num_epochs:4d}] TrainLoss = {train_loss:.4g} '
-    #         f'DevLoss = {dev_loss:.4g} TrainTime = {train_time:.4f}s DevTime = {dev_time:.4f}s',
-    #     )
-    # writer.close()
+            print(
+                "[Epoch %d/%d] [D loss: %f] [G loss: %f]"
+                % (epoch, args.num_epochs, d_loss.item(), g_loss.item())
+            )
 
 
 if __name__ == '__main__':
