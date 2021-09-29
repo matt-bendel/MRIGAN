@@ -122,7 +122,6 @@ class FullUpBlock(nn.Module):
             (torch.Tensor): Output tensor of shape [batch_size, self.out_chans, height, width]
         """
         output = self.upsample(input)
-        print(output.shape)
         output = torch.cat([output, old], dim=1)
         return self.resblock(output)
 
@@ -143,9 +142,6 @@ class GeneratorModel(nn.Module):
         self.out_chans = out_chans
         self.z_location = z_location
         self.model_type = model_type
-
-        if z_location == 3:
-            self.in_chans = in_chans + 1
 
         self.initial_layers = nn.Sequential(
             nn.Conv2d(self.in_chans, 32, kernel_size=(3, 3), padding=1),  # 384x384
