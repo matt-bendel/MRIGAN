@@ -1,6 +1,5 @@
 import torch
 
-from models.generator.unet import UnetModel
 from models.generator.generator import GeneratorModel
 from models.discriminator.discriminator import DiscriminatorModel
 
