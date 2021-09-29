@@ -123,7 +123,7 @@ class FullUpBlock(nn.Module):
         """
         output = self.upsample(input)
         output = torch.cat([self.upsample(output), old], dim=1)
-
+        print(output.shape)
         return self.resblock(output)
 
     def __repr__(self):
