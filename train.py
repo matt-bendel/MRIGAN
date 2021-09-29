@@ -182,8 +182,6 @@ def main(args):
                 output_gen = generator(input_w_z)
                 print('Gen done')
                 temp = prep_discriminator_input(target_full, args.batch_size, args.network_input).to(args.device)
-                print(temp.shape)
-                print(temp.device)
                 temp_dis = discriminator(temp)
                 print(output_gen.shape)
                 print(temp_dis)
