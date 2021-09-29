@@ -161,6 +161,9 @@ def main(args):
     #     model, optimizer, args, best_dev_loss, start_epoch = resume_train(args)
     # else:
 
+    args.in_chans = 17 if args.z_location == 3 else 16
+    args.out_chans = 16
+
     generator, discriminator, best_dev_loss, start_epoch = fresh_start(args)
 
     logging.info(args)

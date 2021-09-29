@@ -14,6 +14,7 @@ def create_arg_parser():
 
     # GAN ARGS
     parser.add_argument('--num-iters-discriminator', type=int, default=3, help='Number of iterations of the discriminator')
+    parser.add_argument('--z-location', type=int, required=True, help='Where to put code vector')
 
     # LEARNING ARGS
     parser.add_argument('--batch-size', default=16, type=int, help='Mini batch size')

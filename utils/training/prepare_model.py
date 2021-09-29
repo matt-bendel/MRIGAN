@@ -16,11 +16,6 @@ def build_model(args):
     return model
 
 
-def build_optim(args, params):
-    optimizer = torch.optim.RMSprop(params, args.lr, weight_decay=args.weight_decay)
-    return optimizer
-
-
 def load_model(checkpoint_file):
     checkpoint = torch.load(checkpoint_file, map_location=torch.device('cuda'))
     args = checkpoint['args']
@@ -29,25 +24,22 @@ def load_model(checkpoint_file):
         model = torch.nn.DataParallel(model)
     model.load_state_dict(checkpoint['model'])
 
-    optimizer = build_optim(args, model.parameters())
-    optimizer.load_state_dict(checkpoint['optimizer'])
-    return checkpoint, model, optimizer
+    return checkpoint, model
 
 
 def resume_train(args):
-    checkpoint, model, optimizer = load_model(args.checkpoint)
+    checkpoint, model = load_model(args.checkpoint)
     args = checkpoint['args']
     best_dev_loss = checkpoint['best_dev_loss']
     start_epoch = checkpoint['epoch']
     del checkpoint
-    return model, optimizer, args, best_dev_loss, start_epoch
+    return model, args, best_dev_loss, start_epoch
 
 
 def fresh_start(args):
     model = build_model(args)
     if args.data_parallel:
         model = torch.nn.DataParallel(model)
-    optimizer = build_optim(args, model.parameters())
     best_dev_loss = 1e9
     start_epoch = 0
-    return model, optimizer, best_dev_loss, start_epoch
+    return model, best_dev_loss, start_epoch
