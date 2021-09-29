@@ -13,7 +13,7 @@ def create_arg_parser():
     parser.add_argument('--network-input', type=str, required=True, help='Image or K-Space U-Net')
 
     # GAN ARGS
-    parser.add_argument('--num-iters-discriminator', type=int, default=3, help='Number of iterations of the discriminator')
+    parser.add_argument('--num-iters-discriminator', type=int, default=2, help='Number of iterations of the discriminator')
     parser.add_argument('--z-location', type=int, required=True, help='Where to put code vector')
 
     # LEARNING ARGS

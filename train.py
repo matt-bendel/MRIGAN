@@ -36,8 +36,21 @@ from tensorboardX import SummaryWriter
 
 from torch.nn import functional as F
 
-Tensor = torch.cuda.FloatTensor if cuda else torch.FloatTensor
-inverse_mask = get_inverse_mask()
+
+def get_inverse_mask():
+    a = np.array(
+        [0, 10, 19, 28, 37, 46, 54, 61, 69, 76, 83, 89, 95, 101, 107, 112, 118, 122, 127, 132, 136, 140, 144, 148,
+         151, 155, 158, 161, 164,
+         167, 170, 173, 176, 178, 181, 183, 186, 188, 191, 193, 196, 198, 201, 203, 206, 208, 211, 214, 217, 220,
+         223, 226, 229, 233, 236,
+         240, 244, 248, 252, 257, 262, 266, 272, 277, 283, 289, 295, 301, 308, 315, 323, 330, 338, 347, 356, 365,
+         374])
+    m = np.ones((384, 384))
+    m[:, a] = 0
+    m[:, 176:208] = 0
+
+    return m
+
 
 def add_z_to_input(args, input):
     """
@@ -63,20 +76,6 @@ def add_z_to_input(args, input):
 
     return input
 
-def get_inverse_mask():
-    a = np.array(
-        [0, 10, 19, 28, 37, 46, 54, 61, 69, 76, 83, 89, 95, 101, 107, 112, 118, 122, 127, 132, 136, 140, 144, 148,
-         151, 155, 158, 161, 164,
-         167, 170, 173, 176, 178, 181, 183, 186, 188, 191, 193, 196, 198, 201, 203, 206, 208, 211, 214, 217, 220,
-         223, 226, 229, 233, 236,
-         240, 244, 248, 252, 257, 262, 266, 272, 277, 283, 289, 295, 301, 308, 315, 323, 330, 338, 347, 356, 365,
-         374])
-    m = np.ones((384, 384))
-    m[:, a] = 0
-    m[:, 176:208] = 0
-
-    return m
-
 
 def save_model(args, exp_dir, epoch, model, optimizer, best_dev_loss, is_new_best):
     torch.save(
@@ -96,8 +95,6 @@ def save_model(args, exp_dir, epoch, model, optimizer, best_dev_loss, is_new_bes
 
 
 def main(args):
-    cuda = True if torch.cuda.is_available() else False
-
     args.exp_dir.mkdir(parents=True, exist_ok=True)
     writer = SummaryWriter(log_dir=str(args.exp_dir / 'summary'))
 
@@ -171,9 +168,6 @@ def main(args):
             #     % (epoch, opt.n_epochs, i, len(dataloader), d_loss.item(), g_loss.item())
             # )
 
-
-
-
     #     train_loss, train_time = train_epoch(args, epoch, model, train_loader, optimizer, writer)
     #     dev_loss, dev_time = evaluate(args, epoch, model, dev_loader, writer)
     #
@@ -188,6 +182,10 @@ def main(args):
 
 
 if __name__ == '__main__':
+    cuda = True if torch.cuda.is_available() else False
+    Tensor = torch.cuda.FloatTensor if cuda else torch.FloatTensor
+    inverse_mask = get_inverse_mask()
+
     args = create_arg_parser().parse_args()
     # restrict visible cuda devices
     if args.data_parallel or (args.device >= 0):
