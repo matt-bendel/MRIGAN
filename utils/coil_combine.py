@@ -6,8 +6,7 @@ LICENSE file in the root directory of this source tree.
 
 import torch
 
-import fastmri
-
+import utils.math as math
 
 def rss(data: torch.Tensor, dim: int = 0) -> torch.Tensor:
     """
@@ -32,4 +31,4 @@ def rss_complex(data: torch.Tensor, dim: int = 0) -> torch.Tensor:
     Returns:
         The RSS value.
     """
-    return torch.sqrt(fastmri.complex_abs_sq(data).sum(dim))
+    return torch.sqrt(math.complex_abs_sq(data).sum(dim))
