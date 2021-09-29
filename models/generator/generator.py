@@ -103,7 +103,7 @@ class FullUpBlock(nn.Module):
             out_chans (int): Number of channels in the output.
         """
         super().__init__()
-        self.in_chans = in_chans*2
+        self.in_chans = in_chans
         self.out_chans = out_chans
 
         self.upsample = nn.Sequential(
