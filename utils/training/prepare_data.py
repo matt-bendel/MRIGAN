@@ -91,8 +91,8 @@ class DataTransform:
         noise_flat_1 = (torch.sqrt(0.5 * noise_var)) * torch.randn(nnz_masked_kspace_real_flat.size())
         noise_flat_2 = (torch.sqrt(0.5 * noise_var)) * torch.randn(nnz_masked_kspace_real_flat.size())
 
-        nnz_masked_kspace_real_flat_noisy = nnz_masked_kspace_real_flat + noise_flat_1
-        nnz_masked_kspace_imag_flat_noisy = nnz_masked_kspace_imag_flat + noise_flat_2
+        nnz_masked_kspace_real_flat_noisy = nnz_masked_kspace_real_flat.float() + noise_flat_1
+        nnz_masked_kspace_imag_flat_noisy = nnz_masked_kspace_imag_flat.float() + noise_flat_2
 
         nnz_masked_kspace_real_noisy = unflatten(nnz_masked_kspace_real_flat_noisy, nnz_masked_kspace_real.shape)
         nnz_masked_kspace_imag_noisy = unflatten(nnz_masked_kspace_imag_flat_noisy, nnz_masked_kspace_imag.shape)
