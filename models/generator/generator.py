@@ -168,11 +168,11 @@ class GeneratorModel(nn.Module):
 
         self.decoder_layers = nn.ModuleList()
         self.decoder_layers += [FullUpBlock(512, 512)]  # 12x12
-        self.decoder_layers += [FullUpBlock(512, 512)]  # 24x24
-        self.decoder_layers += [FullUpBlock(512, 256)]  # 48x48
-        self.decoder_layers += [FullUpBlock(256, 128)]  # 96x96
-        self.decoder_layers += [FullUpBlock(128, 64)]  # 192x192
-        self.decoder_layers += [FullUpBlock(64, 32)]  # 384x384
+        self.decoder_layers += [FullUpBlock(512*2, 512)]  # 24x24
+        self.decoder_layers += [FullUpBlock(512*2, 256)]  # 48x48
+        self.decoder_layers += [FullUpBlock(256*2, 128)]  # 96x96
+        self.decoder_layers += [FullUpBlock(128*2, 64)]  # 192x192
+        self.decoder_layers += [FullUpBlock(64*2, 32)]  # 384x384
 
         self.final_conv = nn.Conv2d(32, 16, kernel_size=(1, 1))
 
