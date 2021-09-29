@@ -111,7 +111,7 @@ class FullUpBlock(nn.Module):
             nn.LeakyReLU(negative_slope=0.2),
         )
 
-        self.resblock = ResidualBlock(self.out_chans, self.out_chans, True, down=False)
+        self.resblock = ResidualBlock(self.out_chans*2, self.out_chans*2, True, down=False)
 
     def forward(self, input, old):
         """
@@ -122,9 +122,8 @@ class FullUpBlock(nn.Module):
             (torch.Tensor): Output tensor of shape [batch_size, self.out_chans, height, width]
         """
         output = self.upsample(input)
-        print(output.shape)
-        print(old.shape)
         output = torch.cat([self.upsample(output), old], dim=1)
+        print(output.shape)
         return self.resblock(output)
 
     def __repr__(self):
