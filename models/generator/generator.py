@@ -107,7 +107,7 @@ class FullUpBlock(nn.Module):
         self.out_chans = out_chans
 
         self.upsample = nn.Sequential(
-            nn.Conv2d(self.in_chans*2, self.out_chans, kernel_size=(3, 3), padding=1),
+            nn.Conv2d(self.in_chans, self.out_chans, kernel_size=(3, 3), padding=1),
             nn.LeakyReLU(negative_slope=0.2),
         )
 
@@ -121,7 +121,10 @@ class FullUpBlock(nn.Module):
         Returns:
             (torch.Tensor): Output tensor of shape [batch_size, self.out_chans, height, width]
         """
-        output = torch.cat([self.upsample(input), old], dim=1)
+        output = self.upsample(input)
+        print(output.shape)
+        print(old.shape)
+        output = torch.cat([self.upsample(output), old], dim=1)
         return self.resblock(output)
 
     def __repr__(self):
