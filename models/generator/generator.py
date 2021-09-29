@@ -111,7 +111,7 @@ class FullUpBlock(nn.Module):
             nn.LeakyReLU(negative_slope=0.2),
         )
 
-        self.resblock = ResidualBlock(self.out_chans, self.out_chans, True)
+        self.resblock = ResidualBlock(self.out_chans, self.out_chans, True, down=False)
 
     def forward(self, input, old):
         """
