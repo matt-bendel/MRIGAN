@@ -111,7 +111,7 @@ class FullUpBlock(nn.Module):
             nn.LeakyReLU(negative_slope=0.2),
         )
 
-        self.resblock = ResidualBlock(self.out_chans*2, self.out_chans*2, True, down=False)
+        self.resblock = ResidualBlock(self.out_chans * 2, self.out_chans * 2, True, down=False)
 
     def forward(self, input, old):
         """
@@ -121,7 +121,6 @@ class FullUpBlock(nn.Module):
         Returns:
             (torch.Tensor): Output tensor of shape [batch_size, self.out_chans, height, width]
         """
-        print(input.shape)
         output = self.upsample(input)
         print(output.shape)
         output = torch.cat([output, old], dim=1)
@@ -169,13 +168,17 @@ class GeneratorModel(nn.Module):
 
         self.decoder_layers = nn.ModuleList()
         self.decoder_layers += [FullUpBlock(512, 512)]  # 12x12
-        self.decoder_layers += [FullUpBlock(512*2, 512)]  # 24x24
-        self.decoder_layers += [FullUpBlock(512*2, 256)]  # 48x48
-        self.decoder_layers += [FullUpBlock(256*2, 128)]  # 96x96
-        self.decoder_layers += [FullUpBlock(128*2, 64)]  # 192x192
-        self.decoder_layers += [FullUpBlock(64*2, 32)]  # 384x384
+        self.decoder_layers += [FullUpBlock(512 * 2, 512)]  # 24x24
+        self.decoder_layers += [FullUpBlock(512 * 2, 256)]  # 48x48
+        self.decoder_layers += [FullUpBlock(256 * 2, 128)]  # 96x96
+        self.decoder_layers += [FullUpBlock(128 * 2, 64)]  # 192x192
+        self.decoder_layers += [FullUpBlock(64 * 2, 32)]  # 384x384
 
-        self.final_conv = nn.Conv2d(32, 16, kernel_size=(1, 1))
+        self.final_conv = nn.Sequential(
+            nn.Conv2d(64, 32, kernel_size=(3, 3), padding=1),
+            nn.LeakyReLU(negative_slope=0.2),
+            nn.Conv2d(32, 16, kernel_size=(1, 1))
+        )
 
     def forward(self, input, z=None):
         output = input
