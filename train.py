@@ -88,7 +88,7 @@ def prep_discriminator_input(data_tensor, num_vals, unet_type, inds=None):
 
             output_x = ifft2c_new(output_tensor)
             output_x = transforms.root_sum_of_squares(output_x)
-            disc_inp[k, :, :, :] = output_x.transpose(2, 0, 1)
+            disc_inp[k, :, :, :] = output_x.transpose((2, 0, 1))
     else:
         raise NotImplementedError
 
