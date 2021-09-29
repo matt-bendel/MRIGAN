@@ -60,6 +60,7 @@ def add_z_to_input(args, input):
                     3: Add as an extra input channel
                     """
     for i in range(input.shape[0]):
+        print(i)
         if args.z_location == 1 or args.z_location == 3:
             z = np.random.normal(size=(384, 384))
             z = Tensor(z * inverse_mask) if args.z_location == 1 else Tensor(z)
@@ -183,7 +184,7 @@ def main(args):
 
 if __name__ == '__main__':
     cuda = True if torch.cuda.is_available() else False
-    Tensor = torch.cuda.FloatTensor if cuda else torch.FloatTensor
+    Tensor = torch.FloatTensor
     inverse_mask = get_inverse_mask()
 
     args = create_arg_parser().parse_args()

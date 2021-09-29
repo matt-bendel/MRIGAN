@@ -1,6 +1,6 @@
 import torch
 
-from models.unet.unet import UnetModel
+from models.generator.unet import UnetModel
 
 
 def build_model(args):
