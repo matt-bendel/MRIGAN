@@ -37,12 +37,12 @@ class ResidualBlock(nn.Module):
         if self.in_chans != self.out_chans:
             self.out_chans = self.in_chans
 
-        self.norm = nn.BatchNorm2d(self.out_chans if down else self.out_chans * 2)
+        self.norm = nn.BatchNorm2d(self.out_chans)
         self.conv_1_x_1 = nn.Conv2d(self.in_chans, self.out_chans, kernel_size=(1, 1))
         self.layers = nn.Sequential(
             nn.LeakyReLU(negative_slope=0.2),
             nn.Conv2d(self.in_chans, self.out_chans, kernel_size=(3, 3), padding=1),
-            nn.BatchNorm2d(self.out_chans if down else self.out_chans * 2),
+            nn.BatchNorm2d(self.out_chans),
             nn.LeakyReLU(negative_slope=0.2),
             nn.Conv2d(self.in_chans, self.out_chans, kernel_size=(3, 3), padding=1),
         )
@@ -111,7 +111,7 @@ class FullUpBlock(nn.Module):
             nn.LeakyReLU(negative_slope=0.2),
         )
 
-        self.resblock = ResidualBlock(self.out_chans, self.out_chans, True, down=False)
+        self.resblock = ResidualBlock(self.out_chans*2, self.out_chans*2, True, down=False)
 
     def forward(self, input, old):
         """
