@@ -185,10 +185,10 @@ class GeneratorModel(nn.Module):
 
         # Apply down-sampling layers
         for layer in self.encoder_layers:
-            print('in')
             output = layer(output)
             stack.append(output)
 
+        stack.pop()
         if self.z_location == 2:
             output = self.middle(output, z)
         else:
