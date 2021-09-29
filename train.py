@@ -162,6 +162,7 @@ def main(args):
     for epoch in range(start_epoch, args.num_epochs):
         for i, data in enumerate(train_loader):
             input, target_full, mean, std, nnz_index_mask = data
+            print(target_full.shape)
             old_input = input.to(args.device)
             input_w_z = add_z_to_input(args, input)
 

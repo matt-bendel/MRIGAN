@@ -149,12 +149,12 @@ class GeneratorModel(nn.Module):
         )
 
         self.encoder_layers = nn.ModuleList()
-        self.encoder_layers += FullDownBlock(32, 64)  # 192x192
-        self.encoder_layers += FullDownBlock(64, 128)  # 96x96
-        self.encoder_layers += FullDownBlock(128, 256)  # 48x48
-        self.encoder_layers += FullDownBlock(256, 512)  # 24x24
-        self.encoder_layers += FullDownBlock(512, 512)  # 12x12
-        self.encoder_layers += FullDownBlock(512, 512)  # 6x6
+        self.encoder_layers += [FullDownBlock(32, 64)]  # 192x192
+        self.encoder_layers += [FullDownBlock(64, 128)]  # 96x96
+        self.encoder_layers += [FullDownBlock(128, 256)]  # 48x48
+        self.encoder_layers += [FullDownBlock(256, 512)]  # 24x24
+        self.encoder_layers += [FullDownBlock(512, 512)]  # 12x12
+        self.encoder_layers += [FullDownBlock(512, 512)]  # 6x6
 
         if z_location == 2:
             # WE CHANGE THE MIDDLE OF THE MODEL
@@ -163,12 +163,12 @@ class GeneratorModel(nn.Module):
             self.middle = ResidualBlock(512, 512)  # 6x6
 
         self.decoder_layers = nn.ModuleList()
-        self.decoder_layers += FullUpBlock(512, 512)  # 12x12
-        self.decoder_layers += FullUpBlock(512, 512)  # 24x24
-        self.decoder_layers += FullUpBlock(512, 256)  # 48x48
-        self.decoder_layers += FullUpBlock(256, 128)  # 96x96
-        self.decoder_layers += FullUpBlock(128, 64)  # 192x192
-        self.decoder_layers += FullUpBlock(64, 32)  # 384x384
+        self.decoder_layers += [FullUpBlock(512, 512)]  # 12x12
+        self.decoder_layers += [FullUpBlock(512, 512)]  # 24x24
+        self.decoder_layers += [FullUpBlock(512, 256)]  # 48x48
+        self.decoder_layers += [FullUpBlock(256, 128)]  # 96x96
+        self.decoder_layers += [FullUpBlock(128, 64)]  # 192x192
+        self.decoder_layers += [FullUpBlock(64, 32)]  # 384x384
 
         self.final_conv = nn.Conv2d(32, 16, kernel_size=(1, 1))
 
