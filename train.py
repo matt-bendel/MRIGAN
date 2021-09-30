@@ -197,9 +197,9 @@ def main(args):
 
                 # TURN OUTPUT INTO IMAGE FOR DISCRIMINATION AND GET REAL IMAGES FOR DISCRIMINATION
                 disc_target_batch = prep_discriminator_input(target_full, args.batch_size, args.network_input,
-                                                             i_true, inds=False, mean=mean, std=std).to(args.device)
+                                                             i_true, inds=True, mean=mean, std=std).to(args.device)
                 disc_output_batch = prep_discriminator_input(refined_out, args.batch_size, args.network_input,
-                                                             i_fake, inds=False, mean=mean, std=std).to(args.device)
+                                                             i_fake, inds=True, mean=mean, std=std).to(args.device)
 
                 # TEST THAT IMAGES LOOK RIGHT
                 # im_check = complex_abs(disc_target_batch[2].permute(1, 2, 0))
