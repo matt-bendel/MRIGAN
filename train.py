@@ -194,7 +194,9 @@ def main(args):
 
                 # TEST THAT IMAGES LOOK RIGHT
                 im_check = complex_abs(disc_target_batch[2].permute(1, 2, 0))
-                print(im_check.shape)
+                im_np = im_check.cpu().numpy()
+                plt.imshow(im_np, cmap='gray')
+                plt.savefig('tester.png')
                 # PLT
                 exit()
                 disc_output_batch = prep_discriminator_input(refined_out, args.batch_size // 2, args.network_input, i_fake, inds=True, mean=mean, std=std)
