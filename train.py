@@ -36,6 +36,8 @@ from utils.training.parse_args import create_arg_parser
 from utils.training.prepare_model import resume_train, fresh_start
 from tensorboardX import SummaryWriter
 
+import matplotlib.pyplot as plt
+
 # Tunable weight for gradient penalty
 lambda_gp = 10
 
@@ -75,13 +77,14 @@ def add_z_to_input(args, input):
     return input
 
 
-def prep_discriminator_input(data_tensor, num_vals, unet_type, inds=None, mean=None, std=None):
+def prep_discriminator_input(data_tensor, num_vals, unet_type, indvals, inds=None, mean=None, std=None):
     disc_inp = torch.zeros(num_vals, 2, 384, 384)
 
     if unet_type == 'kspace':
         for k in range(num_vals):
-            output = torch.squeeze(data_tensor[k]) if not inds else torch.squeeze(data_tensor[inds[k]])
-            data_tensor = data_tensor * std[k] + mean[k] if not inds else data_tensor * std[inds[k]] + mean[inds[k]]
+            print(indvals[k])
+            output = torch.squeeze(data_tensor[k]) if not inds else torch.squeeze(data_tensor[indvals[k]])
+            data_tensor = data_tensor * std[k] + mean[k] if not inds else data_tensor * std[indvals[k]] + mean[indvals[k]]
             output_tensor = torch.zeros(8, 384, 384, 2)
             output_tensor[:, :, :, 0] = output[0:8, :, :]
             output_tensor[:, :, :, 1] = output[8:16, :, :]
@@ -183,18 +186,18 @@ def main(args):
 
                 # TURN OUTPUT INTO IMAGE FOR DISCRIMINATION AND GET REAL IMAGES FOR DISCRIMINATION
                 if args.network_input == 'kspace':
-                    print(old_input)
                     refined_out = output_gen + old_input
                 else:
                     raise NotImplementedError
 
-                disc_target_batch = prep_discriminator_input(target_full, args.batch_size // 2, args.network_input, inds=i_true, mean=mean, std=std)
+                disc_target_batch = prep_discriminator_input(target_full, args.batch_size // 2, args.network_input, i_true, inds=True, mean=mean, std=std)
 
                 # TEST THAT IMAGES LOOK RIGHT
                 im_check = complex_abs(disc_target_batch[2].permute(1, 2, 0))
                 print(im_check.shape)
+                # PLT
                 exit()
-                disc_output_batch = prep_discriminator_input(refined_out, args.batch_size // 2, args.network_input, inds=i_fake, mean=mean, std=std)
+                disc_output_batch = prep_discriminator_input(refined_out, args.batch_size // 2, args.network_input, i_fake, inds=True, mean=mean, std=std)
 
                 real_pred = discriminator(disc_target_batch)
                 fake_pred = discriminator(disc_output_batch)
@@ -218,7 +221,7 @@ def main(args):
             else:
                 raise NotImplementedError
 
-            disc_inp = prep_discriminator_input(refined_out, args.batch_size, args.network_input)
+            disc_inp = prep_discriminator_input(refined_out, args.batch_size, args.network_input, [], mean=mean, std=std)
 
             # Loss measures generator's ability to fool the discriminator
             # Train on fake images
