@@ -212,7 +212,7 @@ class GeneratorModel(nn.Module):
             z_out = F.interpolate(z_out, scale_factor=2, mode='bilinear', align_corners=False)
             z_out = self.middle_z_grow_conv(z_out)
             output = torch.cat([output, z_out], dim=1)
-            self.middle(output)
+            output = self.middle(output)
         else:
             output = self.middle(output)
 
