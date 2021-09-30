@@ -118,10 +118,10 @@ def save_model(args, exp_dir, epoch, model, optimizer, best_dev_loss, is_new_bes
         shutil.copyfile(exp_dir / f'{m_type}_model.pt', exp_dir / f'{m_type}_best_model.pt')
 
 
-def compute_gradient_penalty(D, real_samples, fake_samples):
+def compute_gradient_penalty(D, real_samples, fake_samples, args):
     """Calculates the gradient penalty loss for WGAN GP"""
     # Random weight term for interpolation between real and fake samples
-    alpha = Tensor(np.random.random((real_samples.size(0), 1, 1, 1)))
+    alpha = Tensor(np.random.random((real_samples.size(0), 1, 1, 1))).to(args.device)
     # Get random interpolation between real and fake samples
     interpolates = (alpha * real_samples + ((1 - alpha) * fake_samples)).requires_grad_(True)
     d_interpolates = D(interpolates)
@@ -184,7 +184,11 @@ def main(args):
                     raise NotImplementedError
 
                 input_w_z = input_w_z.to(args.device)
-                output_gen = generator(input_w_z)
+                if args.z_location == 2:
+                    z = np.random.normal(size=args.latent_size)
+                    output_gen = generator(input_w_z, z=z)
+                else:
+                    output_gen = generator(input_w_z)
 
                 # TURN OUTPUT INTO IMAGE FOR DISCRIMINATION AND GET REAL IMAGES FOR DISCRIMINATION
                 if args.network_input == 'kspace':
@@ -209,7 +213,7 @@ def main(args):
 
                 # Gradient penalty - TODO: FIX THIS
                 gradient_penalty = compute_gradient_penalty(discriminator, disc_target_batch.data,
-                                                            disc_output_batch.data)
+                                                            disc_output_batch.data, args)
                 print(gradient_penalty)
                 exit()
                 # Adversarial loss
