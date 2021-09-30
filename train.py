@@ -204,18 +204,14 @@ def main(args):
 
                 disc_output_batch = prep_discriminator_input(refined_out, args.batch_size // 2, args.network_input,
                                                              i_fake, inds=True, mean=mean, std=std)
-                print(disc_output_batch.shape)
-                print(disc_target_batch.shape)
                 real_pred = discriminator(disc_target_batch)
                 fake_pred = discriminator(disc_output_batch)
-                print(real_pred)
-                print(fake_pred)
-                exit()
 
                 # Gradient penalty - TODO: FIX THIS
                 gradient_penalty = compute_gradient_penalty(discriminator, disc_target_batch.data,
                                                             disc_output_batch.data)
-
+                print(gradient_penalty)
+                exit()
                 # Adversarial loss
                 d_loss = -torch.mean(real_pred) + torch.mean(fake_pred) + lambda_gp * gradient_penalty
 
