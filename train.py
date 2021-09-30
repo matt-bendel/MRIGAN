@@ -210,20 +210,12 @@ def main(args):
 
                 real_pred = discriminator(disc_target_batch)
                 fake_pred = discriminator(disc_output_batch)
-                print('\n')
-                print("PREDICTIONS")
-                print("REAL")
-                print(real_pred)
-                print(torch.mean(real_pred))
-                print("FAKE")
-                print(fake_pred)
-                print(torch.mean(fake_pred))
-                print('\n')
+
                 # Gradient penalty
                 gradient_penalty = compute_gradient_penalty(discriminator, disc_target_batch.data,
                                                             disc_output_batch.data, args)
                 # Adversarial loss
-                d_loss = torch.mean(fake_pred) - torch.mean(real_pred) + gradient_penalty #lambda_gp * gradient_penalty
+                d_loss = torch.mean(fake_pred) - torch.mean(real_pred) + lambda_gp * gradient_penalty
 
                 d_loss.backward()
                 optimizer_D.step()
@@ -255,6 +247,11 @@ def main(args):
             )
             temp_iter = temp_iter + 1
             if temp_iter == 100:
+                im_check = complex_abs(disc_target_batch[2].permute(1, 2, 0))
+                im_np = im_check.cpu().numpy()
+                plt.figure()
+                plt.imshow(np.abs(im_np), origin='lower', cmap='gray')
+                plt.savefig('tester.png')
                 exit()
 
         if epoch == 1:

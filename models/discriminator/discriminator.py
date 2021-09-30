@@ -35,12 +35,12 @@ class ResidualBlock(nn.Module):
         if self.in_chans != self.out_chans:
             self.out_chans = self.in_chans
 
-        self.norm = nn.BatchNorm2d(self.out_chans)
+        # self.norm = nn.BatchNorm2d(self.out_chans)
         self.conv_1_x_1 = nn.Conv2d(self.in_chans, self.out_chans, kernel_size=(1, 1))
         self.layers = nn.Sequential(
             nn.LeakyReLU(negative_slope=0.2),
             nn.Conv2d(self.in_chans, self.out_chans, kernel_size=(3, 3), padding=1),
-            nn.BatchNorm2d(self.out_chans),
+            # nn.BatchNorm2d(self.out_chans),
             nn.LeakyReLU(negative_slope=0.2),
             nn.Conv2d(self.in_chans, self.out_chans, kernel_size=(3, 3), padding=1),
         )
@@ -54,8 +54,8 @@ class ResidualBlock(nn.Module):
             (torch.Tensor): Output tensor of shape [batch_size, self.out_chans, height, width]
         """
         output = input
-        if self.batch_norm:
-            output = self.norm(input)
+        # if self.batch_norm:
+        #     output = self.norm(input)
 
         return self.layers(output) + self.conv_1_x_1(output)
 
@@ -76,7 +76,7 @@ class FullDownBlock(nn.Module):
             nn.Conv2d(self.in_chans, self.out_chans, kernel_size=(3, 3), padding=1),
             nn.LeakyReLU(negative_slope=0.2),
         )
-        self.resblock = ResidualBlock(self.out_chans, self.out_chans, True)
+        # self.resblock = ResidualBlock(self.out_chans, self.out_chans, True)
 
     def forward(self, input):
         """
@@ -87,7 +87,7 @@ class FullDownBlock(nn.Module):
             (torch.Tensor): Output tensor of shape [batch_size, self.out_chans, height, width]
         """
 
-        return self.resblock(self.downsample(input))
+        return self.downsample(input)#self.resblock(self.downsample(input))
 
     def __repr__(self):
         return f'AvgPool(in_chans={self.in_chans}, out_chans={self.out_chans}\nResBlock(in_chans={self.out_chans}, out_chans={self.out_chans}'
@@ -125,6 +125,7 @@ class DiscriminatorModel(nn.Module):
             nn.Linear(512 * 6 * 6, 128),
             nn.LeakyReLU(negative_slope=0.2),
             nn.Linear(128, 1),
+            nn.Sigmoid()
         )
 
     def forward(self, input):
