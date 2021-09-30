@@ -184,9 +184,10 @@ def main(args):
                     raise NotImplementedError
 
                 input_w_z = input_w_z.to(args.device)
+                print(input_w_z.shape)
                 if args.z_location == 2:
-                    z = Tensor(np.random.normal(size=args.latent_size * input_w_z.shape[0])).to(args.device)
-                    output_gen = generator(input_w_z, z=z, batch_size=input_w_z.shape[0])
+                    output_gen = generator(input_w_z, device=args.device, latent_size=args.latent_size)
+                    print(input_w_z.shape)
                 else:
                     output_gen = generator(input_w_z)
 
@@ -247,6 +248,9 @@ def main(args):
                 "[Epoch %d/%d] [D loss: %f] [G loss: %f]"
                 % (epoch, args.num_epochs, d_loss.item(), g_loss.item())
             )
+
+            if epoch == 10:
+                print("SAVE")
 
 
 if __name__ == '__main__':

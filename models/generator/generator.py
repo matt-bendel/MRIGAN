@@ -12,6 +12,9 @@ NOTE: z_location tells the network where to use the latent variable. It has opti
 """
 
 import torch
+
+import numpy as np
+
 from torch import nn
 from torch.nn import functional as F
 
@@ -184,7 +187,7 @@ class GeneratorModel(nn.Module):
             nn.Conv2d(32, 16, kernel_size=(1, 1))
         )
 
-    def forward(self, input, z=None, batch_size=None):
+    def forward(self, input, device=None, latent_size=None):
         output = input
         output = self.initial_layers(output)
 
@@ -198,8 +201,9 @@ class GeneratorModel(nn.Module):
 
         stack.pop()
         if self.z_location == 2:
+            z = torch.FloatTensor(np.random.normal(size=latent_size * output.shape[0])).to(device)
             z_out = self.middle_z_grow_linear(z)
-            z_out = torch.reshape(z_out, (batch_size, self.latent_size, 3, 3))
+            z_out = torch.reshape(z_out, (output.shape[0], self.latent_size, 3, 3))
             z_out = F.interpolate(z_out, scale_factor=2, mode='bilinear', align_corners=False)
             z_out = self.middle_z_grow_conv(z_out)
             output = torch.cat([output, z_out], dim=1)
