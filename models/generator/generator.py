@@ -203,9 +203,9 @@ class GeneratorModel(nn.Module):
         stack.pop()
         if self.z_location == 2:
             z = torch.FloatTensor(np.random.normal(size=latent_size * output.shape[0])).to(device)
-            print(z.shape)
+            print(z.shape)  # should be 4 * 512
             z_out = self.middle_z_grow_linear(z)
-            print(z_out.shape)
+            print(z_out.shape)  # should be 4 * 512 * 3 * 3
             z_out = torch.reshape(z_out, (output.shape[0], self.latent_size, 3, 3))
             z_out = F.interpolate(z_out, scale_factor=2, mode='bilinear', align_corners=False)
             z_out = self.middle_z_grow_conv(z_out)
