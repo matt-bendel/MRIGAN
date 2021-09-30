@@ -170,7 +170,11 @@ class GeneratorModel(nn.Module):
                 nn.Conv2d(latent_size, latent_size, kernel_size=(3, 3), padding=1),
                 nn.LeakyReLU(negative_slope=0.2),
             )
-            self.middle = ResidualBlock(512 + latent_size, 512)
+            self.middle = nn.Sequential(
+                nn.LeakyReLU(negative_slope=0.2),
+                nn.Conv2d(512 + latent_size, 512, kernel_size=(3,3), padding=1),
+                ResidualBlock(512, 512)
+            )
         else:
             self.middle = ResidualBlock(512, 512)  # 6x6
 
@@ -203,9 +207,7 @@ class GeneratorModel(nn.Module):
         stack.pop()
         if self.z_location == 2:
             z = torch.FloatTensor(np.random.normal(size=latent_size * output.shape[0])).to(device)
-            print(z.shape)  # should be 4 * 512
             z_out = self.middle_z_grow_linear(z)
-            print(z_out.shape)  # should be 4 * 512 * 3 * 3
             z_out = torch.reshape(z_out, (output.shape[0], self.latent_size, 3, 3))
             z_out = F.interpolate(z_out, scale_factor=2, mode='bilinear', align_corners=False)
             z_out = self.middle_z_grow_conv(z_out)
