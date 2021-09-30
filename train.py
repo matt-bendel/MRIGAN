@@ -196,10 +196,10 @@ def main(args):
                     raise NotImplementedError
 
                 # TURN OUTPUT INTO IMAGE FOR DISCRIMINATION AND GET REAL IMAGES FOR DISCRIMINATION
-                disc_target_batch = prep_discriminator_input(target_full, args.batch_size // 2, args.network_input,
-                                                             i_true, inds=True, mean=mean, std=std).to(args.device)
-                disc_output_batch = prep_discriminator_input(refined_out, args.batch_size // 2, args.network_input,
-                                                             i_fake, inds=True, mean=mean, std=std).to(args.device)
+                disc_target_batch = prep_discriminator_input(target_full, args.batch_size, args.network_input,
+                                                             i_true, inds=False, mean=mean, std=std).to(args.device)
+                disc_output_batch = prep_discriminator_input(refined_out, args.batch_size, args.network_input,
+                                                             i_fake, inds=False, mean=mean, std=std).to(args.device)
 
                 # TEST THAT IMAGES LOOK RIGHT
                 # im_check = complex_abs(disc_target_batch[2].permute(1, 2, 0))
@@ -252,22 +252,23 @@ def main(args):
             )
             temp_iter = temp_iter + 1
             if temp_iter == 100:
+                # exit()
+                print('100')
+
+            if epoch == 10:
                 im_check = complex_abs(disc_target_batch[2].permute(1, 2, 0))
-                im_np = im_check.cpu().numpy()
+                im_np = im_check.detach().cpu().numpy()
                 plt.figure()
                 plt.imshow(np.abs(im_np), origin='lower', cmap='gray')
-                plt.savefig('test_true.png')
+                plt.savefig(f'test_true_{epoch}.png')
 
                 im_check = complex_abs(disc_output_batch[2].permute(1, 2, 0))
-                im_np = im_check.cpu().numpy()
+                im_np = im_check.detach().cpu().numpy()
                 plt.figure()
                 plt.imshow(np.abs(im_np), origin='lower', cmap='gray')
-                plt.savefig('test_gen.png')
+                plt.savefig(f'test_gen_{epoch}.png')
                 exit()
 
-        if epoch == 1:
-            exit()
-            print("SAVE")
 
 
 if __name__ == '__main__':
