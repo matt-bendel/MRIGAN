@@ -130,7 +130,7 @@ class FullUpBlock(nn.Module):
 
 
 class GeneratorModel(nn.Module):
-    def __init__(self, in_chans, out_chans, z_location, model_type):
+    def __init__(self, in_chans, out_chans, z_location, model_type, latent_size=None):
         """
         Args:
             in_chans (int): Number of channels in the input to the U-Net model.
@@ -142,6 +142,7 @@ class GeneratorModel(nn.Module):
         self.out_chans = out_chans
         self.z_location = z_location
         self.model_type = model_type
+        self.latent_size = latent_size
 
         self.initial_layers = nn.Sequential(
             nn.Conv2d(self.in_chans, 32, kernel_size=(3, 3), padding=1),  # 384x384
@@ -157,8 +158,15 @@ class GeneratorModel(nn.Module):
         self.encoder_layers += [FullDownBlock(512, 512)]  # 6x6
 
         if z_location == 2:
-            # WE CHANGE THE MIDDLE OF THE MODEL
-            print(2)
+            self.middle_z_grow_linear = nn.Sequential(
+                nn.Linear(latent_size * 16, latent_size * 3 * 3 * 16),
+                nn.LeakyReLU(negative_slope=0.2)
+            )
+            self.middle_z_grow_conv = nn.Sequential(
+                nn.Conv2d(latent_size, latent_size, kernel_size=(3, 3), padding=1),
+                nn.LeakyReLU(negative_slope=0.2),
+            )
+            self.middle = ResidualBlock(512 + latent_size, 512)
         else:
             self.middle = ResidualBlock(512, 512)  # 6x6
 
@@ -176,7 +184,7 @@ class GeneratorModel(nn.Module):
             nn.Conv2d(32, 16, kernel_size=(1, 1))
         )
 
-    def forward(self, input, z=None):
+    def forward(self, input, z=None, batch_size=None):
         output = input
         output = self.initial_layers(output)
 
@@ -190,7 +198,12 @@ class GeneratorModel(nn.Module):
 
         stack.pop()
         if self.z_location == 2:
-            output = self.middle(output, z)
+            z_out = self.middle_z_grow_linear(z)
+            z_out = torch.reshape(z_out, (batch_size, self.latent_size, 3, 3))
+            z_out = F.interpolate(z_out, scale_factor=2, mode='bilinear', align_corners=False)
+            z_out = self.middle_z_grow_conv(z_out)
+            output = torch.cat([output, z_out], dim=1)
+            self.middle(output)
         else:
             output = self.middle(output)
 

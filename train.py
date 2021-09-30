@@ -125,7 +125,7 @@ def compute_gradient_penalty(D, real_samples, fake_samples, args):
     # Get random interpolation between real and fake samples
     interpolates = (alpha * real_samples + ((1 - alpha) * fake_samples)).requires_grad_(True)
     d_interpolates = D(interpolates)
-    fake = Tensor(real_samples.shape[0], 1).fill_(1.0)
+    fake = Tensor(real_samples.shape[0], 1).fill_(1.0).to(args.device)
     # Get gradient w.r.t. interpolates
     gradients = autograd.grad(
         outputs=d_interpolates,
@@ -185,8 +185,8 @@ def main(args):
 
                 input_w_z = input_w_z.to(args.device)
                 if args.z_location == 2:
-                    z = np.random.normal(size=args.latent_size)
-                    output_gen = generator(input_w_z, z=z)
+                    z = np.random.normal(size=args.latent_size * input_w_z.shape[0])
+                    output_gen = generator(input_w_z, z=z, batch_size=input_w_z.shape[0])
                 else:
                     output_gen = generator(input_w_z)
 
