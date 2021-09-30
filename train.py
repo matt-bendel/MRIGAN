@@ -185,7 +185,7 @@ def main(args):
 
                 input_w_z = input_w_z.to(args.device)
                 if args.z_location == 2:
-                    z = np.random.normal(size=args.latent_size * input_w_z.shape[0])
+                    z = Tensor(np.random.normal(size=args.latent_size * input_w_z.shape[0])).to(args.device)
                     output_gen = generator(input_w_z, z=z, batch_size=input_w_z.shape[0])
                 else:
                     output_gen = generator(input_w_z)
