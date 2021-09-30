@@ -196,9 +196,9 @@ def main(args):
                     raise NotImplementedError
 
                 # TURN OUTPUT INTO IMAGE FOR DISCRIMINATION AND GET REAL IMAGES FOR DISCRIMINATION
-                disc_target_batch = prep_discriminator_input(target_full, args.batch_size, args.network_input,
+                disc_target_batch = prep_discriminator_input(target_full, args.batch_size // 2, args.network_input,
                                                              i_true, inds=True, mean=mean, std=std).to(args.device)
-                disc_output_batch = prep_discriminator_input(refined_out, args.batch_size, args.network_input,
+                disc_output_batch = prep_discriminator_input(refined_out, args.batch_size // 2, args.network_input,
                                                              i_fake, inds=True, mean=mean, std=std).to(args.device)
 
                 # TEST THAT IMAGES LOOK RIGHT
