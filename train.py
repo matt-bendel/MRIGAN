@@ -170,12 +170,11 @@ def main(args):
         for i, data in enumerate(train_loader):
             input, target_full, mean, std, nnz_index_mask = data
             old_input = input.to(args.device)
-            input_w_z = add_z_to_input(args, input)
 
             for j in range(args.num_iters_discriminator):
                 i_true = np.random.randint(0, target_full.shape[0], args.batch_size // 2)
                 i_fake = np.random.randint(0, target_full.shape[0], args.batch_size // 2)
-
+                input_w_z = add_z_to_input(args, input)
                 # ---------------------
                 #  Train Discriminator
                 # ---------------------
