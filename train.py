@@ -158,8 +158,8 @@ def main(args):
 
     train_loader, dev_loader = create_data_loaders(args)
     lr = 10e-4
-    beta_1 = 0.5
-    beta_2 = 0.999
+    beta_1 = 0
+    beta_2 = 0.9
 
     # Optimizers
     optimizer_G = torch.optim.Adam(generator.parameters(), lr=lr, betas=(beta_1, beta_2))
@@ -256,7 +256,13 @@ def main(args):
                 im_np = im_check.cpu().numpy()
                 plt.figure()
                 plt.imshow(np.abs(im_np), origin='lower', cmap='gray')
-                plt.savefig('tester.png')
+                plt.savefig('test_true.png')
+
+                im_check = complex_abs(disc_output_batch[2].permute(1, 2, 0))
+                im_np = im_check.cpu().numpy()
+                plt.figure()
+                plt.imshow(np.abs(im_np), origin='lower', cmap='gray')
+                plt.savefig('test_gen.png')
                 exit()
 
         if epoch == 1:
