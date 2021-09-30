@@ -254,7 +254,7 @@ def main(args):
                 # exit()
                 print('100')
 
-            if epoch == 10:
+            if epoch == 1:
                 im_check = complex_abs(disc_target_batch[2].permute(1, 2, 0))
                 im_np = im_check.detach().cpu().numpy()
                 plt.figure()
