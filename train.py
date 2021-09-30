@@ -70,16 +70,9 @@ def add_z_to_input(args, input):
             z = Tensor(z * inverse_mask) if args.z_location == 1 else Tensor(z)
             if args.z_location == 1:
                 for val in range(input.shape[1]):
-                    print(input[i, val, :, 9])
-                    print('\n\n\n')
-                    print(input[i, val, :, 10])
                     input[i, val, :, :] = input[i, val, :, :].add(z)
-                    print(input[i, val, :, 9])
-                    print('\n\n\n')
-                    print(input[i, val, :, 10])
             else:
                 input[i, 16, :, :] = z
-                print(input[i,16,:,:])
 
     return input
 
@@ -202,16 +195,20 @@ def main(args):
                 disc_target_batch = prep_discriminator_input(target_full, args.batch_size // 2, args.network_input, i_true, inds=True, mean=mean, std=std)
 
                 # TEST THAT IMAGES LOOK RIGHT
-                im_check = complex_abs(disc_target_batch[2].permute(1, 2, 0))
-                im_np = im_check.cpu().numpy()
-                plt.imshow(np.abs(im_np), origin='lower', cmap='gray')
-                plt.savefig('tester.png')
+                # im_check = complex_abs(disc_target_batch[2].permute(1, 2, 0))
+                # im_np = im_check.cpu().numpy()
+                # plt.imshow(np.abs(im_np), origin='lower', cmap='gray')
+                # plt.savefig('tester.png')
                 # PLT
-                exit()
-                disc_output_batch = prep_discriminator_input(refined_out, args.batch_size // 2, args.network_input, i_fake, inds=True, mean=mean, std=std)
 
+                disc_output_batch = prep_discriminator_input(refined_out, args.batch_size // 2, args.network_input, i_fake, inds=True, mean=mean, std=std)
+                print(disc_output_batch.shape)
+                print(disc_target_batch.shape)
                 real_pred = discriminator(disc_target_batch)
                 fake_pred = discriminator(disc_output_batch)
+                print(real_pred)
+                print(fake_pred)
+                exit()
 
                 # Gradient penalty - TODO: FIX THIS
                 gradient_penalty = compute_gradient_penalty(discriminator, disc_target_batch.data, disc_output_batch.data)
