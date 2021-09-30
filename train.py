@@ -78,10 +78,10 @@ def add_z_to_input(args, input):
 
 
 def prep_discriminator_input(data_tensor, num_vals, unet_type, indvals, inds=None, mean=None, std=None):
-    disc_inp = torch.zeros(num_vals, 2, 384, 384)
+    disc_inp = torch.zeros(data_tensor.shape[0], 2, 384, 384)
 
     if unet_type == 'kspace':
-        for k in range(num_vals):
+        for k in range(data_tensor.shape[0]):
             # output = torch.squeeze(data_tensor[k]) if not inds else torch.squeeze(data_tensor[indvals[k]])
             # data_tensor = data_tensor * std[k] + mean[k] if not inds else data_tensor * std[indvals[k]] + mean[indvals[k]]
 
