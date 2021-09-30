@@ -70,9 +70,13 @@ def add_z_to_input(args, input):
             z = Tensor(z * inverse_mask) if args.z_location == 1 else Tensor(z)
             if args.z_location == 1:
                 for val in range(input.shape[1]):
-                    print(input[i, val, :, :])
+                    print(input[i, val, :, 9])
+                    print('\n\n\n')
+                    print(input[i, val, :, 10])
                     input[i, val, :, :] = input[i, val, :, :].add(z)
-                    print(input[i, val, :, :])
+                    print(input[i, val, :, 9])
+                    print('\n\n\n')
+                    print(input[i, val, :, 10])
             else:
                 input[i, 16, :, :] = z
                 print(input[i,16,:,:])
