@@ -202,7 +202,7 @@ def main(args):
 
                 # PLOT FIRST GENERATED IMAGE
                 if first:
-                    im_check = complex_abs(disc_target_batch[2].permute(1, 2, 0))
+                    im_check = complex_abs(disc_output_batch[2].permute(1, 2, 0))
                     im_np = im_check.cpu().numpy()
                     plt.imshow(np.abs(im_np), origin='lower', cmap='gray')
                     plt.savefig('first_gen.png')
