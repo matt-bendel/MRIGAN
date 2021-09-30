@@ -188,11 +188,12 @@ def main(args):
 
                 # TURN OUTPUT INTO IMAGE FOR DISCRIMINATION AND GET REAL IMAGES FOR DISCRIMINATION
                 if args.network_input == 'kspace':
-                    refined_out = output_gen + old_input
+                    refined_out = output_gen + old_input[:, 0:16]
                 else:
                     raise NotImplementedError
 
-                disc_target_batch = prep_discriminator_input(target_full, args.batch_size // 2, args.network_input, i_true, inds=True, mean=mean, std=std)
+                disc_target_batch = prep_discriminator_input(target_full, args.batch_size // 2, args.network_input,
+                                                             i_true, inds=True, mean=mean, std=std)
 
                 # TEST THAT IMAGES LOOK RIGHT
                 # im_check = complex_abs(disc_target_batch[2].permute(1, 2, 0))
@@ -201,7 +202,8 @@ def main(args):
                 # plt.savefig('tester.png')
                 # PLT
 
-                disc_output_batch = prep_discriminator_input(refined_out, args.batch_size // 2, args.network_input, i_fake, inds=True, mean=mean, std=std)
+                disc_output_batch = prep_discriminator_input(refined_out, args.batch_size // 2, args.network_input,
+                                                             i_fake, inds=True, mean=mean, std=std)
                 print(disc_output_batch.shape)
                 print(disc_target_batch.shape)
                 real_pred = discriminator(disc_target_batch)
@@ -211,7 +213,8 @@ def main(args):
                 exit()
 
                 # Gradient penalty - TODO: FIX THIS
-                gradient_penalty = compute_gradient_penalty(discriminator, disc_target_batch.data, disc_output_batch.data)
+                gradient_penalty = compute_gradient_penalty(discriminator, disc_target_batch.data,
+                                                            disc_output_batch.data)
 
                 # Adversarial loss
                 d_loss = -torch.mean(real_pred) + torch.mean(fake_pred) + lambda_gp * gradient_penalty
@@ -229,7 +232,8 @@ def main(args):
             else:
                 raise NotImplementedError
 
-            disc_inp = prep_discriminator_input(refined_out, args.batch_size, args.network_input, [], mean=mean, std=std)
+            disc_inp = prep_discriminator_input(refined_out, args.batch_size, args.network_input, [], mean=mean,
+                                                std=std)
 
             # Loss measures generator's ability to fool the discriminator
             # Train on fake images
