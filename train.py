@@ -214,12 +214,7 @@ def main(args):
                 gradient_penalty = compute_gradient_penalty(discriminator, disc_target_batch.data,
                                                             disc_output_batch.data, args)
                 # Adversarial loss
-                print(-torch.mean(real_pred))
-                print(torch.mean(fake_pred))
                 d_loss = -torch.mean(real_pred) + torch.mean(fake_pred) + lambda_gp * gradient_penalty
-
-                print(d_loss)
-                exit()
 
                 d_loss.backward()
                 optimizer_D.step()
@@ -227,7 +222,7 @@ def main(args):
             optimizer_G.zero_grad()
 
             # Generate a batch of images
-            output_gen = generator(input_w_z)
+            output_gen = generator(input_w_z.to(args.device))
 
             if args.network_input == 'kspace':
                 refined_out = output_gen + old_input
@@ -251,6 +246,7 @@ def main(args):
             )
 
             if epoch == 10:
+                exit()
                 print("SAVE")
 
 
