@@ -164,7 +164,7 @@ def main(args):
     # Optimizers
     optimizer_G = torch.optim.Adam(generator.parameters(), lr=lr, betas=(beta_1, beta_2))
     optimizer_D = torch.optim.Adam(discriminator.parameters(), lr=lr, betas=(beta_1, beta_2))
-
+    first = True
     for epoch in range(start_epoch, args.num_epochs):
         temp_iter = 0
         for i, data in enumerate(train_loader):
@@ -200,12 +200,13 @@ def main(args):
                 disc_output_batch = prep_discriminator_input(refined_out, args.batch_size, args.network_input,
                                                              i_fake, inds=False, mean=mean, std=std).to(args.device)
 
-                # TEST THAT IMAGES LOOK RIGHT
-                # im_check = complex_abs(disc_target_batch[2].permute(1, 2, 0))
-                # im_np = im_check.cpu().numpy()
-                # plt.imshow(np.abs(im_np), origin='lower', cmap='gray')
-                # plt.savefig('tester.png')
-                # PLT
+                # PLOT FIRST GENERATED IMAGE
+                if first:
+                    im_check = complex_abs(disc_target_batch[2].permute(1, 2, 0))
+                    im_np = im_check.cpu().numpy()
+                    plt.imshow(np.abs(im_np), origin='lower', cmap='gray')
+                    plt.savefig('first_gen.png')
+                    first = False
 
                 real_pred = discriminator(disc_target_batch)
                 fake_pred = discriminator(disc_output_batch)
@@ -267,7 +268,6 @@ def main(args):
                 plt.imshow(np.abs(im_np), origin='lower', cmap='gray')
                 plt.savefig(f'test_gen_{epoch}.png')
                 exit()
-
 
 
 if __name__ == '__main__':
