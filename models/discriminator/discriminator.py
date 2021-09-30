@@ -125,7 +125,6 @@ class DiscriminatorModel(nn.Module):
             nn.Linear(512 * 6 * 6, 128),
             nn.LeakyReLU(negative_slope=0.2),
             nn.Linear(128, 1),
-            nn.Sigmoid()
         )
 
     def forward(self, input):

@@ -211,6 +211,11 @@ def main(args):
                 real_pred = discriminator(disc_target_batch)
                 fake_pred = discriminator(disc_output_batch)
 
+                print('\n')
+                print(torch.mean(fake_pred))
+                print(torch.mean(real_pred))
+                print('\n')
+
                 # Gradient penalty
                 gradient_penalty = compute_gradient_penalty(discriminator, disc_target_batch.data,
                                                             disc_output_batch.data, args)
