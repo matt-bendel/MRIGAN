@@ -184,20 +184,17 @@ def main(args):
                     raise NotImplementedError
 
                 input_w_z = input_w_z.to(args.device)
-                print(input_w_z.shape)
                 if args.z_location == 2:
                     output_gen = generator(input_w_z, device=args.device, latent_size=args.latent_size)
                 else:
                     output_gen = generator(input_w_z)
 
-                print(output_gen.shape)
-
-                # TURN OUTPUT INTO IMAGE FOR DISCRIMINATION AND GET REAL IMAGES FOR DISCRIMINATION
                 if args.network_input == 'kspace':
                     refined_out = output_gen + old_input[:, 0:16]
                 else:
                     raise NotImplementedError
 
+                # TURN OUTPUT INTO IMAGE FOR DISCRIMINATION AND GET REAL IMAGES FOR DISCRIMINATION
                 disc_target_batch = prep_discriminator_input(target_full, args.batch_size // 2, args.network_input,
                                                              i_true, inds=True, mean=mean, std=std).to(args.device)
                 disc_output_batch = prep_discriminator_input(refined_out, args.batch_size // 2, args.network_input,
@@ -213,13 +210,16 @@ def main(args):
                 real_pred = discriminator(disc_target_batch)
                 fake_pred = discriminator(disc_output_batch)
 
-                # Gradient penalty - TODO: FIX THIS
+                # Gradient penalty
                 gradient_penalty = compute_gradient_penalty(discriminator, disc_target_batch.data,
                                                             disc_output_batch.data, args)
-                print(gradient_penalty)
-                exit()
                 # Adversarial loss
+                print(-torch.mean(real_pred))
+                print(torch.mean(fake_pred))
                 d_loss = -torch.mean(real_pred) + torch.mean(fake_pred) + lambda_gp * gradient_penalty
+
+                print(d_loss)
+                exit()
 
                 d_loss.backward()
                 optimizer_D.step()
