@@ -189,7 +189,8 @@ class GeneratorModel(nn.Module):
         self.final_conv = nn.Sequential(
             nn.Conv2d(64, 32, kernel_size=(3, 3), padding=1),
             nn.LeakyReLU(negative_slope=0.2),
-            nn.Conv2d(32, 16, kernel_size=(1, 1))
+            nn.Conv2d(32, 16, kernel_size=(1, 1)),
+            nn.Tanh()
         )
 
     def forward(self, input, device=None, latent_size=None):

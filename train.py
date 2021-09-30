@@ -240,7 +240,6 @@ def main(args):
             # Train on fake images
             fake_validity = discriminator(disc_inp)
             g_loss = -torch.mean(fake_validity)
-            print(g_loss)
 
             g_loss.backward()
             optimizer_G.step()
