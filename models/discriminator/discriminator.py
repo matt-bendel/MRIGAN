@@ -76,7 +76,7 @@ class FullDownBlock(nn.Module):
             nn.Conv2d(self.in_chans, self.out_chans, kernel_size=(3, 3), padding=1),
             nn.LeakyReLU(negative_slope=0.2),
         )
-        # self.resblock = ResidualBlock(self.out_chans, self.out_chans, True)
+        self.resblock = ResidualBlock(self.out_chans, self.out_chans, True)
 
     def forward(self, input):
         """
@@ -87,7 +87,7 @@ class FullDownBlock(nn.Module):
             (torch.Tensor): Output tensor of shape [batch_size, self.out_chans, height, width]
         """
 
-        return self.downsample(input)#self.resblock(self.downsample(input))
+        return self.resblock(self.downsample(input))
 
     def __repr__(self):
         return f'AvgPool(in_chans={self.in_chans}, out_chans={self.out_chans}\nResBlock(in_chans={self.out_chans}, out_chans={self.out_chans}'
