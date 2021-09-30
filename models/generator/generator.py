@@ -79,7 +79,6 @@ class FullDownBlock(nn.Module):
         self.downsample = nn.Sequential(
             nn.AvgPool2d(kernel_size=(2, 2), stride=2),
             nn.Conv2d(self.in_chans, self.out_chans, kernel_size=(3, 3), padding=1),
-            nn.LeakyReLU(negative_slope=0.2),
         )
         self.resblock = ResidualBlock(self.out_chans, self.out_chans, True)
 
@@ -111,7 +110,6 @@ class FullUpBlock(nn.Module):
 
         self.upsample = nn.Sequential(
             nn.Conv2d(self.in_chans, self.out_chans, kernel_size=(3, 3), padding=1),
-            nn.LeakyReLU(negative_slope=0.2),
         )
 
         self.resblock = ResidualBlock(self.out_chans * 2, self.out_chans * 2, True, down=False)
@@ -188,8 +186,10 @@ class GeneratorModel(nn.Module):
 
         self.final_conv = nn.Sequential(
             nn.Conv2d(64, 32, kernel_size=(3, 3), padding=1),
+            nn.BatchNorm2d(32),
             nn.LeakyReLU(negative_slope=0.2),
             nn.Conv2d(32, 16, kernel_size=(1, 1)),
+            nn.Tanh()
         )
 
     def forward(self, input, device=None, latent_size=None):
