@@ -166,6 +166,7 @@ def main(args):
     optimizer_D = torch.optim.Adam(discriminator.parameters(), lr=lr, betas=(beta_1, beta_2))
 
     for epoch in range(start_epoch, args.num_epochs):
+        temp_iter = 0
         for i, data in enumerate(train_loader):
             input, target_full, mean, std, nnz_index_mask = data
             old_input = input.to(args.device)
@@ -210,11 +211,14 @@ def main(args):
                 real_pred = discriminator(disc_target_batch)
                 fake_pred = discriminator(disc_output_batch)
 
+                print(real_pred)
+                print(fake_pred)
+
                 # Gradient penalty
                 gradient_penalty = compute_gradient_penalty(discriminator, disc_target_batch.data,
                                                             disc_output_batch.data, args)
                 # Adversarial loss
-                d_loss = -torch.mean(real_pred) + torch.mean(fake_pred) + lambda_gp * gradient_penalty
+                d_loss = fake_pred.mean() - real_pred.mean() + lambda_gp * gradient_penalty
 
                 d_loss.backward()
                 optimizer_D.step()
@@ -236,6 +240,7 @@ def main(args):
             # Train on fake images
             fake_validity = discriminator(disc_inp)
             g_loss = -torch.mean(fake_validity)
+            print(g_loss)
 
             g_loss.backward()
             optimizer_G.step()
@@ -244,10 +249,13 @@ def main(args):
                 "[Epoch %d/%d] [D loss: %f] [G loss: %f]"
                 % (epoch, args.num_epochs, d_loss.item(), g_loss.item())
             )
-
-            if epoch == 10:
+            temp_iter = temp_iter + 1
+            if temp_iter == 5:
                 exit()
-                print("SAVE")
+
+        if epoch == 1:
+            exit()
+            print("SAVE")
 
 
 if __name__ == '__main__':
