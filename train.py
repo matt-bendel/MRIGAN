@@ -82,7 +82,6 @@ def prep_discriminator_input(data_tensor, num_vals, unet_type, indvals, inds=Non
 
     if unet_type == 'kspace':
         for k in range(num_vals):
-            print(indvals[k])
             output = torch.squeeze(data_tensor[k]) if not inds else torch.squeeze(data_tensor[indvals[k]])
             data_tensor = data_tensor * std[k] + mean[k] if not inds else data_tensor * std[indvals[k]] + mean[indvals[k]]
             output_tensor = torch.zeros(8, 384, 384, 2)
@@ -195,7 +194,7 @@ def main(args):
                 # TEST THAT IMAGES LOOK RIGHT
                 im_check = complex_abs(disc_target_batch[2].permute(1, 2, 0))
                 im_np = im_check.cpu().numpy()
-                plt.imshow(im_np, cmap='gray')
+                plt.imshow(np.abs(im_np), cmap='gray')
                 plt.savefig('tester.png')
                 # PLT
                 exit()
