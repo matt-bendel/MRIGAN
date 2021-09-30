@@ -214,14 +214,16 @@ def main(args):
                 print("PREDICTIONS")
                 print("REAL")
                 print(real_pred)
+                print(torch.mean(real_pred))
                 print("FAKE")
                 print(fake_pred)
+                print(torch.mean(fake_pred))
                 print('\n')
                 # Gradient penalty
                 gradient_penalty = compute_gradient_penalty(discriminator, disc_target_batch.data,
                                                             disc_output_batch.data, args)
                 # Adversarial loss
-                d_loss = fake_pred.mean() - real_pred.mean() + lambda_gp * gradient_penalty
+                d_loss = torch.mean(fake_pred) - torch.mean(real_pred) + gradient_penalty #lambda_gp * gradient_penalty
 
                 d_loss.backward()
                 optimizer_D.step()
