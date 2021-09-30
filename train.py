@@ -187,9 +187,10 @@ def main(args):
                 print(input_w_z.shape)
                 if args.z_location == 2:
                     output_gen = generator(input_w_z, device=args.device, latent_size=args.latent_size)
-                    print(input_w_z.shape)
                 else:
                     output_gen = generator(input_w_z)
+
+                print(output_gen.shape)
 
                 # TURN OUTPUT INTO IMAGE FOR DISCRIMINATION AND GET REAL IMAGES FOR DISCRIMINATION
                 if args.network_input == 'kspace':
