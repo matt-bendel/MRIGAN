@@ -231,7 +231,7 @@ def main(args):
             output_gen = generator(input_w_z.to(args.device))
 
             if args.network_input == 'kspace':
-                refined_out = output_gen + old_input
+                refined_out = output_gen + old_input[:, 0:16]
             else:
                 raise NotImplementedError
 
