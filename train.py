@@ -41,6 +41,8 @@ import matplotlib.pyplot as plt
 # Tunable weight for gradient penalty
 lambda_gp = 10
 
+GLOBAL_LOSS_DICT = {}
+
 
 def get_inverse_mask():
     a = np.array(
@@ -101,7 +103,7 @@ def prep_discriminator_input(data_tensor, num_vals, unet_type, indvals, inds=Non
     return disc_inp
 
 
-def save_model(args, exp_dir, epoch, model, optimizer, best_dev_loss, is_new_best, m_type):
+def save_model(args, epoch, model, optimizer, best_dev_loss, is_new_best, m_type):
     torch.save(
         {
             'epoch': epoch,
@@ -109,13 +111,15 @@ def save_model(args, exp_dir, epoch, model, optimizer, best_dev_loss, is_new_bes
             'model': model.state_dict(),
             'optimizer': optimizer.state_dict(),
             'best_dev_loss': best_dev_loss,
-            'exp_dir': exp_dir
+            'exp_dir': args.exp_dir / args.network_input / args.z_location
         },
-        f=exp_dir / f'{m_type}_model.pt'
+        f=args.exp_dir / args.network_input / args.z_location / f'{m_type}_model.pt'
     )
 
     if is_new_best:
-        shutil.copyfile(exp_dir / f'{m_type}_model.pt', exp_dir / f'{m_type}_best_model.pt')
+        shutil.copyfile(args.exp_dir / args.network_input / args.z_location / f'{m_type}_model.pt',
+                        args.exp_dir / args.network_input / args.z_location / f'{m_type}_best_model.pt'
+                        )
 
 
 def compute_gradient_penalty(D, real_samples, fake_samples, args):
@@ -142,29 +146,26 @@ def compute_gradient_penalty(D, real_samples, fake_samples, args):
 
 def main(args):
     args.exp_dir.mkdir(parents=True, exist_ok=True)
-    writer = SummaryWriter(log_dir=str(args.exp_dir / 'summary'))
 
     args.in_chans = 17 if args.z_location == 3 else 16
     args.out_chans = 16
 
     if args.resume:
-        generator, discriminator, args, best_dev_loss, start_epoch = resume_train(args)
+        generator, optimizer_G, discriminator, optimizer_D, args, best_dev_loss, start_epoch = resume_train(args)
     else:
         generator, discriminator, best_dev_loss, start_epoch = fresh_start(args)
+        # Optimizers
+        optimizer_G = torch.optim.Adam(generator.parameters(), lr=args.lr, betas=(args.beta_1, args.beta_2))
+        optimizer_D = torch.optim.Adam(discriminator.parameters(), lr=args.lr, betas=(args.beta_1, args.beta_2))
 
     logging.info(args)
     logging.info(generator)
     logging.info(discriminator)
 
     train_loader, dev_loader = create_data_loaders(args)
-    lr = 10e-4
-    beta_1 = 0
-    beta_2 = 0.9
 
-    # Optimizers
-    optimizer_G = torch.optim.Adam(generator.parameters(), lr=lr, betas=(beta_1, beta_2))
-    optimizer_D = torch.optim.Adam(discriminator.parameters(), lr=lr, betas=(beta_1, beta_2))
     first = True
+
     for epoch in range(start_epoch, args.num_epochs):
         temp_iter = 0
         for i, data in enumerate(train_loader):
@@ -180,6 +181,7 @@ def main(args):
                 # ---------------------
                 optimizer_D.zero_grad()
 
+                # TODO: TRANSFORM INTO 16 CHANNEL IMAGE
                 if args.network_input == 'image':
                     raise NotImplementedError
 
@@ -192,29 +194,27 @@ def main(args):
                 if args.network_input == 'kspace':
                     refined_out = output_gen + old_input[:, 0:16]
                 else:
+                    # TODO: TRANSFORM IMAGE BACK TO K-SPACE AND ADD OLD OUT
                     raise NotImplementedError
 
                 # TURN OUTPUT INTO IMAGE FOR DISCRIMINATION AND GET REAL IMAGES FOR DISCRIMINATION
-                disc_target_batch = prep_discriminator_input(target_full, args.batch_size, args.network_input,
+                disc_target_batch = prep_discriminator_input(target_full.to(args.device), args.batch_size,
+                                                             args.network_input,
                                                              i_true, inds=False, mean=mean, std=std).to(args.device)
                 disc_output_batch = prep_discriminator_input(refined_out, args.batch_size, args.network_input,
                                                              i_fake, inds=False, mean=mean, std=std).to(args.device)
 
-                # PLOT FIRST GENERATED IMAGE
+                # PLOT VERY FIRST GENERATED IMAGE
                 if first:
                     im_check = complex_abs(disc_output_batch[2].permute(1, 2, 0))
                     im_np = im_check.detach().cpu().numpy()
                     plt.imshow(np.abs(im_np), origin='lower', cmap='gray')
-                    plt.savefig('first_gen.png')
+                    plt.savefig(f'first_gen_{args.network_input}_{args.z_location}.png')
                     first = False
 
+                # MAKE PREDICTIONS
                 real_pred = discriminator(disc_target_batch)
                 fake_pred = discriminator(disc_output_batch)
-
-                print('\n')
-                print(torch.mean(fake_pred))
-                print(torch.mean(real_pred))
-                print('\n')
 
                 # Gradient penalty
                 gradient_penalty = compute_gradient_penalty(discriminator, disc_target_batch.data,
@@ -246,27 +246,36 @@ def main(args):
             g_loss.backward()
             optimizer_G.step()
 
+            # TODO: TRACK LOSS FOR EACH BATCH
+
             print(
                 "[Epoch %d/%d] [D loss: %f] [G loss: %f]"
                 % (epoch, args.num_epochs, d_loss.item(), g_loss.item())
             )
-            temp_iter = temp_iter + 1
-            if temp_iter == 100:
-                # exit()
-                print('100')
 
+        # TODO: ADD VALIDATION HERE - ONLY A SMALL SUBSET OF VAL DATA
+        best_model = True  # val_data()
+        best_loss_val = 1e9  # val_data()
+
+        # TODO: ADD END OF EPOCH LOSS FROM VAL AND AVERAGE EPOCH LOSS
+
+        save_model(args, epoch, generator, optimizer_G, best_loss_val, best_model, 'generator')
+        save_model(args, epoch, discriminator, optimizer_D, best_loss_val, best_model, 'discriminator')
+
+        # TODO: MAKE THIS SUBPLOT
+        if epoch % 5 == 0:
+            im_check = complex_abs(disc_target_batch[2].permute(1, 2, 0))
+            im_np = im_check.detach().cpu().numpy()
+            plt.figure()
+            plt.imshow(np.abs(im_np), origin='lower', cmap='gray')
+            plt.savefig(f'test_true_{args.network_input}_{args.z_location}_{epoch}.png')
+
+            im_check = complex_abs(disc_output_batch[2].permute(1, 2, 0))
+            im_np = im_check.detach().cpu().numpy()
+            plt.figure()
+            plt.imshow(np.abs(im_np), origin='lower', cmap='gray')
+            plt.savefig(f'test_gen_{args.network_input}_{args.z_location}_{epoch}.png')
             if epoch == 10:
-                im_check = complex_abs(disc_target_batch[2].permute(1, 2, 0))
-                im_np = im_check.detach().cpu().numpy()
-                plt.figure()
-                plt.imshow(np.abs(im_np), origin='lower', cmap='gray')
-                plt.savefig(f'test_true_{epoch}.png')
-
-                im_check = complex_abs(disc_output_batch[2].permute(1, 2, 0))
-                im_np = im_check.detach().cpu().numpy()
-                plt.figure()
-                plt.imshow(np.abs(im_np), origin='lower', cmap='gray')
-                plt.savefig(f'test_gen_{epoch}.png')
                 exit()
 
 
@@ -287,4 +296,10 @@ if __name__ == '__main__':
     random.seed(args.seed)
     np.random.seed(args.seed)
     torch.manual_seed(args.seed)
-    main(args)
+
+    # TODO: Add metric plotting from global dict
+    try:
+        main(args)
+        # PLOT METRICS
+    except:
+        print("PLOT METRICS")

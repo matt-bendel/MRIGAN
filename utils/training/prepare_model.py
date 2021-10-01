@@ -25,6 +25,10 @@ def build_discriminator(args):
     return model
 
 
+def build_optim(args, params):
+    return torch.optim.Adam(params, lr=args.lr, betas=(args.beta_1, args.beta_2))
+
+
 def load_model(checkpoint_file_gen, checkpoint_file_dis):
     checkpoint_gen = torch.load(checkpoint_file_gen, map_location=torch.device('cuda'))
     checkpoint_dis = torch.load(checkpoint_file_dis, map_location=torch.device('cuda'))
@@ -40,17 +44,24 @@ def load_model(checkpoint_file_gen, checkpoint_file_dis):
     generator.load_state_dict(checkpoint_gen['model'])
     discriminator.load_state_dict(checkpoint_dis['model'])
 
-    return checkpoint_gen, generator, checkpoint_dis, discriminator
+    opt_gen = build_optim(args, generator.parameters())
+    opt_gen.load_state_dict(checkpoint_gen['optimizer'])
+
+    opt_dis = build_optim(args, discriminator.parameters())
+    opt_dis.load_state_dict(checkpoint_dis['optimizer'])
+
+    return checkpoint_gen, generator, opt_gen, checkpoint_dis, discriminator, opt_dis
 
 
 def resume_train(args):
-    checkpoint_gen, generator, checkpoint_dis, discriminator = load_model(args.checkpoint_gen, args.checkpoint_dis)
+    checkpoint_gen, generator, opt_gen, checkpoint_dis, discriminator, opt_dis = load_model(args.checkpoint_gen,
+                                                                                            args.checkpoint_dis)
     args = checkpoint_gen['args']
     best_dev_loss = checkpoint_gen['best_dev_loss']
     start_epoch = checkpoint_gen['epoch']
     del checkpoint_gen
     del checkpoint_dis
-    return generator, discriminator, args, best_dev_loss, start_epoch
+    return generator, opt_gen, discriminator, opt_dis, args, best_dev_loss, start_epoch
 
 
 def fresh_start(args):
