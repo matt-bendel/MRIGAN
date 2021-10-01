@@ -262,19 +262,38 @@ def main(args):
         save_model(args, epoch, generator, optimizer_G, best_loss_val, best_model, 'generator')
         save_model(args, epoch, discriminator, optimizer_D, best_loss_val, best_model, 'discriminator')
 
-        # TODO: MAKE THIS SUBPLOT
         if epoch % 5 == 0:
-            im_check = complex_abs(disc_target_batch[2].permute(1, 2, 0))
-            im_np = im_check.detach().cpu().numpy()
-            plt.figure()
-            plt.imshow(np.abs(im_np), origin='lower', cmap='gray')
-            plt.savefig(f'test_true_{args.network_input}_{args.z_location}_{epoch}.png')
+            std = std.to(args.device)
+            mean = mean.to(args.device)
 
-            im_check = complex_abs(disc_output_batch[2].permute(1, 2, 0))
-            im_np = im_check.detach().cpu().numpy()
-            plt.figure()
-            plt.imshow(np.abs(im_np), origin='lower', cmap='gray')
-            plt.savefig(f'test_gen_{args.network_input}_{args.z_location}_{epoch}.png')
+            im_real = complex_abs(disc_target_batch[2].permute(1, 2, 0)) * std[2] + mean[2]
+            im_real_np = im_real.detach().cpu().numpy()
+
+            im_fake = complex_abs(disc_output_batch[2].permute(1, 2, 0)) * std[2] + mean[2]
+            im_fake_np = im_fake.detach().cpu().numpy()
+
+            ax = fig = plt.figure((6,6))
+            fig.suptitle(f'Generated and GT Images at Epoch {epoch}')
+            fig.add_subplot(2,2,1)
+            ax.imshow(np.abs(im_real_np), origin='lower', cmap='gray', vmin=0, vmax=np.max(im_real_np))
+            ax.set_xticks([])
+            ax.set_yticks([])
+            plt.xlabel(f'GT')
+
+            fig.add_subplot(2, 2, 2)
+            ax.imshow(np.abs(im_fake_np), origin='lower', cmap='gray', vmin=0, vmax=np.max(im_real_np))
+            ax.set_xticks([])
+            ax.set_yticks([])
+            plt.xlabel(f'Reconstruction')
+
+            fig.add_subplot(2, 2, 4)
+            # MAY NEED TO REVISE BOUNDS BELOW
+            ax.imshow((im_real_np - im_fake_np), origin='lower', cmap='bwr')
+            ax.set_xticks([])
+            ax.set_yticks([])
+            plt.xlabel(f'Relative Error')
+
+            plt.savefig(f'/training_images/test_gen_{args.network_input}_{args.z_location}_{epoch}.png')
             if epoch == 10:
                 exit()
 
