@@ -176,7 +176,7 @@ def main(args):
 
     first = True
 
-    loss_file = open('trained_models/{args.network_input}/loss_{args.z_location}.txt', 'w')
+    loss_file = open(f'trained_models/{args.network_input}/loss_{args.z_location}.txt', 'w')
 
     for epoch in range(start_epoch, args.num_epochs):
         batch_loss = {
