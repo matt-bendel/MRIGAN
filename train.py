@@ -317,8 +317,8 @@ if __name__ == '__main__':
     torch.manual_seed(args.seed)
 
     # TODO: Add metric plotting from global dict
-    try:
-        main(args)
+    # try:
+    main(args)
         # PLOT METRICS
-    except:
-        print("PLOT METRICS")
+    # except:
+    #     print("PLOT METRICS")
