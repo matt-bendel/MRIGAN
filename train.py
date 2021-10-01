@@ -41,8 +41,11 @@ import matplotlib.pyplot as plt
 # Tunable weight for gradient penalty
 lambda_gp = 10
 
-GLOBAL_LOSS_DICT = {}
-
+GLOBAL_LOSS_DICT = {
+    'g_loss': [],
+    'd_loss': [],
+    'mSSIM': []
+}
 
 def get_inverse_mask():
     a = np.array(
@@ -166,8 +169,13 @@ def main(args):
 
     first = True
 
+    loss_file = open('trained_models/{args.network_input}/loss_{args.z_location}.txt', 'w')
+
     for epoch in range(start_epoch, args.num_epochs):
-        temp_iter = 0
+        batch_loss = {
+            'g_loss': [],
+            'd_loss': []
+        }
         for i, data in enumerate(train_loader):
             input, target_full, mean, std, nnz_index_mask = data
             old_input = input.to(args.device)
@@ -246,22 +254,36 @@ def main(args):
             g_loss.backward()
             optimizer_G.step()
 
-            # TODO: TRACK LOSS FOR EACH BATCH
+            batch_loss['g_loss'].append(g_loss.item())
+            batch_loss['d_loss'].append(d_loss.item())
 
             print(
-                "[Epoch %d/%d] [D loss: %f] [G loss: %f]"
-                % (epoch, args.num_epochs, d_loss.item(), g_loss.item())
+                "[Epoch %d/%d] [Batch %d/%d] [D loss: %f] [G loss: %f] [Val mSSIM: %.4f]"
+                % (epoch, args.num_epochs, i, len(train_loader.dataset)/args.batch_size, d_loss.item(), g_loss.item(), 0.0)
             )
 
         # TODO: ADD VALIDATION HERE - ONLY A SMALL SUBSET OF VAL DATA
+        # for i, data in enumerate(train_loader):
+        #     input, target_full, mean, std, nnz_index_mask = data
+        #     old_input = input.to(args.device)
+
         best_model = True  # val_data()
         best_loss_val = 1e9  # val_data()
+        ssim_loss = 0
 
         # TODO: ADD END OF EPOCH LOSS FROM VAL AND AVERAGE EPOCH LOSS
+        GLOBAL_LOSS_DICT['g_loss'].append(np.mean(batch_loss['g_loss']))
+        GLOBAL_LOSS_DICT['d_loss'].append(np.mean(batch_loss['d_loss']))
+        GLOBAL_LOSS_DICT['mSSIM'].append(ssim_loss)
+
+        save_str = f"END OF EPOCH {epoch}: [Average D loss: {GLOBAL_LOSS_DICT['d_loss'][epoch]}] [Average G loss: {GLOBAL_LOSS_DICT['g_loss'][epoch]}] [Val mSSIM: {GLOBAL_LOSS_DICT['mSSIM'][epoch]}]\n"
+        print(save_str)
+        loss_file.write(save_str)
 
         save_model(args, epoch, generator, optimizer_G, best_loss_val, best_model, 'generator')
         save_model(args, epoch, discriminator, optimizer_D, best_loss_val, best_model, 'discriminator')
 
+        # TODO: MAKE SAME EACH TIME
         if epoch % 5 == 0:
             std = std.to(args.device)
             mean = mean.to(args.device)
@@ -297,6 +319,8 @@ def main(args):
             if epoch == 10:
                 exit()
 
+    loss_file.close()
+
 
 if __name__ == '__main__':
     cuda = True if torch.cuda.is_available() else False
@@ -319,6 +343,7 @@ if __name__ == '__main__':
     # TODO: Add metric plotting from global dict
     # try:
     main(args)
-        # PLOT METRICS
+        # SAVE METRICS
     # except:
-    #     print("PLOT METRICS")
+    #     print("SAVE METRICS")
+        #print(len(GLOBAL_LOSS_DICT['g_loss']))
