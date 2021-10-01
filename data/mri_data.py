@@ -215,7 +215,7 @@ class SelectiveSliceData_Val(torch.utils.data.Dataset):
         print('total_files:')
         print(len(f))
 
-        for fname in f[1:int(len(f)*0.1)]:
+        for fname in f[1:len(f)]:
             kspace = h5py.File(fname, 'r')['kspace']
             with h5py.File(fname, 'r') as data:
                 if (data.attrs['acquisition'] == 'AXT2'):
@@ -233,7 +233,7 @@ class SelectiveSliceData_Val(torch.utils.data.Dataset):
 
         random.shuffle(files)
 
-        num_files = round(len(files))
+        num_files = round(len(files)*0.3)
 
         f_testing_and_Val = sorted(files[0:num_files])
 
