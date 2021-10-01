@@ -46,6 +46,13 @@ GLOBAL_LOSS_DICT = {
     'd_loss': [],
     'mSSIM': []
 }
+CONSTANT_PLOTS = {
+    'measures': None,
+    'measures_w_z': None,
+    'mean': None,
+    'std': None,
+    'gt': None
+}
 
 def get_inverse_mask():
     a = np.array(
@@ -214,6 +221,12 @@ def main(args):
 
                 # PLOT VERY FIRST GENERATED IMAGE
                 if first:
+                    CONSTANT_PLOTS['measures'] = input[2]
+                    CONSTANT_PLOTS['measures_w_z'] = input_w_z.detach().cpu()[2]
+                    CONSTANT_PLOTS['mean'] = mean[2]
+                    CONSTANT_PLOTS['std'] = std[2]
+                    CONSTANT_PLOTS['gt'] = target_full[2]
+
                     im_check = complex_abs(disc_output_batch[2].permute(1, 2, 0))
                     im_np = im_check.detach().cpu().numpy()
                     plt.imshow(np.abs(im_np), origin='lower', cmap='gray')
@@ -287,6 +300,14 @@ def main(args):
         if epoch % 5 == 0:
             std = std.to(args.device)
             mean = mean.to(args.device)
+            # std = CONSTANT_PLOTS['std'].to(args.device)
+            # mean = CONSTANT_PLOTS['mean'].to(args.device)
+
+            # disc_target_batch = prep_discriminator_input(target_full.to(args.device), args.batch_size,
+            #                                              args.network_input,
+            #                                              i_true, inds=False, mean=mean, std=std).to(args.device)
+            # disc_output_batch = prep_discriminator_input(refined_out, args.batch_size, args.network_input,
+            #                                              i_fake, inds=False, mean=mean, std=std).to(args.device)
 
             im_real = complex_abs(disc_target_batch[2].permute(1, 2, 0)) * std[2] + mean[2]
             im_real_np = im_real.detach().cpu().numpy()
