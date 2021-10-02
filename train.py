@@ -312,10 +312,10 @@ def main(args):
             output_plot = prep_discriminator_input(refined_out, args.batch_size, args.network_input,
                                                          [], inds=False, mean=mean, std=std).to(args.device)[0]
 
-            im_real = complex_abs(target_plot.permute(1, 2, 0)) * std[2] + mean[2]
+            im_real = complex_abs(target_plot.permute(1, 2, 0)) * std + mean
             im_real_np = im_real.numpy()
 
-            im_fake = complex_abs(output_plot.permute(1, 2, 0)) * std[2] + mean[2]
+            im_fake = complex_abs(output_plot.permute(1, 2, 0)) * std + mean
             im_fake_np = im_fake.numpy()
 
             ax = fig = plt.figure((6,6))
