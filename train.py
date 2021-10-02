@@ -316,7 +316,7 @@ def main(args):
             im_real_np = im_real.numpy()
 
             im_fake = complex_abs(output_plot.permute(1, 2, 0)) * std + mean
-            im_fake_np = im_fake.cpu().numpy()
+            im_fake_np = im_fake.detach().cpu().numpy()
 
             ax = fig = plt.figure((6,6))
             fig.suptitle(f'Generated and GT Images at Epoch {epoch}')
