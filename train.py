@@ -227,17 +227,6 @@ def main(args):
                     CONSTANT_PLOTS['std'] = std.cpu()[2]
                     CONSTANT_PLOTS['gt'] = target_full.cpu()[2]
 
-                    print(CONSTANT_PLOTS['measures'].shape)
-                    print(CONSTANT_PLOTS['measures_w_z'].shape)
-                    print(CONSTANT_PLOTS['mean'].shape)
-                    print(CONSTANT_PLOTS['std'].shape)
-                    print(CONSTANT_PLOTS['gt'].shape)
-
-                    print(CONSTANT_PLOTS['measures_w_z'])
-
-                    exit()
-
-
                     im_check = complex_abs(disc_output_batch[2].permute(1, 2, 0))
                     im_np = im_check.detach().cpu().numpy()
                     plt.imshow(np.abs(im_np), origin='lower', cmap='gray')
@@ -308,18 +297,18 @@ def main(args):
         save_model(args, epoch, discriminator, optimizer_D, best_loss_val, best_model, 'discriminator')
 
         # TODO: MAKE SAME EACH TIME
-        if epoch % 5 == 0:
+        if epoch % 1 == 0:
             std = CONSTANT_PLOTS['std']
             mean = CONSTANT_PLOTS['mean']
 
-            plot_out = generator(CONSTANT_PLOTS['measures_w_z'].to(args.device))
+            plot_out = generator(CONSTANT_PLOTS['measures_w_z'].unsqueeze(0).to(args.device))
 
             if args.network_input == 'kspace':
-                refined_out = plot_out.cpu() + CONSTANT_PLOTS['measures']
+                refined_out = plot_out.cpu() + CONSTANT_PLOTS['measures'][0:16].unsqueeze(0)
             else:
                 raise NotImplementedError
 
-            target_plot = prep_discriminator_input(CONSTANT_PLOTS['gt'], 1, args.network_input, [], inds=False, mean=mean, std=std)
+            target_plot = prep_discriminator_input(CONSTANT_PLOTS['gt'].unsqueeze(0), 1, args.network_input, [], inds=False, mean=mean, std=std)
             output_plot = prep_discriminator_input(refined_out, args.batch_size, args.network_input,
                                                          [], inds=False, mean=mean, std=std).to(args.device)
 
@@ -351,6 +340,7 @@ def main(args):
             plt.xlabel(f'Relative Error')
 
             plt.savefig(f'/training_images/test_gen_{args.network_input}_{args.z_location}_{epoch}.png')
+            exit()
             if epoch == 10:
                 exit()
 
