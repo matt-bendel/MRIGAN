@@ -227,6 +227,17 @@ def main(args):
                     CONSTANT_PLOTS['std'] = std.cpu()[2]
                     CONSTANT_PLOTS['gt'] = target_full.cpu()[2]
 
+                    print(CONSTANT_PLOTS['measures'].shape)
+                    print(CONSTANT_PLOTS['measures_w_z'].shape)
+                    print(CONSTANT_PLOTS['mean'].shape)
+                    print(CONSTANT_PLOTS['std'].shape)
+                    print(CONSTANT_PLOTS['gt'].shape)
+
+                    print(CONSTANT_PLOTS['measures_w_z'])
+
+                    exit()
+
+
                     im_check = complex_abs(disc_output_batch[2].permute(1, 2, 0))
                     im_np = im_check.detach().cpu().numpy()
                     plt.imshow(np.abs(im_np), origin='lower', cmap='gray')
