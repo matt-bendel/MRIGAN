@@ -121,7 +121,7 @@ def save_model(args, epoch, model, optimizer, best_dev_loss, is_new_best, m_type
             'model': model.state_dict(),
             'optimizer': optimizer.state_dict(),
             'best_dev_loss': best_dev_loss,
-            'exp_dir': args.exp_dir / args.network_input / args.z_location
+            'exp_dir': args.exp_dir
         },
         f=args.exp_dir / args.network_input / args.z_location / f'{m_type}_model.pt'
     )
