@@ -339,7 +339,7 @@ def main(args):
             ax.set_yticks([])
             plt.xlabel(f'Relative Error')
 
-            plt.savefig(f'/home/bendel.8/Git_Repos/MRIGAN/training_images/test_gen_{args.network_input}_{args.z_location}_{epoch}.png')
+            plt.savefig(f'/home/bendel.8/Git_Repos/MRIGAN/training_images/test_gen_{args.network_input}_{args.z_location}_{epoch+1}.png')
 
             if epoch + 1 == 10:
                 exit()
