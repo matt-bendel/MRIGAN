@@ -296,8 +296,7 @@ def main(args):
         save_model(args, epoch, generator, optimizer_G, best_loss_val, best_model, 'generator')
         save_model(args, epoch, discriminator, optimizer_D, best_loss_val, best_model, 'discriminator')
 
-        # TODO: MAKE SAME EACH TIME
-        if epoch % 1 == 0:
+        if epoch + 1 % 5 == 0:
             std = CONSTANT_PLOTS['std']
             mean = CONSTANT_PLOTS['mean']
 
@@ -334,14 +333,15 @@ def main(args):
 
             ax = fig.add_subplot(2, 2, 4)
             # MAY NEED TO REVISE BOUNDS BELOW
-            ax.imshow((im_real_np - im_fake_np), origin='lower', cmap='bwr')
+            k = 3
+            ax.imshow(k*np.abs(im_real_np - im_fake_np), origin='lower', cmap='jet')
             ax.set_xticks([])
             ax.set_yticks([])
             plt.xlabel(f'Relative Error')
 
             plt.savefig(f'/home/bendel.8/Git_Repos/MRIGAN/training_images/test_gen_{args.network_input}_{args.z_location}_{epoch}.png')
-            exit()
-            if epoch == 10:
+
+            if epoch + 1 == 10:
                 exit()
 
     loss_file.close()
