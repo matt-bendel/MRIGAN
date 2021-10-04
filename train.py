@@ -48,6 +48,7 @@ GLOBAL_LOSS_DICT = {
     'mSSIM': [],
     'd_acc': []
 }
+
 CONSTANT_PLOTS = {
     'measures': None,
     'mean': None,
@@ -380,10 +381,9 @@ def main(args):
             batch_loss['d_loss'].append(d_loss.item())
 
             print(
-                "[Epoch %d/%d] [Batch %d/%d] [D loss: %.4f] [G loss: %.4f] [Val mSSIM: %.4f]"
+                "[Epoch %d/%d] [Batch %d/%d] [D loss: %.4f] [G loss: %.4f]"
                 % (epoch + 1, args.num_epochs, i, len(train_loader.dataset) / args.batch_size, d_loss.item(),
-                   g_loss.item(),
-                   0.0)
+                   g_loss.item())
             )
 
         # TODO: ADD VALIDATION HERE - ONLY A SMALL SUBSET OF VAL DATA, LIKE 1500 IMAGES (~10 BATCHES)
@@ -410,7 +410,6 @@ def main(args):
         plot_epoch(args, generator, epoch)
 
         if epoch + 1 == 5:
-            # TODO: IMPLEMENT THIS
             save_metrics(args)
             exit()
 
