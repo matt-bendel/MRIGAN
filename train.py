@@ -18,6 +18,7 @@ SPECIFICATIONS FOR TRAINING:
 """
 import pathlib
 import logging
+import pickle
 import random
 import os
 import shutil
@@ -205,8 +206,11 @@ def plot_5_epoch(args, generator, epoch):
         f'/home/bendel.8/Git_Repos/MRIGAN/training_images/test_gen_{args.network_input}_{args.z_location}_{epoch + 1}.png')
 
 
-def save_metrics():
-    print("SAVE METRICS HERE")
+def save_metrics(args):
+    with open(f'home/bendel.8/Git_Repos/MRIGAN/saved_metrics/loss_{args.network_input}_{args.z_location}.pkl',
+              'wb') as f:
+        pickle.dump(GLOBAL_LOSS_DICT, f, pickle.HIGHEST_PROTOCOL)
+
 
 def main(args):
     args.exp_dir.mkdir(parents=True, exist_ok=True)
@@ -333,7 +337,8 @@ def main(args):
 
             print(
                 "[Epoch %d/%d] [Batch %d/%d] [D loss: %.4f] [G loss: %.4f] [Val mSSIM: %.4f]"
-                % (epoch+1, args.num_epochs, i, len(train_loader.dataset) / args.batch_size, d_loss.item(), g_loss.item(),
+                % (epoch + 1, args.num_epochs, i, len(train_loader.dataset) / args.batch_size, d_loss.item(),
+                   g_loss.item(),
                    0.0)
             )
 
@@ -351,7 +356,7 @@ def main(args):
         GLOBAL_LOSS_DICT['d_acc'].append(np.mean(batch_loss['d_acc']))
         GLOBAL_LOSS_DICT['mSSIM'].append(ssim_loss)
 
-        save_str = f"END OF EPOCH {epoch+1}: [Average D loss: {GLOBAL_LOSS_DICT['d_loss'][epoch]}] [Average D Acc: {GLOBAL_LOSS_DICT['d_acc']}] [Average G loss: {GLOBAL_LOSS_DICT['g_loss'][epoch]}] [Val mSSIM: {GLOBAL_LOSS_DICT['mSSIM'][epoch]}]\n"
+        save_str = f"END OF EPOCH {epoch + 1}: [Average D loss: {GLOBAL_LOSS_DICT['d_loss'][epoch]}] [Average D Acc: {GLOBAL_LOSS_DICT['d_acc']}] [Average G loss: {GLOBAL_LOSS_DICT['g_loss'][epoch]}] [Val mSSIM: {GLOBAL_LOSS_DICT['mSSIM'][epoch]}]\n"
         print(save_str)
         loss_file.write(save_str)
 
@@ -387,9 +392,8 @@ if __name__ == '__main__':
     torch.manual_seed(args.seed)
 
     # TODO: Add metric plotting from global dict
-    # try:
-    main(args)
-    # SAVE METRICS
-    # except:
-    #     print("SAVE METRICS")
-    # print(len(GLOBAL_LOSS_DICT['g_loss']))
+    try:
+        main(args)
+        save_metrics(args)
+    except:
+        save_metrics(args)
