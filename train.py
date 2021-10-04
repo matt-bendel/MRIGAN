@@ -335,7 +335,7 @@ def main(args):
                     im_np = im_check.detach().cpu().numpy()
                     plt.figure()
                     plt.imshow(np.abs(im_np), origin='lower', cmap='gray')
-                    plt.savefig(f'first_gen_{args.network_input}_{args.z_location}.png')
+                    plt.savefig(f'/home/bendel.8/Git_Repos/MRIGAN/training_images/first_gen_{args.network_input}_{args.z_location}.png')
                     first = False
 
                 # MAKE PREDICTIONS
@@ -409,7 +409,7 @@ def main(args):
 
         plot_epoch(args, generator, epoch)
 
-        if epoch + 1 == 5:
+        if (epoch + 1) == 5:
             save_metrics(args)
             exit()
 
