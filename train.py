@@ -50,7 +50,6 @@ GLOBAL_LOSS_DICT = {
 }
 CONSTANT_PLOTS = {
     'measures': None,
-    'measures_w_z': None,
     'mean': None,
     'std': None,
     'gt': None
@@ -157,50 +156,96 @@ def compute_gradient_penalty(D, real_samples, fake_samples, args):
     return gradient_penalty
 
 
+def generate_image(fig, target, image, title, image_ind):
+    # rows and cols are both previously defined ints
+    ax = fig.add_subplot(2, 5, image_ind)
+    ax.set_title(title)
+    ax.imshow(np.abs(image), cmap='gray', vmin=0, vmax=np.max(target))
+    ax.set_xticks([])
+    ax.set_yticks([])
+
+
+def generate_error_map(fig, target, recon, image_ind, k=3):
+    # Assume rows and cols are available globally
+    # rows and cols are both previously defined ints
+    ax = fig.add_subplot(2, 5, image_ind)  # Add to subplot
+
+    # Normalize error between target and reconstruction
+    error = np.abs(target - recon)
+    # normalized_error = error / error.max() if not relative else error
+    im = ax.imshow(k * error, cmap='jet')  # Plot image
+
+    # Remove axis ticks
+    ax.set_xticks([])
+    ax.set_yticks([])
+
+    # Assign x label for plot
+    plt.xlabel('Absolute Error')
+
+    # Return plotted image and its axis in the subplot
+    return im, ax
+
+
 def plot_5_epoch(args, generator, epoch):
     std = CONSTANT_PLOTS['std']
     mean = CONSTANT_PLOTS['mean']
 
-    plot_out = generator(CONSTANT_PLOTS['measures_w_z'].unsqueeze(0).to(args.device))
+    z_1 = add_z_to_input(args, CONSTANT_PLOTS['measures'].unsqueeze(0)).to(args.device)
+    z_2 = add_z_to_input(args, CONSTANT_PLOTS['measures'].unsqueeze(0)).to(args.device)
+    z_3 = add_z_to_input(args, CONSTANT_PLOTS['measures'].unsqueeze(0)).to(args.device)
+    z_4 = add_z_to_input(args, CONSTANT_PLOTS['measures'].unsqueeze(0)).to(args.device)
+
+    z_1_out = generator(z_1)
+    z_2_out = generator(z_2)
+    z_3_out = generator(z_3)
+    z_4_out = generator(z_4)
 
     if args.network_input == 'kspace':
-        refined_out = plot_out.cpu() + CONSTANT_PLOTS['measures'][0:16].unsqueeze(0)
+        refined_z_1_out = z_1_out.cpu() + CONSTANT_PLOTS['measures'][0:16].unsqueeze(0)
+        refined_z_2_out = z_2_out.cpu() + CONSTANT_PLOTS['measures'][0:16].unsqueeze(0)
+        refined_z_3_out = z_3_out.cpu() + CONSTANT_PLOTS['measures'][0:16].unsqueeze(0)
+        refined_z_4_out = z_4_out.cpu() + CONSTANT_PLOTS['measures'][0:16].unsqueeze(0)
     else:
         raise NotImplementedError
 
-    target_plot = \
-        prep_discriminator_input(CONSTANT_PLOTS['gt'].unsqueeze(0), 1, args.network_input, [], inds=False, mean=mean,
+    target_prep = prep_discriminator_input(CONSTANT_PLOTS['gt'].unsqueeze(0), 1, args.network_input, [], inds=False, mean=mean,
                                  std=std)[0]
-    output_plot = prep_discriminator_input(refined_out, args.batch_size, args.network_input,
+    z_1_prep = prep_discriminator_input(refined_z_1_out, args.batch_size, args.network_input,
                                            [], inds=False, mean=mean, std=std).to(args.device)[0]
+    z_2_prep = prep_discriminator_input(refined_z_2_out, args.batch_size, args.network_input,
+                                      [], inds=False, mean=mean, std=std).to(args.device)[0]
+    z_3_prep = prep_discriminator_input(refined_z_3_out, args.batch_size, args.network_input,
+                                      [], inds=False, mean=mean, std=std).to(args.device)[0]
+    z_4_prep = prep_discriminator_input(refined_z_4_out, args.batch_size, args.network_input,
+                                      [], inds=False, mean=mean, std=std).to(args.device)[0]
 
-    im_real = complex_abs(target_plot.permute(1, 2, 0)) * std + mean
-    im_real_np = im_real.numpy()
+    target_im = complex_abs(target_prep.permute(1,2,0)) * std + mean
+    target_im = target_im.numpy()
 
-    im_fake = complex_abs(output_plot.permute(1, 2, 0)) * std + mean
-    im_fake_np = im_fake.detach().cpu().numpy()
+    z_1_im = complex_abs(z_1_prep.permute(1, 2, 0)) * std + mean
+    z_1_im = z_1_im.numpy()
 
-    fig = plt.figure(figsize=(6, 6))
+    z_2_im = complex_abs(z_2_prep.permute(1, 2, 0)) * std + mean
+    z_2_im = z_2_im.numpy()
+
+    z_3_im = complex_abs(z_3_prep.permute(1, 2, 0)) * std + mean
+    z_3_im = z_3_im.numpy()
+
+    z_4_im = complex_abs(z_4_prep.permute(1, 2, 0)) * std + mean
+    z_4_im = z_4_im.numpy()
+
+    fig = plt.figure(figsize=(10,5))
     fig.suptitle(f'Generated and GT Images at Epoch {epoch + 1}')
-    ax = fig.add_subplot(2, 2, 1)
-    ax.imshow(np.abs(im_real_np), origin='lower', cmap='gray', vmin=0, vmax=np.max(im_real_np))
-    ax.set_xticks([])
-    ax.set_yticks([])
-    plt.xlabel(f'GT')
+    generate_image(fig, target_im, target_im, 'GT', 1)
+    generate_image(fig, target_im, z_1_im, 'Z 1', 2)
+    generate_image(fig, target_im, z_2_im, 'Z 2', 3)
+    generate_image(fig, target_im, z_3_im, 'Z 3', 4)
+    generate_image(fig, target_im, z_4_im, 'Z 4', 5)
 
-    ax = fig.add_subplot(2, 2, 2)
-    ax.imshow(np.abs(im_fake_np), origin='lower', cmap='gray', vmin=0, vmax=np.max(im_real_np))
-    ax.set_xticks([])
-    ax.set_yticks([])
-    plt.xlabel(f'Reconstruction')
-
-    ax = fig.add_subplot(2, 2, 4)
-    # MAY NEED TO REVISE BOUNDS BELOW
-    k = 3
-    ax.imshow(k * np.abs(im_real_np - im_fake_np), origin='lower', cmap='jet')
-    ax.set_xticks([])
-    ax.set_yticks([])
-    plt.xlabel(f'Relative Error')
+    generate_error_map(fig, target_im, z_1_im, 7, 3)
+    generate_error_map(fig, target_im, z_2_im, 8, 3)
+    generate_error_map(fig, target_im, z_3_im, 9, 3)
+    generate_error_map(fig, target_im, z_4_im, 10, 3)
 
     plt.savefig(
         f'/home/bendel.8/Git_Repos/MRIGAN/training_images/gen_{args.network_input}_{args.z_location}_{epoch + 1}.png')
@@ -281,7 +326,6 @@ def main(args):
                 # PLOT VERY FIRST GENERATED IMAGE
                 if first:
                     CONSTANT_PLOTS['measures'] = input.cpu()[2]
-                    CONSTANT_PLOTS['measures_w_z'] = input_w_z.detach().cpu()[2]
                     CONSTANT_PLOTS['mean'] = mean.cpu()[2]
                     CONSTANT_PLOTS['std'] = std.cpu()[2]
                     CONSTANT_PLOTS['gt'] = target_full.cpu()[2]
@@ -365,9 +409,9 @@ def main(args):
 
         plot_5_epoch(args, generator, epoch)
 
-        if epoch + 1 == 10:
+        if epoch + 1 == 5:
             # TODO: IMPLEMENT THIS
-            save_metrics()
+            save_metrics(args)
             exit()
 
     loss_file.close()
