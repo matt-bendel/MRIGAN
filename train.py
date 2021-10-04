@@ -44,7 +44,8 @@ lambda_gp = 10
 GLOBAL_LOSS_DICT = {
     'g_loss': [],
     'd_loss': [],
-    'mSSIM': []
+    'mSSIM': [],
+    'd_acc': []
 }
 CONSTANT_PLOTS = {
     'measures': None,
@@ -53,6 +54,7 @@ CONSTANT_PLOTS = {
     'std': None,
     'gt': None
 }
+
 
 def get_inverse_mask():
     a = np.array(
@@ -154,6 +156,58 @@ def compute_gradient_penalty(D, real_samples, fake_samples, args):
     return gradient_penalty
 
 
+def plot_5_epoch(args, generator, epoch):
+    std = CONSTANT_PLOTS['std']
+    mean = CONSTANT_PLOTS['mean']
+
+    plot_out = generator(CONSTANT_PLOTS['measures_w_z'].unsqueeze(0).to(args.device))
+
+    if args.network_input == 'kspace':
+        refined_out = plot_out.cpu() + CONSTANT_PLOTS['measures'][0:16].unsqueeze(0)
+    else:
+        raise NotImplementedError
+
+    target_plot = \
+        prep_discriminator_input(CONSTANT_PLOTS['gt'].unsqueeze(0), 1, args.network_input, [], inds=False, mean=mean,
+                                 std=std)[0]
+    output_plot = prep_discriminator_input(refined_out, args.batch_size, args.network_input,
+                                           [], inds=False, mean=mean, std=std).to(args.device)[0]
+
+    im_real = complex_abs(target_plot.permute(1, 2, 0)) * std + mean
+    im_real_np = im_real.numpy()
+
+    im_fake = complex_abs(output_plot.permute(1, 2, 0)) * std + mean
+    im_fake_np = im_fake.detach().cpu().numpy()
+
+    fig = plt.figure(figsize=(6, 6))
+    fig.suptitle(f'Generated and GT Images at Epoch {epoch + 1}')
+    ax = fig.add_subplot(2, 2, 1)
+    ax.imshow(np.abs(im_real_np), origin='lower', cmap='gray', vmin=0, vmax=np.max(im_real_np))
+    ax.set_xticks([])
+    ax.set_yticks([])
+    plt.xlabel(f'GT')
+
+    ax = fig.add_subplot(2, 2, 2)
+    ax.imshow(np.abs(im_fake_np), origin='lower', cmap='gray', vmin=0, vmax=np.max(im_real_np))
+    ax.set_xticks([])
+    ax.set_yticks([])
+    plt.xlabel(f'Reconstruction')
+
+    ax = fig.add_subplot(2, 2, 4)
+    # MAY NEED TO REVISE BOUNDS BELOW
+    k = 3
+    ax.imshow(k * np.abs(im_real_np - im_fake_np), origin='lower', cmap='jet')
+    ax.set_xticks([])
+    ax.set_yticks([])
+    plt.xlabel(f'Relative Error')
+
+    plt.savefig(
+        f'/home/bendel.8/Git_Repos/MRIGAN/training_images/test_gen_{args.network_input}_{args.z_location}_{epoch + 1}.png')
+
+
+def save_metrics():
+    print("SAVE METRICS HERE")
+
 def main(args):
     args.exp_dir.mkdir(parents=True, exist_ok=True)
 
@@ -181,7 +235,8 @@ def main(args):
     for epoch in range(start_epoch, args.num_epochs):
         batch_loss = {
             'g_loss': [],
-            'd_loss': []
+            'd_loss': [],
+            'd_acc': []
         }
         for i, data in enumerate(train_loader):
             input, target_full, mean, std, nnz_index_mask = data
@@ -229,6 +284,7 @@ def main(args):
 
                     im_check = complex_abs(disc_output_batch[2].permute(1, 2, 0))
                     im_np = im_check.detach().cpu().numpy()
+                    plt.figure()
                     plt.imshow(np.abs(im_np), origin='lower', cmap='gray')
                     plt.savefig(f'first_gen_{args.network_input}_{args.z_location}.png')
                     first = False
@@ -236,6 +292,11 @@ def main(args):
                 # MAKE PREDICTIONS
                 real_pred = discriminator(disc_target_batch)
                 fake_pred = discriminator(disc_output_batch)
+
+                real_acc = real_pred[real_pred > 0].shape[0]
+                fake_acc = fake_pred[fake_pred < 0].shape[0]
+
+                batch_loss['d_acc'].append((real_acc + fake_acc) / 32)
 
                 # Gradient penalty
                 gradient_penalty = compute_gradient_penalty(discriminator, disc_target_batch.data,
@@ -271,11 +332,12 @@ def main(args):
             batch_loss['d_loss'].append(d_loss.item())
 
             print(
-                "[Epoch %d/%d] [Batch %d/%d] [D loss: %f] [G loss: %f] [Val mSSIM: %.4f]"
-                % (epoch, args.num_epochs, i, len(train_loader.dataset)/args.batch_size, d_loss.item(), g_loss.item(), 0.0)
+                "[Epoch %d/%d] [Batch %d/%d] [D loss: %.4f] [G loss: %.4f] [Val mSSIM: %.4f]"
+                % (epoch+1, args.num_epochs, i, len(train_loader.dataset) / args.batch_size, d_loss.item(), g_loss.item(),
+                   0.0)
             )
 
-        # TODO: ADD VALIDATION HERE - ONLY A SMALL SUBSET OF VAL DATA
+        # TODO: ADD VALIDATION HERE - ONLY A SMALL SUBSET OF VAL DATA, LIKE 1500 IMAGES (~10 BATCHES)
         # for i, data in enumerate(train_loader):
         #     input, target_full, mean, std, nnz_index_mask = data
         #     old_input = input.to(args.device)
@@ -284,65 +346,24 @@ def main(args):
         best_loss_val = 1e9  # val_data()
         ssim_loss = 0
 
-        # TODO: ADD END OF EPOCH LOSS FROM VAL AND AVERAGE EPOCH LOSS
         GLOBAL_LOSS_DICT['g_loss'].append(np.mean(batch_loss['g_loss']))
         GLOBAL_LOSS_DICT['d_loss'].append(np.mean(batch_loss['d_loss']))
+        GLOBAL_LOSS_DICT['d_acc'].append(np.mean(batch_loss['d_acc']))
         GLOBAL_LOSS_DICT['mSSIM'].append(ssim_loss)
 
-        save_str = f"END OF EPOCH {epoch}: [Average D loss: {GLOBAL_LOSS_DICT['d_loss'][epoch]}] [Average G loss: {GLOBAL_LOSS_DICT['g_loss'][epoch]}] [Val mSSIM: {GLOBAL_LOSS_DICT['mSSIM'][epoch]}]\n"
+        save_str = f"END OF EPOCH {epoch+1}: [Average D loss: {GLOBAL_LOSS_DICT['d_loss'][epoch]}] [Average D Acc: {GLOBAL_LOSS_DICT['d_acc']}] [Average G loss: {GLOBAL_LOSS_DICT['g_loss'][epoch]}] [Val mSSIM: {GLOBAL_LOSS_DICT['mSSIM'][epoch]}]\n"
         print(save_str)
         loss_file.write(save_str)
 
         save_model(args, epoch, generator, optimizer_G, best_loss_val, best_model, 'generator')
         save_model(args, epoch, discriminator, optimizer_D, best_loss_val, best_model, 'discriminator')
 
-        if epoch + 1 % 5 == 0:
-            std = CONSTANT_PLOTS['std']
-            mean = CONSTANT_PLOTS['mean']
+        plot_5_epoch(args, generator, epoch)
 
-            plot_out = generator(CONSTANT_PLOTS['measures_w_z'].unsqueeze(0).to(args.device))
-
-            if args.network_input == 'kspace':
-                refined_out = plot_out.cpu() + CONSTANT_PLOTS['measures'][0:16].unsqueeze(0)
-            else:
-                raise NotImplementedError
-
-            target_plot = prep_discriminator_input(CONSTANT_PLOTS['gt'].unsqueeze(0), 1, args.network_input, [], inds=False, mean=mean, std=std)[0]
-            output_plot = prep_discriminator_input(refined_out, args.batch_size, args.network_input,
-                                                         [], inds=False, mean=mean, std=std).to(args.device)[0]
-
-            im_real = complex_abs(target_plot.permute(1, 2, 0)) * std + mean
-            im_real_np = im_real.numpy()
-
-            im_fake = complex_abs(output_plot.permute(1, 2, 0)) * std + mean
-            im_fake_np = im_fake.detach().cpu().numpy()
-
-            fig = plt.figure(figsize=(6,6))
-            fig.suptitle(f'Generated and GT Images at Epoch {epoch}')
-            ax = fig.add_subplot(2,2,1)
-            ax.imshow(np.abs(im_real_np), origin='lower', cmap='gray', vmin=0, vmax=np.max(im_real_np))
-            ax.set_xticks([])
-            ax.set_yticks([])
-            plt.xlabel(f'GT')
-
-            ax = fig.add_subplot(2, 2, 2)
-            ax.imshow(np.abs(im_fake_np), origin='lower', cmap='gray', vmin=0, vmax=np.max(im_real_np))
-            ax.set_xticks([])
-            ax.set_yticks([])
-            plt.xlabel(f'Reconstruction')
-
-            ax = fig.add_subplot(2, 2, 4)
-            # MAY NEED TO REVISE BOUNDS BELOW
-            k = 3
-            ax.imshow(k*np.abs(im_real_np - im_fake_np), origin='lower', cmap='jet')
-            ax.set_xticks([])
-            ax.set_yticks([])
-            plt.xlabel(f'Relative Error')
-
-            plt.savefig(f'/home/bendel.8/Git_Repos/MRIGAN/training_images/test_gen_{args.network_input}_{args.z_location}_{epoch+1}.png')
-
-            if epoch + 1 == 10:
-                exit()
+        if epoch + 1 == 10:
+            # TODO: IMPLEMENT THIS
+            save_metrics()
+            exit()
 
     loss_file.close()
 
@@ -368,7 +389,7 @@ if __name__ == '__main__':
     # TODO: Add metric plotting from global dict
     # try:
     main(args)
-        # SAVE METRICS
+    # SAVE METRICS
     # except:
     #     print("SAVE METRICS")
-        #print(len(GLOBAL_LOSS_DICT['g_loss']))
+    # print(len(GLOBAL_LOSS_DICT['g_loss']))
