@@ -225,7 +225,7 @@ def plot_epoch(args, generator, epoch):
     target_im = complex_abs(target_prep.permute(1,2,0)) #* std + mean
     target_im = target_im.numpy()
 
-    zfr = complex_abs(zfr.permut(1,2,0))
+    zfr = complex_abs(zfr.permute(1,2,0))
     zfr = zfr.numpy()
 
     z_1_im = complex_abs(z_1_prep.permute(1, 2, 0)) #* std + mean
