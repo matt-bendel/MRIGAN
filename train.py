@@ -186,7 +186,7 @@ def generate_error_map(fig, target, recon, image_ind, k=3):
     return im, ax
 
 
-def plot_5_epoch(args, generator, epoch):
+def plot_epoch(args, generator, epoch):
     std = CONSTANT_PLOTS['std']
     mean = CONSTANT_PLOTS['mean']
 
@@ -407,7 +407,7 @@ def main(args):
         save_model(args, epoch, generator, optimizer_G, best_loss_val, best_model, 'generator')
         save_model(args, epoch, discriminator, optimizer_D, best_loss_val, best_model, 'discriminator')
 
-        plot_5_epoch(args, generator, epoch)
+        plot_epoch(args, generator, epoch)
 
         if epoch + 1 == 5:
             # TODO: IMPLEMENT THIS
