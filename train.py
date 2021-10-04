@@ -224,16 +224,16 @@ def plot_epoch(args, generator, epoch):
     target_im = target_im.numpy()
 
     z_1_im = complex_abs(z_1_prep.permute(1, 2, 0)) * std + mean
-    z_1_im = z_1_im.numpy()
+    z_1_im = z_1_im.detach().cpu().numpy()
 
     z_2_im = complex_abs(z_2_prep.permute(1, 2, 0)) * std + mean
-    z_2_im = z_2_im.numpy()
+    z_2_im = z_2_im.detach().cpu().numpy()
 
     z_3_im = complex_abs(z_3_prep.permute(1, 2, 0)) * std + mean
-    z_3_im = z_3_im.numpy()
+    z_3_im = z_3_im.detach().cpu().numpy()
 
     z_4_im = complex_abs(z_4_prep.permute(1, 2, 0)) * std + mean
-    z_4_im = z_4_im.numpy()
+    z_4_im = z_4_im.detach().cpu().numpy()
 
     fig = plt.figure(figsize=(10,5))
     fig.suptitle(f'Generated and GT Images at Epoch {epoch + 1}')
