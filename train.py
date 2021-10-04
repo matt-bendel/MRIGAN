@@ -400,7 +400,7 @@ def main(args):
         GLOBAL_LOSS_DICT['d_acc'].append(np.mean(batch_loss['d_acc']))
         GLOBAL_LOSS_DICT['mSSIM'].append(ssim_loss)
 
-        save_str = f"END OF EPOCH {epoch + 1}: [Average D loss: {GLOBAL_LOSS_DICT['d_loss'][epoch]:.4f}] [Average D Acc: {GLOBAL_LOSS_DICT['d_acc']:.4f}] [Average G loss: {GLOBAL_LOSS_DICT['g_loss'][epoch]:.4f}] [Val mSSIM: {GLOBAL_LOSS_DICT['mSSIM'][epoch]:.4f}]\n"
+        save_str = f"END OF EPOCH {epoch + 1}: [Average D loss: {GLOBAL_LOSS_DICT['d_loss'][epoch]}] [Average D Acc: {GLOBAL_LOSS_DICT['d_acc']}] [Average G loss: {GLOBAL_LOSS_DICT['g_loss'][epoch]}] [Val mSSIM: {GLOBAL_LOSS_DICT['mSSIM'][epoch]}]\n"
         print(save_str)
         loss_file.write(save_str)
 
