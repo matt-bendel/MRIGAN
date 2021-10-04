@@ -166,7 +166,7 @@ def generate_image(fig, target, image, title, image_ind):
     ax.set_yticks([])
 
 
-def generate_error_map(fig, target, recon, image_ind, k=3):
+def generate_error_map(fig, target, recon, image_ind, k=5):
     # Assume rows and cols are available globally
     # rows and cols are both previously defined ints
     ax = fig.add_subplot(2, 5, image_ind)  # Add to subplot
@@ -211,6 +211,8 @@ def plot_epoch(args, generator, epoch):
 
     target_prep = prep_discriminator_input(CONSTANT_PLOTS['gt'].unsqueeze(0), 1, args.network_input, [], inds=False, mean=mean,
                                  std=std)[0]
+    zfr = prep_discriminator_input(CONSTANT_PLOTS['measures'].unsqueeze(0), 1, args.network_input, [], inds=False, mean=mean,
+                                 std=std)[0]
     z_1_prep = prep_discriminator_input(refined_z_1_out, args.batch_size, args.network_input,
                                            [], inds=False, mean=mean, std=std).to(args.device)[0]
     z_2_prep = prep_discriminator_input(refined_z_2_out, args.batch_size, args.network_input,
@@ -220,33 +222,38 @@ def plot_epoch(args, generator, epoch):
     z_4_prep = prep_discriminator_input(refined_z_4_out, args.batch_size, args.network_input,
                                       [], inds=False, mean=mean, std=std).to(args.device)[0]
 
-    target_im = complex_abs(target_prep.permute(1,2,0)) * std + mean
+    target_im = complex_abs(target_prep.permute(1,2,0)) #* std + mean
     target_im = target_im.numpy()
 
-    z_1_im = complex_abs(z_1_prep.permute(1, 2, 0)) * std + mean
+    zfr = complex_abs(zfr.permut(1,2,0))
+    zfr = zfr.numpy()
+
+    z_1_im = complex_abs(z_1_prep.permute(1, 2, 0)) #* std + mean
     z_1_im = z_1_im.detach().cpu().numpy()
 
-    z_2_im = complex_abs(z_2_prep.permute(1, 2, 0)) * std + mean
+    z_2_im = complex_abs(z_2_prep.permute(1, 2, 0)) #* std + mean
     z_2_im = z_2_im.detach().cpu().numpy()
 
-    z_3_im = complex_abs(z_3_prep.permute(1, 2, 0)) * std + mean
+    z_3_im = complex_abs(z_3_prep.permute(1, 2, 0)) #* std + mean
     z_3_im = z_3_im.detach().cpu().numpy()
 
-    z_4_im = complex_abs(z_4_prep.permute(1, 2, 0)) * std + mean
+    z_4_im = complex_abs(z_4_prep.permute(1, 2, 0)) #* std + mean
     z_4_im = z_4_im.detach().cpu().numpy()
 
     fig = plt.figure(figsize=(10,5))
     fig.suptitle(f'Generated and GT Images at Epoch {epoch + 1}')
     generate_image(fig, target_im, target_im, 'GT', 1)
-    generate_image(fig, target_im, z_1_im, 'Z 1', 2)
-    generate_image(fig, target_im, z_2_im, 'Z 2', 3)
-    generate_image(fig, target_im, z_3_im, 'Z 3', 4)
-    generate_image(fig, target_im, z_4_im, 'Z 4', 5)
+    generate_image(fig, target_im, zfr, 'ZFR', 2)
+    generate_image(fig, target_im, z_1_im, 'Z 1', 3)
+    generate_image(fig, target_im, z_2_im, 'Z 2', 4)
+    generate_image(fig, target_im, z_3_im, 'Z 3', 5)
+    generate_image(fig, target_im, z_4_im, 'Z 4', 6)
 
-    generate_error_map(fig, target_im, z_1_im, 7, 3)
-    generate_error_map(fig, target_im, z_2_im, 8, 3)
-    generate_error_map(fig, target_im, z_3_im, 9, 3)
-    generate_error_map(fig, target_im, z_4_im, 10, 3)
+    generate_error_map(fig, target_im, zfr, 8, 5)
+    generate_error_map(fig, target_im, z_1_im, 9, 5)
+    generate_error_map(fig, target_im, z_2_im, 10, 5)
+    generate_error_map(fig, target_im, z_3_im, 11, 5)
+    generate_error_map(fig, target_im, z_4_im, 12, 5)
 
     plt.savefig(
         f'/home/bendel.8/Git_Repos/MRIGAN/training_images/gen_{args.network_input}_{args.z_location}_{epoch + 1}.png')
