@@ -343,7 +343,7 @@ def main(args):
                 fake_pred = discriminator(disc_output_batch)
 
                 real_acc = real_pred[real_pred > 0].shape[0]
-                fake_acc = fake_pred[fake_pred < 0].shape[0]
+                fake_acc = fake_pred[fake_pred <= 0].shape[0]
 
                 batch_loss['d_acc'].append((real_acc + fake_acc) / 32)
 
@@ -400,7 +400,7 @@ def main(args):
         GLOBAL_LOSS_DICT['d_acc'].append(np.mean(batch_loss['d_acc']))
         GLOBAL_LOSS_DICT['mSSIM'].append(ssim_loss)
 
-        save_str = f"END OF EPOCH {epoch + 1}: [Average D loss: {GLOBAL_LOSS_DICT['d_loss'][epoch]}] [Average D Acc: {GLOBAL_LOSS_DICT['d_acc']}] [Average G loss: {GLOBAL_LOSS_DICT['g_loss'][epoch]}] [Val mSSIM: {GLOBAL_LOSS_DICT['mSSIM'][epoch]}]\n"
+        save_str = f"END OF EPOCH {epoch + 1}: [Average D loss: {GLOBAL_LOSS_DICT['d_loss'][epoch]:.4f}] [Average D Acc: {GLOBAL_LOSS_DICT['d_acc']:.4f}] [Average G loss: {GLOBAL_LOSS_DICT['g_loss'][epoch]:.4f}] [Val mSSIM: {GLOBAL_LOSS_DICT['mSSIM'][epoch]:.4f}]\n"
         print(save_str)
         loss_file.write(save_str)
 
@@ -435,8 +435,8 @@ if __name__ == '__main__':
     torch.manual_seed(args.seed)
 
     # TODO: Add metric plotting from global dict
-    try:
-        main(args)
-        save_metrics(args)
-    except:
+    # try:
+    main(args)
+    save_metrics(args)
+    # except:
         save_metrics(args)
