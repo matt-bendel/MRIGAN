@@ -203,11 +203,11 @@ def plot_5_epoch(args, generator, epoch):
     plt.xlabel(f'Relative Error')
 
     plt.savefig(
-        f'/home/bendel.8/Git_Repos/MRIGAN/training_images/test_gen_{args.network_input}_{args.z_location}_{epoch + 1}.png')
+        f'/home/bendel.8/Git_Repos/MRIGAN/training_images/gen_{args.network_input}_{args.z_location}_{epoch + 1}.png')
 
 
 def save_metrics(args):
-    with open(f'home/bendel.8/Git_Repos/MRIGAN/saved_metrics/loss_{args.network_input}_{args.z_location}.pkl',
+    with open(f'/home/bendel.8/Git_Repos/MRIGAN/saved_metrics/loss_{args.network_input}_{args.z_location}.pkl',
               'wb') as f:
         pickle.dump(GLOBAL_LOSS_DICT, f, pickle.HIGHEST_PROTOCOL)
 
