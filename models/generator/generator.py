@@ -164,7 +164,7 @@ class GeneratorModel(nn.Module):
                 nn.LeakyReLU(negative_slope=0.2),
             )
             self.middle_z_grow_linear = nn.Sequential(
-                nn.Linear(latent_size, latent_size * 3 * 3),
+                nn.Linear(latent_size, 4*latent_size * 3 * 3),
                 nn.LeakyReLU(negative_slope=0.2)
             )
             self.middle = nn.Sequential(

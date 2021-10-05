@@ -293,6 +293,9 @@ def main(args):
             input, target_full, mean, std, nnz_index_mask = data
             old_input = input.to(args.device)
 
+            if input.shape[0] != 16:
+                continue
+
             for j in range(args.num_iters_discriminator):
                 input_w_z = input  # add_z_to_input(args, input)
                 # ---------------------
