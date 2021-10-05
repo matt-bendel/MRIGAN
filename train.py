@@ -102,7 +102,6 @@ def prep_discriminator_input(data_tensor, num_vals, unet_type):
             # output_tensor[:, :, :, 0] = output[0:8, :, :]
             # output_tensor[:, :, :, 1] = output[8:16, :, :]
             output_x = ifft2c_new(output.permute(1, 2, 0))
-            print(output_x.shape)
 
             disc_inp[k, :, :, :] = output_x.permute(2, 0, 1)
     else:
