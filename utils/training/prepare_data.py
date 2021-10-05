@@ -73,9 +73,11 @@ class DataTransform:
 
         kspace = transforms.to_tensor(kspace)
         kspace = kspace.permute(2, 0, 1, 3)
+        kspace = transforms.root_sum_of_squares(kspace)
 
         masked_kspace = transforms.to_tensor(masked_kspace)
         masked_kspace = masked_kspace.permute(2, 0, 1, 3)
+        masked_kspace = transforms.root_sum_of_squares(masked_kspace)
 
         # Apply mask
         nnz_index_mask = mask[0, :, 0].nonzero()[0]
@@ -83,8 +85,8 @@ class DataTransform:
         noise_var = torch.tensor(5.3459594390181664e-11)
 
         nnz_masked_kspace = masked_kspace[:, :, nnz_index_mask, :]
-        nnz_masked_kspace_real = nnz_masked_kspace[:, :, :, 0]
-        nnz_masked_kspace_imag = nnz_masked_kspace[:, :, :, 1]
+        nnz_masked_kspace_real = nnz_masked_kspace[:, :, 0]
+        nnz_masked_kspace_imag = nnz_masked_kspace[:, :, 1]
         nnz_masked_kspace_real_flat = flatten(nnz_masked_kspace_real)
         nnz_masked_kspace_imag_flat = flatten(nnz_masked_kspace_imag)
 
@@ -98,17 +100,14 @@ class DataTransform:
         nnz_masked_kspace_imag_noisy = unflatten(nnz_masked_kspace_imag_flat_noisy, nnz_masked_kspace_imag.shape)
 
         nnz_masked_kspace_noisy = nnz_masked_kspace * 0
-        nnz_masked_kspace_noisy[:, :, :, 0] = nnz_masked_kspace_real_noisy
-        nnz_masked_kspace_noisy[:, :, :, 1] = nnz_masked_kspace_imag_noisy
+        nnz_masked_kspace_noisy[:, :, 0] = nnz_masked_kspace_real_noisy
+        nnz_masked_kspace_noisy[:, :, 1] = nnz_masked_kspace_imag_noisy
 
         masked_kspace_noisy = 0 * masked_kspace
-        masked_kspace_noisy[:, :, nnz_index_mask, :] = nnz_masked_kspace_noisy
+        masked_kspace_noisy[:, nnz_index_mask, :] = nnz_masked_kspace_noisy
 
         ## commenting the bellow one line will make the experiment noiseless case
         # masked_kspace = masked_kspace_noisy
-        masked_kspace = transforms.root_sum_of_squares(masked_kspace)
-
-        kspace = transforms.root_sum_of_squares(kspace)
 
         ###################################
 
