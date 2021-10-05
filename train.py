@@ -92,7 +92,7 @@ def add_z_to_input(args, input):
     return input
 
 
-def prep_discriminator_input(data_tensor, num_vals, unet_type, indvals, inds=None, mean=None, std=None):
+def prep_discriminator_input(data_tensor, num_vals, unet_type):
     disc_inp = torch.zeros(data_tensor.shape[0], 2, 384, 384)
 
     if unet_type == 'kspace':
@@ -100,11 +100,10 @@ def prep_discriminator_input(data_tensor, num_vals, unet_type, indvals, inds=Non
             # output = torch.squeeze(data_tensor[k]) if not inds else torch.squeeze(data_tensor[indvals[k]])
             # data_tensor = data_tensor * std[k] + mean[k] if not inds else data_tensor * std[indvals[k]] + mean[indvals[k]]
 
-            output = torch.squeeze(data_tensor[k]) if not inds else torch.squeeze(data_tensor[indvals[k]])
+            output = torch.squeeze(data_tensor[k])
             # output_tensor = torch.zeros(8, 384, 384, 2)
             # output_tensor[:, :, :, 0] = output[0:8, :, :]
             # output_tensor[:, :, :, 1] = output[8:16, :, :]
-            print(output.shape)
             output_x = ifft2c_new(output.permute(1, 2, 0))
             # output_x = transforms.root_sum_of_squares(output_x)
 
@@ -206,11 +205,12 @@ def plot_epoch(args, generator, epoch):
         raise NotImplementedError
 
     target_prep = \
-    prep_discriminator_input(CONSTANT_PLOTS['gt'].unsqueeze(0), 1, args.network_input, [], inds=False, mean=mean,
-                             std=std)[0]
+        prep_discriminator_input(CONSTANT_PLOTS['gt'].unsqueeze(0), 1, args.network_input, [], inds=False, mean=mean,
+                                 std=std)[0]
     zfr = \
-    prep_discriminator_input(CONSTANT_PLOTS['measures'].unsqueeze(0), 1, args.network_input, [], inds=False, mean=mean,
-                             std=std)[0]
+        prep_discriminator_input(CONSTANT_PLOTS['measures'].unsqueeze(0), 1, args.network_input, [], inds=False,
+                                 mean=mean,
+                                 std=std)[0]
     z_1_prep = prep_discriminator_input(refined_z_1_out, args.batch_size, args.network_input,
                                         [], inds=False, mean=mean, std=std).to(args.device)[0]
     # z_2_prep = prep_discriminator_input(refined_z_2_out, args.batch_size, args.network_input,
@@ -298,9 +298,7 @@ def main(args):
             old_input = input.to(args.device)
 
             for j in range(args.num_iters_discriminator):
-                i_true = np.random.randint(0, target_full.shape[0], args.batch_size // 2)
-                i_fake = np.random.randint(0, target_full.shape[0], args.batch_size // 2)
-                input_w_z = add_z_to_input(args, input)
+                input_w_z = input  # add_z_to_input(args, input)
                 # ---------------------
                 #  Train Discriminator
                 # ---------------------
@@ -315,17 +313,17 @@ def main(args):
 
                 if args.network_input == 'kspace':
                     # refined_out = output_gen + old_input[:, 0:16]
-                    refined_out = output_gen + old_input[:, 0:1]
+                    refined_out = output_gen + old_input[:]
+                    print(refined_out.shape)
                 else:
                     # TODO: TRANSFORM IMAGE BACK TO K-SPACE AND ADD OLD OUT
                     raise NotImplementedError
 
                 # TURN OUTPUT INTO IMAGE FOR DISCRIMINATION AND GET REAL IMAGES FOR DISCRIMINATION
                 disc_target_batch = prep_discriminator_input(target_full.to(args.device), args.batch_size,
-                                                             args.network_input,
-                                                             i_true, inds=False, mean=mean, std=std).to(args.device)
-                disc_output_batch = prep_discriminator_input(refined_out, args.batch_size, args.network_input,
-                                                             i_fake, inds=False, mean=mean, std=std).to(args.device)
+                                                             args.network_input).to(args.device)
+                disc_output_batch = prep_discriminator_input(refined_out, args.batch_size, args.network_input, ).to(
+                    args.device)
 
                 # PLOT VERY FIRST GENERATED IMAGE
                 if first:
