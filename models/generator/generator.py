@@ -164,7 +164,7 @@ class GeneratorModel(nn.Module):
                 nn.LeakyReLU(negative_slope=0.2),
             )
             self.middle_z_grow_linear = nn.Sequential(
-                nn.Linear(latent_size, 4*latent_size * 3 * 3),
+                nn.Linear(4*latent_size, 4*latent_size * 3 * 3),
                 nn.LeakyReLU(negative_slope=0.2)
             )
             self.middle = nn.Sequential(
@@ -204,7 +204,7 @@ class GeneratorModel(nn.Module):
 
         stack.pop()
         if self.z_location == 2:
-            z = torch.FloatTensor(np.random.normal(size=self.latent_size * output.shape[0])).to(device)
+            z = torch.FloatTensor(np.random.normal(size=self.latent_size * 4)).to(device)
             z_out = self.middle_z_grow_linear(z)
             z_out = torch.reshape(z_out, (output.shape[0], self.latent_size, 3, 3))
             z_out = F.interpolate(z_out, scale_factor=2, mode='bilinear', align_corners=False)
