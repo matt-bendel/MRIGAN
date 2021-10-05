@@ -82,9 +82,7 @@ class DataTransform:
         masked_kspace = transforms.to_tensor(masked_kspace)
         masked_kspace = masked_kspace.permute(2, 0, 1, 3)
         im = ifft2c_new(masked_kspace)
-        print(im.shape)
         im = transforms.root_sum_of_squares(masked_kspace)
-        print(im.shape)
         masked_kspace = fft2c_new(im)
 
         # Apply mask
@@ -135,7 +133,7 @@ class DataTransform:
         stacked_kspace = transforms.normalize(stacked_kspace, mean, std, eps=1e-11)
 
         plt.figure()
-        plt.imshow(np.abs(im), origin='lower', cmap='gray', vmin=0, vmax=np.max(im))
+        plt.imshow(np.abs(transforms.complex_abs(im).numpy()), origin='lower', cmap='gray', vmin=0, vmax=np.max(im))
         plt.savefig(
             f'/home/bendel.8/Git_Repos/MRIGAN/training_images/2_chan_z_mid/first_gen_TEST_TEST.png')
         # stacked_kspace = (stacked_kspace - (-4.0156e-11)) / (2.5036e-05)
