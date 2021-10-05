@@ -193,10 +193,10 @@ def plot_epoch(args, generator, epoch):
     z_3 = add_z_to_input(args, CONSTANT_PLOTS['measures'].unsqueeze(0)).to(args.device)
     z_4 = add_z_to_input(args, CONSTANT_PLOTS['measures'].unsqueeze(0)).to(args.device)
 
-    z_1_out = generator(z_1)
-    z_2_out = generator(z_2)
-    z_3_out = generator(z_3)
-    z_4_out = generator(z_4)
+    z_1_out = generator(z_1, device=args.device)
+    z_2_out = generator(z_2, device=args.device)
+    z_3_out = generator(z_3, device=args.device)
+    z_4_out = generator(z_4, device=args.device)
 
     if args.network_input == 'kspace':
         refined_z_1_out = z_1_out.cpu() + CONSTANT_PLOTS['measures'][0:16].unsqueeze(0)
@@ -310,10 +310,7 @@ def main(args):
                     raise NotImplementedError
 
                 input_w_z = input_w_z.to(args.device)
-                if args.z_location == 2:
-                    output_gen = generator(input_w_z, device=args.device, latent_size=args.latent_size)
-                else:
-                    output_gen = generator(input_w_z)
+                output_gen = generator(input_w_z, device=args.device, latent_size=args.latent_size)
 
                 if args.network_input == 'kspace':
                     refined_out = output_gen + old_input[:, 0:16]
@@ -363,7 +360,7 @@ def main(args):
             optimizer_G.zero_grad()
 
             # Generate a batch of images
-            output_gen = generator(input_w_z.to(args.device))
+            output_gen = generator(input_w_z.to(args.device), device=args.device)
 
             if args.network_input == 'kspace':
                 refined_out = output_gen + old_input[:, 0:16]
