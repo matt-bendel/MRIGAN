@@ -159,11 +159,6 @@ class GeneratorModel(nn.Module):
         self.encoder_layers += [FullDownBlock(512, 512)]  # 6x6
 
         if z_location == 2:
-            # TODO: COME UP WITH WAY TO NOT HARDCODE 4 BELOW
-            self.middle_z_grow_linear = nn.Sequential(
-                nn.Linear(latent_size * 4, latent_size * 3 * 3 * 4),
-                nn.LeakyReLU(negative_slope=0.2)
-            )
             self.middle_z_grow_conv = nn.Sequential(
                 nn.Conv2d(latent_size, latent_size, kernel_size=(3, 3), padding=1),
                 nn.LeakyReLU(negative_slope=0.2),
@@ -205,8 +200,12 @@ class GeneratorModel(nn.Module):
 
         stack.pop()
         if self.z_location == 2:
+            middle_z_grow_linear = nn.Sequential(
+                nn.Linear(latent_size * output.shape[0], latent_size * 3 * 3 * output.shape[0]),
+                nn.LeakyReLU(negative_slope=0.2)
+            )
             z = torch.FloatTensor(np.random.normal(size=self.latent_size * output.shape[0])).to(device)
-            z_out = self.middle_z_grow_linear(z)
+            z_out = middle_z_grow_linear(z)
             z_out = torch.reshape(z_out, (output.shape[0], self.latent_size, 3, 3))
             z_out = F.interpolate(z_out, scale_factor=2, mode='bilinear', align_corners=False)
             z_out = self.middle_z_grow_conv(z_out)

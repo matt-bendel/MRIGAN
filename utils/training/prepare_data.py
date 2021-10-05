@@ -105,23 +105,26 @@ class DataTransform:
         masked_kspace_noisy[:, :, nnz_index_mask, :] = nnz_masked_kspace_noisy
 
         ## commenting the bellow one line will make the experiment noiseless case
-        masked_kspace = masked_kspace_noisy
+        # masked_kspace = masked_kspace_noisy
+        masked_kspace = transforms.root_sum_of_squares(masked_kspace)
+
+        kspace = transforms.root_sum_of_squares(kspace)
 
         ###################################
 
         if self.args.z_location == 3:
             stacked_masked_kspace = torch.zeros(17, 384, 384)
         else:
-            stacked_masked_kspace = torch.zeros(16, 384, 384)
+            stacked_masked_kspace = torch.zeros(2, 384, 384)
 
-        stacked_masked_kspace[0:8, :, :] = torch.squeeze(masked_kspace[:, :, :, 0])
-        stacked_masked_kspace[8:16, :, :] = torch.squeeze(masked_kspace[:, :, :, 1])
+        stacked_masked_kspace[0, :, :] = torch.squeeze(masked_kspace[:, :, 0])
+        stacked_masked_kspace[1, :, :] = torch.squeeze(masked_kspace[:, :, 1])
         stacked_masked_kspace, mean, std = transforms.normalize_instance(stacked_masked_kspace, eps=1e-11)
         # stacked_masked_kspace = (stacked_masked_kspace - (-4.0156e-11)) / (2.5036e-05)
 
-        stacked_kspace = torch.zeros(16, 384, 384)
-        stacked_kspace[0:8, :, :] = torch.squeeze(kspace[:, :, :, 0])
-        stacked_kspace[8:16, :, :] = torch.squeeze(kspace[:, :, :, 1])
+        stacked_kspace = torch.zeros(2, 384, 384)
+        stacked_kspace[0, :, :] = torch.squeeze(kspace[:, :, 0])
+        stacked_kspace[1, :, :] = torch.squeeze(kspace[:, :, 1])
         stacked_kspace = transforms.normalize(stacked_kspace, mean, std, eps=1e-11)
         # stacked_kspace = (stacked_kspace - (-4.0156e-11)) / (2.5036e-05)
 

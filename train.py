@@ -102,12 +102,12 @@ def prep_discriminator_input(data_tensor, num_vals, unet_type, indvals, inds=Non
 
             output = torch.squeeze(data_tensor[k]) if not inds else torch.squeeze(data_tensor[indvals[k]])
             data_tensor = data_tensor if not inds else data_tensor
-            output_tensor = torch.zeros(8, 384, 384, 2)
-            output_tensor[:, :, :, 0] = output[0:8, :, :]
-            output_tensor[:, :, :, 1] = output[8:16, :, :]
+            # output_tensor = torch.zeros(8, 384, 384, 2)
+            # output_tensor[:, :, :, 0] = output[0:8, :, :]
+            # output_tensor[:, :, :, 1] = output[8:16, :, :]
 
-            output_x = ifft2c_new(output_tensor)
-            output_x = transforms.root_sum_of_squares(output_x)
+            output_x = ifft2c_new(output)
+            # output_x = transforms.root_sum_of_squares(output_x)
 
             disc_inp[k, :, :, :] = output_x.permute(2, 0, 1)
     else:
@@ -159,7 +159,7 @@ def compute_gradient_penalty(D, real_samples, fake_samples, args):
 
 def generate_image(fig, target, image, title, image_ind):
     # rows and cols are both previously defined ints
-    ax = fig.add_subplot(2, 6, image_ind)
+    ax = fig.add_subplot(2, 3, image_ind)
     ax.set_title(title)
     ax.imshow(np.abs(image), cmap='gray', vmin=0, vmax=np.max(target))
     ax.set_xticks([])
@@ -169,7 +169,7 @@ def generate_image(fig, target, image, title, image_ind):
 def generate_error_map(fig, target, recon, image_ind, k=5):
     # Assume rows and cols are available globally
     # rows and cols are both previously defined ints
-    ax = fig.add_subplot(2, 6, image_ind)  # Add to subplot
+    ax = fig.add_subplot(2, 3, image_ind)  # Add to subplot
 
     # Normalize error between target and reconstruction
     error = np.abs(target - recon)
@@ -189,20 +189,20 @@ def plot_epoch(args, generator, epoch):
     mean = CONSTANT_PLOTS['mean']
 
     z_1 = add_z_to_input(args, CONSTANT_PLOTS['measures'].unsqueeze(0)).to(args.device)
-    z_2 = add_z_to_input(args, CONSTANT_PLOTS['measures'].unsqueeze(0)).to(args.device)
-    z_3 = add_z_to_input(args, CONSTANT_PLOTS['measures'].unsqueeze(0)).to(args.device)
-    z_4 = add_z_to_input(args, CONSTANT_PLOTS['measures'].unsqueeze(0)).to(args.device)
+    # z_2 = add_z_to_input(args, CONSTANT_PLOTS['measures'].unsqueeze(0)).to(args.device)
+    # z_3 = add_z_to_input(args, CONSTANT_PLOTS['measures'].unsqueeze(0)).to(args.device)
+    # z_4 = add_z_to_input(args, CONSTANT_PLOTS['measures'].unsqueeze(0)).to(args.device)
 
     z_1_out = generator(z_1, device=args.device)
-    z_2_out = generator(z_2, device=args.device)
-    z_3_out = generator(z_3, device=args.device)
-    z_4_out = generator(z_4, device=args.device)
+    # z_2_out = generator(z_2, device=args.device)
+    # z_3_out = generator(z_3, device=args.device)
+    # z_4_out = generator(z_4, device=args.device)
 
     if args.network_input == 'kspace':
-        refined_z_1_out = z_1_out.cpu() + CONSTANT_PLOTS['measures'][0:16].unsqueeze(0)
-        refined_z_2_out = z_2_out.cpu() + CONSTANT_PLOTS['measures'][0:16].unsqueeze(0)
-        refined_z_3_out = z_3_out.cpu() + CONSTANT_PLOTS['measures'][0:16].unsqueeze(0)
-        refined_z_4_out = z_4_out.cpu() + CONSTANT_PLOTS['measures'][0:16].unsqueeze(0)
+        refined_z_1_out = z_1_out.cpu() + CONSTANT_PLOTS['measures'][0:1].unsqueeze(0)
+        # refined_z_2_out = z_2_out.cpu() + CONSTANT_PLOTS['measures'][0:16].unsqueeze(0)
+        # refined_z_3_out = z_3_out.cpu() + CONSTANT_PLOTS['measures'][0:16].unsqueeze(0)
+        # refined_z_4_out = z_4_out.cpu() + CONSTANT_PLOTS['measures'][0:16].unsqueeze(0)
     else:
         raise NotImplementedError
 
@@ -212,12 +212,12 @@ def plot_epoch(args, generator, epoch):
                                  std=std)[0]
     z_1_prep = prep_discriminator_input(refined_z_1_out, args.batch_size, args.network_input,
                                            [], inds=False, mean=mean, std=std).to(args.device)[0]
-    z_2_prep = prep_discriminator_input(refined_z_2_out, args.batch_size, args.network_input,
-                                      [], inds=False, mean=mean, std=std).to(args.device)[0]
-    z_3_prep = prep_discriminator_input(refined_z_3_out, args.batch_size, args.network_input,
-                                      [], inds=False, mean=mean, std=std).to(args.device)[0]
-    z_4_prep = prep_discriminator_input(refined_z_4_out, args.batch_size, args.network_input,
-                                      [], inds=False, mean=mean, std=std).to(args.device)[0]
+    # z_2_prep = prep_discriminator_input(refined_z_2_out, args.batch_size, args.network_input,
+    #                                   [], inds=False, mean=mean, std=std).to(args.device)[0]
+    # z_3_prep = prep_discriminator_input(refined_z_3_out, args.batch_size, args.network_input,
+    #                                   [], inds=False, mean=mean, std=std).to(args.device)[0]
+    # z_4_prep = prep_discriminator_input(refined_z_4_out, args.batch_size, args.network_input,
+    #                                   [], inds=False, mean=mean, std=std).to(args.device)[0]
 
     target_im = complex_abs(target_prep.permute(1,2,0)) * std + mean
     target_im = target_im.numpy()
@@ -227,30 +227,30 @@ def plot_epoch(args, generator, epoch):
 
     z_1_im = complex_abs(z_1_prep.permute(1, 2, 0)) * std + mean
     z_1_im = z_1_im.detach().cpu().numpy()
-
-    z_2_im = complex_abs(z_2_prep.permute(1, 2, 0)) * std + mean
-    z_2_im = z_2_im.detach().cpu().numpy()
-
-    z_3_im = complex_abs(z_3_prep.permute(1, 2, 0)) * std + mean
-    z_3_im = z_3_im.detach().cpu().numpy()
-
-    z_4_im = complex_abs(z_4_prep.permute(1, 2, 0)) * std + mean
-    z_4_im = z_4_im.detach().cpu().numpy()
+    #
+    # z_2_im = complex_abs(z_2_prep.permute(1, 2, 0)) * std + mean
+    # z_2_im = z_2_im.detach().cpu().numpy()
+    #
+    # z_3_im = complex_abs(z_3_prep.permute(1, 2, 0)) * std + mean
+    # z_3_im = z_3_im.detach().cpu().numpy()
+    #
+    # z_4_im = complex_abs(z_4_prep.permute(1, 2, 0)) * std + mean
+    # z_4_im = z_4_im.detach().cpu().numpy()
 
     fig = plt.figure(figsize=(18,9))
     fig.suptitle(f'Generated and GT Images at Epoch {epoch + 1}')
     generate_image(fig, target_im, target_im, 'GT', 1)
     generate_image(fig, target_im, zfr, 'ZFR', 2)
     generate_image(fig, target_im, z_1_im, 'Z 1', 3)
-    generate_image(fig, target_im, z_2_im, 'Z 2', 4)
-    generate_image(fig, target_im, z_3_im, 'Z 3', 5)
-    generate_image(fig, target_im, z_4_im, 'Z 4', 6)
+    # generate_image(fig, target_im, z_2_im, 'Z 2', 4)
+    # generate_image(fig, target_im, z_3_im, 'Z 3', 5)
+    # generate_image(fig, target_im, z_4_im, 'Z 4', 6)
 
-    generate_error_map(fig, target_im, zfr, 8, 5)
-    generate_error_map(fig, target_im, z_1_im, 9, 5)
-    generate_error_map(fig, target_im, z_2_im, 10, 5)
-    generate_error_map(fig, target_im, z_3_im, 11, 5)
-    generate_error_map(fig, target_im, z_4_im, 12, 5)
+    generate_error_map(fig, target_im, zfr, 5, 7)
+    generate_error_map(fig, target_im, z_1_im, 6, 7)
+    # generate_error_map(fig, target_im, z_2_im, 10, 5)
+    # generate_error_map(fig, target_im, z_3_im, 11, 5)
+    # generate_error_map(fig, target_im, z_4_im, 12, 5)
 
     plt.savefig(
         f'/home/bendel.8/Git_Repos/MRIGAN/training_images/gen_{args.network_input}_{args.z_location}_{epoch + 1}.png')
@@ -313,7 +313,8 @@ def main(args):
                 output_gen = generator(input_w_z, device=args.device, latent_size=args.latent_size)
 
                 if args.network_input == 'kspace':
-                    refined_out = output_gen + old_input[:, 0:16]
+                    # refined_out = output_gen + old_input[:, 0:16]
+                    refined_out = output_gen + old_input[:, 0:1]
                 else:
                     # TODO: TRANSFORM IMAGE BACK TO K-SPACE AND ADD OLD OUT
                     raise NotImplementedError
