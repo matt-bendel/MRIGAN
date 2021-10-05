@@ -136,7 +136,6 @@ class DataTransform:
 
         # mean = (-4.0156e-11)
         # std = (2.5036e-05)
-        exit()
 
         return stacked_masked_kspace, stacked_kspace, mean, std, nnz_index_mask
 
