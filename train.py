@@ -259,7 +259,7 @@ def main(args):
             input, target_full, mean, std, nnz_index_mask = data
 
             plt.figure()
-            plt.imshow(np.abs(transforms.complex_abs(target_full.permute(1,2,0)).numpy()), origin='lower', cmap='gray')
+            plt.imshow(np.abs(transforms.complex_abs(target_full[2].permute(1,2,0)).numpy()), origin='lower', cmap='gray')
             plt.savefig(
                 f'/home/bendel.8/Git_Repos/MRIGAN/training_images/2_chan_z_mid/first_gen_TEST_TEST.png')
 
