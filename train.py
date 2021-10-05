@@ -206,12 +206,14 @@ def plot_epoch(args, generator, epoch):
     else:
         raise NotImplementedError
 
-    target_prep = prep_discriminator_input(CONSTANT_PLOTS['gt'].unsqueeze(0), 1, args.network_input, [], inds=False, mean=mean,
-                                 std=std)[0]
-    zfr = prep_discriminator_input(CONSTANT_PLOTS['measures'].unsqueeze(0), 1, args.network_input, [], inds=False, mean=mean,
-                                 std=std)[0]
+    target_prep = \
+    prep_discriminator_input(CONSTANT_PLOTS['gt'].unsqueeze(0), 1, args.network_input, [], inds=False, mean=mean,
+                             std=std)[0]
+    zfr = \
+    prep_discriminator_input(CONSTANT_PLOTS['measures'].unsqueeze(0), 1, args.network_input, [], inds=False, mean=mean,
+                             std=std)[0]
     z_1_prep = prep_discriminator_input(refined_z_1_out, args.batch_size, args.network_input,
-                                           [], inds=False, mean=mean, std=std).to(args.device)[0]
+                                        [], inds=False, mean=mean, std=std).to(args.device)[0]
     # z_2_prep = prep_discriminator_input(refined_z_2_out, args.batch_size, args.network_input,
     #                                   [], inds=False, mean=mean, std=std).to(args.device)[0]
     # z_3_prep = prep_discriminator_input(refined_z_3_out, args.batch_size, args.network_input,
@@ -219,10 +221,10 @@ def plot_epoch(args, generator, epoch):
     # z_4_prep = prep_discriminator_input(refined_z_4_out, args.batch_size, args.network_input,
     #                                   [], inds=False, mean=mean, std=std).to(args.device)[0]
 
-    target_im = complex_abs(target_prep.permute(1,2,0)) * std + mean
+    target_im = complex_abs(target_prep.permute(1, 2, 0)) * std + mean
     target_im = target_im.numpy()
 
-    zfr = complex_abs(zfr.permute(1,2,0)) * std + mean
+    zfr = complex_abs(zfr.permute(1, 2, 0)) * std + mean
     zfr = zfr.numpy()
 
     z_1_im = complex_abs(z_1_prep.permute(1, 2, 0)) * std + mean
@@ -237,7 +239,7 @@ def plot_epoch(args, generator, epoch):
     # z_4_im = complex_abs(z_4_prep.permute(1, 2, 0)) * std + mean
     # z_4_im = z_4_im.detach().cpu().numpy()
 
-    fig = plt.figure(figsize=(18,9))
+    fig = plt.figure(figsize=(18, 9))
     fig.suptitle(f'Generated and GT Images at Epoch {epoch + 1}')
     generate_image(fig, target_im, target_im, 'GT', 1)
     generate_image(fig, target_im, zfr, 'ZFR', 2)
@@ -334,10 +336,12 @@ def main(args):
                     CONSTANT_PLOTS['gt'] = target_full.cpu()[2]
 
                     im_check = complex_abs(disc_output_batch[2].permute(1, 2, 0))
+                    true_im = complex_abs(disc_target_batch[2].permute(1, 2, 0)).detach().cpu().numpy()
                     im_np = im_check.detach().cpu().numpy()
                     plt.figure()
-                    plt.imshow(np.abs(im_np), origin='lower', cmap='gray')
-                    plt.savefig(f'/home/bendel.8/Git_Repos/MRIGAN/training_images/first_gen_{args.network_input}_{args.z_location}.png')
+                    plt.imshow(np.abs(im_np), origin='lower', cmap='gray', vmin=0, vmax=np.max(true_im))
+                    plt.savefig(
+                        f'/home/bendel.8/Git_Repos/MRIGAN/training_images/first_gen_{args.network_input}_{args.z_location}.png')
                     first = False
 
                 # MAKE PREDICTIONS
