@@ -101,11 +101,10 @@ def prep_discriminator_input(data_tensor, num_vals, unet_type, indvals, inds=Non
             # data_tensor = data_tensor * std[k] + mean[k] if not inds else data_tensor * std[indvals[k]] + mean[indvals[k]]
 
             output = torch.squeeze(data_tensor[k]) if not inds else torch.squeeze(data_tensor[indvals[k]])
-            data_tensor = data_tensor if not inds else data_tensor
             # output_tensor = torch.zeros(8, 384, 384, 2)
             # output_tensor[:, :, :, 0] = output[0:8, :, :]
             # output_tensor[:, :, :, 1] = output[8:16, :, :]
-
+            print(output.shape)
             output_x = ifft2c_new(output.permute(1, 2, 0))
             # output_x = transforms.root_sum_of_squares(output_x)
 
