@@ -257,9 +257,12 @@ def main(args):
         }
         for i, data in enumerate(train_loader):
             input, target_full, mean, std, nnz_index_mask = data
+            print(target_full[2].shape)
+            exit()
 
             plt.figure()
-            plt.imshow(np.abs(transforms.complex_abs(ifft2c_new(target_full[2].permute(1,2,0))).numpy()), origin='lower', cmap='gray')
+            plt.imshow(np.abs(transforms.complex_abs(ifft2c_new(target_full[2].permute(1, 2, 0))).numpy()),
+                       origin='lower', cmap='gray')
             plt.savefig(
                 f'/home/bendel.8/Git_Repos/MRIGAN/training_images/2_chan_z_mid/first_gen_TEST_TEST.png')
 
