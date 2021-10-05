@@ -77,7 +77,6 @@ class DataTransform:
         im = ifft2c_new(kspace)
         im = transforms.root_sum_of_squares(kspace)
         kspace = fft2c_new(im)
-        print(kspace.shape)
 
         masked_kspace = transforms.to_tensor(masked_kspace)
         masked_kspace = masked_kspace.permute(2, 0, 1, 3)
