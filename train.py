@@ -310,11 +310,9 @@ def main(args):
 
                 input_w_z = input_w_z.to(args.device)
                 output_gen = generator(input_w_z, device=args.device, latent_size=args.latent_size)
-                print(output_gen.shape)
                 if args.network_input == 'kspace':
                     # refined_out = output_gen + old_input[:, 0:16]
                     refined_out = output_gen + old_input[:]
-                    print(refined_out.shape)
                 else:
                     # TODO: TRANSFORM IMAGE BACK TO K-SPACE AND ADD OLD OUT
                     raise NotImplementedError
