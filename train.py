@@ -106,7 +106,7 @@ def prep_discriminator_input(data_tensor, num_vals, unet_type, indvals, inds=Non
             # output_tensor[:, :, :, 0] = output[0:8, :, :]
             # output_tensor[:, :, :, 1] = output[8:16, :, :]
 
-            output_x = ifft2c_new(output)
+            output_x = ifft2c_new(output.permute(1, 2, 0))
             # output_x = transforms.root_sum_of_squares(output_x)
 
             disc_inp[k, :, :, :] = output_x.permute(2, 0, 1)
@@ -440,7 +440,6 @@ if __name__ == '__main__':
     np.random.seed(args.seed)
     torch.manual_seed(args.seed)
 
-    # TODO: Add metric plotting from global dict
     # try:
     main(args)
     save_metrics(args)
