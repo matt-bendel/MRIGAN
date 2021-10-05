@@ -255,7 +255,7 @@ def plot_epoch(args, generator, epoch):
     # generate_error_map(fig, target_im, z_4_im, 12, 5)
 
     plt.savefig(
-        f'/home/bendel.8/Git_Repos/MRIGAN/training_images/gen_{args.network_input}_{args.z_location}_{epoch + 1}.png')
+        f'/home/bendel.8/Git_Repos/MRIGAN/training_images/2_chan_z_mid/gen_{args.network_input}_{args.z_location}_{epoch + 1}.png')
 
 
 def save_metrics(args):
@@ -341,7 +341,7 @@ def main(args):
                     plt.figure()
                     plt.imshow(np.abs(im_np), origin='lower', cmap='gray', vmin=0, vmax=np.max(true_im))
                     plt.savefig(
-                        f'/home/bendel.8/Git_Repos/MRIGAN/training_images/first_gen_{args.network_input}_{args.z_location}.png')
+                        f'/home/bendel.8/Git_Repos/MRIGAN/2_chan_z_mid/training_images/first_gen_{args.network_input}_{args.z_location}.png')
                     first = False
 
                 # MAKE PREDICTIONS
