@@ -132,10 +132,6 @@ class DataTransform:
         stacked_kspace[1, :, :] = torch.squeeze(kspace[:, :, 1])
         stacked_kspace = transforms.normalize(stacked_kspace, mean, std, eps=1e-11)
 
-        plt.figure()
-        plt.imshow(np.abs(transforms.complex_abs(im).numpy()), origin='lower', cmap='gray', vmin=0, vmax=np.max(im))
-        plt.savefig(
-            f'/home/bendel.8/Git_Repos/MRIGAN/training_images/2_chan_z_mid/first_gen_TEST_TEST.png')
         # stacked_kspace = (stacked_kspace - (-4.0156e-11)) / (2.5036e-05)
 
         # mean = (-4.0156e-11)

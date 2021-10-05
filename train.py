@@ -257,6 +257,12 @@ def main(args):
         }
         for i, data in enumerate(train_loader):
             input, target_full, mean, std, nnz_index_mask = data
+
+            plt.figure()
+            plt.imshow(np.abs(transforms.complex_abs(target_full).numpy()), origin='lower', cmap='gray')
+            plt.savefig(
+                f'/home/bendel.8/Git_Repos/MRIGAN/training_images/2_chan_z_mid/first_gen_TEST_TEST.png')
+
             old_input = input.to(args.device)
 
             if input.shape[0] != 16:
