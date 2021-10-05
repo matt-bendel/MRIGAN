@@ -7,6 +7,7 @@ from torch.utils.data import DataLoader
 from data import transforms
 
 from data.mri_data import SelectiveSliceData, SelectiveSliceData_Val
+from utils.fftc import ifft2c_new, fft2c_new
 
 
 class DataTransform:
@@ -73,11 +74,16 @@ class DataTransform:
 
         kspace = transforms.to_tensor(kspace)
         kspace = kspace.permute(2, 0, 1, 3)
-        kspace = transforms.root_sum_of_squares(kspace)
+        im = ifft2c_new(kspace)
+        im = transforms.root_sum_of_squares(kspace)
+        kspace = fft2c_new(im)
+        print(kspace.shape)
 
         masked_kspace = transforms.to_tensor(masked_kspace)
         masked_kspace = masked_kspace.permute(2, 0, 1, 3)
-        masked_kspace = transforms.root_sum_of_squares(masked_kspace)
+        im = ifft2c_new(masked_kspace)
+        im = transforms.root_sum_of_squares(masked_kspace)
+        masked_kspace = fft2c_new(im)
 
         # Apply mask
         nnz_index_mask = mask[0, :, 0].nonzero()[0]
