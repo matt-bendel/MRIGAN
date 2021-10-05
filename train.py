@@ -336,7 +336,7 @@ def main(args):
                     plt.figure()
                     plt.imshow(np.abs(im_np), origin='lower', cmap='gray', vmin=0, vmax=np.max(true_im))
                     plt.savefig(
-                        f'/home/bendel.8/Git_Repos/MRIGAN/2_chan_z_mid/training_images/first_gen_{args.network_input}_{args.z_location}.png')
+                        f'/home/bendel.8/Git_Repos/MRIGAN/training_images/2_chan_z_mid/first_gen_{args.network_input}_{args.z_location}.png')
                     first = False
 
                 # MAKE PREDICTIONS
