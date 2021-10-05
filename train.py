@@ -180,9 +180,6 @@ def generate_error_map(fig, target, recon, image_ind, k=5):
     ax.set_xticks([])
     ax.set_yticks([])
 
-    # Assign x label for plot
-    plt.xlabel('Absolute Error')
-
     # Return plotted image and its axis in the subplot
     return im, ax
 
@@ -222,25 +219,25 @@ def plot_epoch(args, generator, epoch):
     z_4_prep = prep_discriminator_input(refined_z_4_out, args.batch_size, args.network_input,
                                       [], inds=False, mean=mean, std=std).to(args.device)[0]
 
-    target_im = complex_abs(target_prep.permute(1,2,0)) #* std + mean
+    target_im = complex_abs(target_prep.permute(1,2,0)) * std + mean
     target_im = target_im.numpy()
 
-    zfr = complex_abs(zfr.permute(1,2,0))
+    zfr = complex_abs(zfr.permute(1,2,0)) * std + mean
     zfr = zfr.numpy()
 
-    z_1_im = complex_abs(z_1_prep.permute(1, 2, 0)) #* std + mean
+    z_1_im = complex_abs(z_1_prep.permute(1, 2, 0)) * std + mean
     z_1_im = z_1_im.detach().cpu().numpy()
 
-    z_2_im = complex_abs(z_2_prep.permute(1, 2, 0)) #* std + mean
+    z_2_im = complex_abs(z_2_prep.permute(1, 2, 0)) * std + mean
     z_2_im = z_2_im.detach().cpu().numpy()
 
-    z_3_im = complex_abs(z_3_prep.permute(1, 2, 0)) #* std + mean
+    z_3_im = complex_abs(z_3_prep.permute(1, 2, 0)) * std + mean
     z_3_im = z_3_im.detach().cpu().numpy()
 
-    z_4_im = complex_abs(z_4_prep.permute(1, 2, 0)) #* std + mean
+    z_4_im = complex_abs(z_4_prep.permute(1, 2, 0)) * std + mean
     z_4_im = z_4_im.detach().cpu().numpy()
 
-    fig = plt.figure(figsize=(10,5))
+    fig = plt.figure(figsize=(18,9))
     fig.suptitle(f'Generated and GT Images at Epoch {epoch + 1}')
     generate_image(fig, target_im, target_im, 'GT', 1)
     generate_image(fig, target_im, zfr, 'ZFR', 2)
