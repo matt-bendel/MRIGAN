@@ -84,7 +84,7 @@ class DataTransform:
 
         noise_var = torch.tensor(5.3459594390181664e-11)
 
-        nnz_masked_kspace = masked_kspace[:, :, nnz_index_mask, :]
+        nnz_masked_kspace = masked_kspace[:, nnz_index_mask, :]
         nnz_masked_kspace_real = nnz_masked_kspace[:, :, 0]
         nnz_masked_kspace_imag = nnz_masked_kspace[:, :, 1]
         nnz_masked_kspace_real_flat = flatten(nnz_masked_kspace_real)
