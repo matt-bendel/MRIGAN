@@ -194,10 +194,11 @@ def plot_epoch(args, generator, epoch):
     mean = CONSTANT_PLOTS['mean']
 
     z_1 = CONSTANT_PLOTS['measures'].unsqueeze(0).to(args.device)
+    z = torch.FloatTensor(np.random.normal(size=(z_1.shape[0], args.latent_size))).to(args.device)
 
     generator.eval()
     with torch.no_grad():
-        z_1_out = generator(input=z_1, device=args.device, test=True)
+        z_1_out = generator(input=z_1, z=z, device=args.device)
 
     if args.network_input == 'kspace':
         refined_z_1_out = z_1_out.cpu() + CONSTANT_PLOTS['measures'].unsqueeze(0)
@@ -270,8 +271,9 @@ def main(args):
         for i, data in enumerate(train_loader):
             input, target_full, mean, std, nnz_index_mask = data
 
-            input = prep_input_2_chan(input, args.network_input)
-            target_full = prep_input_2_chan(target_full, args.network_input)
+            input = prep_input_2_chan(input, args.network_input, test=True)
+            target_full = prep_input_2_chan(target_full, args.network_input, test=True)
+            z = torch.FloatTensor(np.random.normal(size=(input.shape[0], args.latent_size))).to(args.device)
 
             old_input = input.to(args.device)
 
@@ -290,7 +292,7 @@ def main(args):
                     raise NotImplementedError
 
                 input_w_z = input_w_z.to(args.device)
-                output_gen = generator(input_w_z, device=args.device)
+                output_gen = generator(input_w_z, z, device=args.device)
                 if args.network_input == 'kspace':
                     # refined_out = output_gen + old_input[:, 0:16]
                     refined_out = output_gen + old_input[:]
@@ -341,7 +343,7 @@ def main(args):
             optimizer_G.zero_grad()
 
             # Generate a batch of images
-            output_gen = generator(input_w_z.to(args.device), device=args.device)
+            output_gen = generator(input_w_z.to(args.device), z, device=args.device)
 
             if args.network_input == 'kspace':
                 refined_out = output_gen + old_input[:]
