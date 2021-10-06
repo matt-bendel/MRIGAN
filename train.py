@@ -194,11 +194,10 @@ def plot_epoch(args, generator, epoch):
     mean = CONSTANT_PLOTS['mean']
 
     z_1 = CONSTANT_PLOTS['measures'].unsqueeze(0).to(args.device)
-    print(z_1.shape)
 
     generator.eval()
     with torch.no_grad():
-        z_1_out = generator(z_1, device=args.device, test=True)
+        z_1_out = generator(input=z_1, device=args.device, test=True)
 
     if args.network_input == 'kspace':
         refined_z_1_out = z_1_out.cpu() + CONSTANT_PLOTS['measures'][0:1].unsqueeze(0)
