@@ -110,6 +110,28 @@ def prep_discriminator_input(data_tensor, num_vals, unet_type):
     return disc_inp
 
 
+def prep_input_2_chan(data_tensor, unet_type):
+    disc_inp = torch.zeros(data_tensor.shape[0], 2, 384, 384)
+
+    if unet_type == 'kspace':
+        for k in range(data_tensor.shape[0]):
+            # output = torch.squeeze(data_tensor[k]) if not inds else torch.squeeze(data_tensor[indvals[k]])
+            # data_tensor = data_tensor * std[k] + mean[k] if not inds else data_tensor * std[indvals[k]] + mean[indvals[k]]
+
+            output = torch.squeeze(data_tensor[k])
+            output_tensor = torch.zeros(8, 384, 384, 2)
+            output_tensor[:, :, :, 0] = output[0:8, :, :]
+            output_tensor[:, :, :, 1] = output[8:16, :, :]
+            output_x = ifft2c_new(output_tensor)
+            output_x = transforms.root_sum_of_squares(output_x)
+            print(output_x.shape)
+
+            disc_inp[k, :, :, :] = output_x.permute(2, 0, 1)
+    else:
+        raise NotImplementedError
+
+    return disc_inp
+
 def save_model(args, epoch, model, optimizer, best_dev_loss, is_new_best, m_type):
     torch.save(
         {
@@ -257,8 +279,9 @@ def main(args):
         }
         for i, data in enumerate(train_loader):
             input, target_full, mean, std, nnz_index_mask = data
-            print(target_full[2].shape)
-            exit()
+
+            input = prep_input_2_chan(input, args.network_input)
+            target_full = prep_input_2_chan(target_full, args.network_input)
 
             plt.figure()
             plt.imshow(np.abs(transforms.complex_abs(ifft2c_new(target_full[2].permute(1, 2, 0))).numpy()),
