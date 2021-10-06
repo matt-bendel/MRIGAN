@@ -171,7 +171,7 @@ def generate_image(fig, target, image, title, image_ind):
     ax.set_yticks([])
 
 
-def generate_error_map(fig, target, recon, image_ind, k=5, max):
+def generate_error_map(fig, target, recon, image_ind, k=5, max=1):
     # Assume rows and cols are available globally
     # rows and cols are both previously defined ints
     ax = fig.add_subplot(2, 3, image_ind)  # Add to subplot
