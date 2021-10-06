@@ -283,14 +283,6 @@ def main(args):
             input = prep_input_2_chan(input, args.network_input)
             target_full = prep_input_2_chan(target_full, args.network_input)
 
-            temp_x = complex_abs(ifft2c_new(target_full[2].permute(1, 2, 0))).numpy()
-
-            plt.figure()
-            plt.imshow(np.abs(temp_x), origin='lower', cmap='gray')
-            plt.savefig(
-                f'/home/bendel.8/Git_Repos/MRIGAN/training_images/2_chan_z_mid/first_gen_TEST_TEST.png')
-            exit()
-
             old_input = input.to(args.device)
 
             if input.shape[0] != 16:
