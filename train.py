@@ -103,7 +103,7 @@ def prep_input_2_chan(data_tensor, unet_type, disc=False):
 
             disc_inp[k, :, :, :] = output_tensor.permute(2, 0, 1)
 
-        return
+        return disc_inp
 
     if unet_type == 'kspace':
         for k in range(data_tensor.shape[0]):
