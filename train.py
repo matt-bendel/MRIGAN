@@ -95,6 +95,16 @@ def add_z_to_input(args, input):
 def prep_input_2_chan(data_tensor, unet_type, disc=False):
     disc_inp = torch.zeros(data_tensor.shape[0], 2, 384, 384)
 
+    if disc:
+        for k in range(data_tensor.shape[0]):
+            output = torch.squeeze(data_tensor[k])
+            output_tensor = output.permute(1, 2, 0)
+            output_tensor = ifft2c_new(output_tensor)
+
+            disc_inp[k, :, :, :] = output_tensor.permute(2, 0, 1)
+
+        return
+
     if unet_type == 'kspace':
         for k in range(data_tensor.shape[0]):
             output = torch.squeeze(data_tensor[k])
@@ -103,8 +113,6 @@ def prep_input_2_chan(data_tensor, unet_type, disc=False):
             output_tensor[:, :, :, 1] = output[8:16, :, :]
             output_x = ifft2c_new(output_tensor)
             output_x = transforms.root_sum_of_squares(output_x)
-            if not disc:
-                output_x = fft2c_new(output_x)
 
             disc_inp[k, :, :, :] = output_x.permute(2, 0, 1)
     else:
