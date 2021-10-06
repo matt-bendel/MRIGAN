@@ -124,9 +124,9 @@ def prep_input_2_chan(data_tensor, unet_type):
             output_tensor[:, :, :, 1] = output[8:16, :, :]
             output_x = ifft2c_new(output_tensor)
             output_x = transforms.root_sum_of_squares(output_x)
-            temp_x = fft2c_new(temp_x)
+            temp_x = fft2c_new(output_x)
             temp_x = ifft2c_new(temp_x)
-            complex_abs(output_x).numpy()
+            temp_x = complex_abs(temp_x).numpy()
 
             plt.figure()
             plt.imshow(np.abs(temp_x),
