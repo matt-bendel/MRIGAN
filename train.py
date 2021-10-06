@@ -200,14 +200,12 @@ def plot_epoch(args, generator, epoch):
         z_1_out = generator(input=z_1, device=args.device, test=True)
 
     if args.network_input == 'kspace':
-        refined_z_1_out = z_1_out.cpu() + CONSTANT_PLOTS['measures'][0:1].unsqueeze(0)
+        refined_z_1_out = z_1_out.cpu() + CONSTANT_PLOTS['measures'].unsqueeze(0)
     else:
         raise NotImplementedError
 
-    target_prep = \
-        prep_input_2_chan(CONSTANT_PLOTS['gt'].unsqueeze(0), args.network_input, disc=True)[0]
-    zfr = \
-        prep_input_2_chan(CONSTANT_PLOTS['measures'].unsqueeze(0), args.network_input, disc=True)[0]
+    target_prep = prep_input_2_chan(CONSTANT_PLOTS['gt'].unsqueeze(0), args.network_input, disc=True)[0]
+    zfr = prep_input_2_chan(CONSTANT_PLOTS['measures'].unsqueeze(0), args.network_input, disc=True)[0]
     z_1_prep = prep_input_2_chan(refined_z_1_out, args.network_input, disc=True)[0]
 
     target_im = complex_abs(target_prep.permute(1, 2, 0)) * std + mean
@@ -394,7 +392,7 @@ def main(args):
         plot_epoch(args, generator, epoch)
         generator.train()
 
-        if (epoch + 1) == 20:
+        if (epoch + 1) == 25:
             save_metrics(args)
             exit()
 
