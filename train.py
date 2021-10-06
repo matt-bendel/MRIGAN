@@ -124,7 +124,14 @@ def prep_input_2_chan(data_tensor, unet_type):
             output_tensor[:, :, :, 1] = output[8:16, :, :]
             output_x = ifft2c_new(output_tensor)
             output_x = transforms.root_sum_of_squares(output_x)
-            print(output_x.shape)
+            temp_x = complex_abs(output_x).numpy()
+
+            plt.figure()
+            plt.imshow(np.abs(temp_x),
+                       origin='lower', cmap='gray')
+            plt.savefig(
+                f'/home/bendel.8/Git_Repos/MRIGAN/training_images/2_chan_z_mid/first_gen_TEST_TEST.png')
+            exit()
 
             disc_inp[k, :, :, :] = output_x.permute(2, 0, 1)
     else:
@@ -282,14 +289,6 @@ def main(args):
 
             input = prep_input_2_chan(input, args.network_input)
             target_full = prep_input_2_chan(target_full, args.network_input)
-
-            plt.figure()
-            plt.imshow(np.abs(transforms.complex_abs(ifft2c_new(target_full[2].permute(1, 2, 0))).numpy()),
-                       origin='lower', cmap='gray')
-            plt.savefig(
-                f'/home/bendel.8/Git_Repos/MRIGAN/training_images/2_chan_z_mid/first_gen_TEST_TEST.png')
-
-            exit()
 
             old_input = input.to(args.device)
 
