@@ -193,9 +193,9 @@ def plot_epoch(args, generator, epoch):
     std = CONSTANT_PLOTS['std']
     mean = CONSTANT_PLOTS['mean']
 
-    z_1 = add_z_to_input(args, CONSTANT_PLOTS['measures'].unsqueeze(0)).to(args.device)
+    z_1 = add_z_to_input(args, CONSTANT_PLOTS['measures'].unsqueeze(0).repeat(4, 1, 1, 1)).to(args.device)
 
-    z_1_out = generator(z_1, device=args.device)
+    z_1_out = generator(z_1, device=args.device)[0]
 
     if args.network_input == 'kspace':
         refined_z_1_out = z_1_out.cpu() + CONSTANT_PLOTS['measures'][0:1].unsqueeze(0)
