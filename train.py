@@ -208,7 +208,7 @@ def plot_epoch(args, generator, epoch):
         prep_input_2_chan(CONSTANT_PLOTS['gt'].unsqueeze(0), args.network_input, disc=True)[0]
     zfr = \
         prep_input_2_chan(CONSTANT_PLOTS['measures'].unsqueeze(0), args.network_input, disc=True)[0]
-    z_1_prep = prep_input_2_chan(refined_z_1_out, args.batch_size, args.network_input, disc=True)[0]
+    z_1_prep = prep_input_2_chan(refined_z_1_out, args.network_input, disc=True)[0]
 
     target_im = complex_abs(target_prep.permute(1, 2, 0)) * std + mean
     target_im = target_im.numpy()
