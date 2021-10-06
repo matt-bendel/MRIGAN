@@ -98,8 +98,7 @@ def prep_input_2_chan(data_tensor, unet_type, disc=False):
     if disc:
         for k in range(data_tensor.shape[0]):
             output = torch.squeeze(data_tensor[k])
-            output_tensor = output.permute(1, 2, 0)
-            output_tensor = ifft2c_new(output_tensor)
+            output_tensor = ifft2c_new(output.permute(1, 2, 0))
 
             disc_inp[k, :, :, :] = output_tensor.permute(2, 0, 1)
 
