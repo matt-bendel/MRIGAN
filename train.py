@@ -194,6 +194,7 @@ def plot_epoch(args, generator, epoch):
     mean = CONSTANT_PLOTS['mean']
 
     z_1 = add_z_to_input(args, CONSTANT_PLOTS['measures'].unsqueeze(0).repeat(4, 1, 1, 1)).to(args.device)
+    print(z_1.shape)
 
     z_1_out = generator(z_1, device=args.device)[0]
 
