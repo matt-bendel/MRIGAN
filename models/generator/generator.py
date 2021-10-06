@@ -189,6 +189,7 @@ class GeneratorModel(nn.Module):
 
         self.final_conv = nn.Sequential(
             nn.Conv2d(8, 4, kernel_size=(3, 3), padding=1),
+            nn.BatchNorm2d(4),
             nn.LeakyReLU(negative_slope=0.2),
             nn.Conv2d(4, self.out_chans, kernel_size=(1, 1)),
             nn.Tanh()
@@ -222,4 +223,5 @@ class GeneratorModel(nn.Module):
             output = F.interpolate(output, scale_factor=2, mode='bilinear', align_corners=False)
             output = layer(output, stack.pop())
 
+        print(output.shape)
         return self.final_conv(output)
