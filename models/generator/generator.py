@@ -190,7 +190,7 @@ class GeneratorModel(nn.Module):
             nn.Tanh()
         )
 
-    def forward(self, input, device=None, latent_size=None):
+    def forward(self, input, device=None, test=False):
         output = input
         output = self.initial_layers(output)
 
@@ -206,7 +206,12 @@ class GeneratorModel(nn.Module):
         if self.z_location == 2:
             z = torch.FloatTensor(np.random.normal(size=self.latent_size * 4)).to(device)
             z_out = self.middle_z_grow_linear(z)
-            z_out = torch.reshape(z_out, (4, self.latent_size, 3, 3))
+
+            if test:
+                z_out = torch.reshape(z_out[0:self.latent_size*3*3], (output.shape[0], self.latent_size, 3, 3))
+            else:
+                z_out = torch.reshape(z_out, (output.shape[0], self.latent_size, 3, 3))
+
             z_out = F.interpolate(z_out, scale_factor=2, mode='bilinear', align_corners=False)
             z_out = self.middle_z_grow_conv(z_out)
             output = torch.cat([output, z_out], dim=1)
