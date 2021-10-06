@@ -196,8 +196,8 @@ def plot_epoch(args, generator, epoch):
     z_1 = CONSTANT_PLOTS['measures'].unsqueeze(0).to(args.device)
     print(z_1.shape)
 
+    generator.eval()
     with torch.no_grad():
-        generator.eval()
         z_1_out = generator(z_1, device=args.device, test=True)
 
     if args.network_input == 'kspace':
@@ -320,6 +320,9 @@ def main(args):
                     plt.savefig(
                         f'/home/bendel.8/Git_Repos/MRIGAN/training_images/2_chan_z_mid/first_gen_{args.network_input}_{args.z_location}.png')
                     first = False
+
+                plot_epoch(args, generator, epoch)
+                exit()
 
                 # MAKE PREDICTIONS
                 real_pred = discriminator(disc_target_batch)
