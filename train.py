@@ -92,39 +92,19 @@ def add_z_to_input(args, input):
     return input
 
 
-def prep_discriminator_input(data_tensor, num_vals, unet_type):
+def prep_input_2_chan(data_tensor, unet_type, disc=False):
     disc_inp = torch.zeros(data_tensor.shape[0], 2, 384, 384)
 
     if unet_type == 'kspace':
         for k in range(data_tensor.shape[0]):
-            output = torch.squeeze(data_tensor[k])
-            # output_tensor = torch.zeros(8, 384, 384, 2)
-            # output_tensor[:, :, :, 0] = output[0:8, :, :]
-            # output_tensor[:, :, :, 1] = output[8:16, :, :]
-            output_x = ifft2c_new(output.permute(1, 2, 0))
-
-            disc_inp[k, :, :, :] = output_x.permute(2, 0, 1)
-    else:
-        raise NotImplementedError
-
-    return disc_inp
-
-
-def prep_input_2_chan(data_tensor, unet_type):
-    disc_inp = torch.zeros(data_tensor.shape[0], 2, 384, 384)
-
-    if unet_type == 'kspace':
-        for k in range(data_tensor.shape[0]):
-            # output = torch.squeeze(data_tensor[k]) if not inds else torch.squeeze(data_tensor[indvals[k]])
-            # data_tensor = data_tensor * std[k] + mean[k] if not inds else data_tensor * std[indvals[k]] + mean[indvals[k]]
-
             output = torch.squeeze(data_tensor[k])
             output_tensor = torch.zeros(8, 384, 384, 2)
             output_tensor[:, :, :, 0] = output[0:8, :, :]
             output_tensor[:, :, :, 1] = output[8:16, :, :]
             output_x = ifft2c_new(output_tensor)
             output_x = transforms.root_sum_of_squares(output_x)
-            output_x = fft2c_new(output_x)
+            if not disc:
+                output_x = fft2c_new(output_x)
 
             disc_inp[k, :, :, :] = output_x.permute(2, 0, 1)
     else:
@@ -214,10 +194,10 @@ def plot_epoch(args, generator, epoch):
         raise NotImplementedError
 
     target_prep = \
-        prep_discriminator_input(CONSTANT_PLOTS['gt'].unsqueeze(0), 1, args.network_input)[0]
+        prep_input_2_chan(CONSTANT_PLOTS['gt'].unsqueeze(0), args.network_input, disc=True)[0]
     zfr = \
-        prep_discriminator_input(CONSTANT_PLOTS['measures'].unsqueeze(0), 1, args.network_input)[0]
-    z_1_prep = prep_discriminator_input(refined_z_1_out, args.batch_size, args.network_input).to(args.device)[0]
+        prep_input_2_chan(CONSTANT_PLOTS['measures'].unsqueeze(0), args.network_input, disc=True)[0]
+    z_1_prep = prep_input_2_chan(refined_z_1_out, args.batch_size, args.network_input, disc=True)[0]
 
     target_im = complex_abs(target_prep.permute(1, 2, 0)) * std + mean
     target_im = target_im.numpy()
@@ -309,10 +289,8 @@ def main(args):
                     raise NotImplementedError
 
                 # TURN OUTPUT INTO IMAGE FOR DISCRIMINATION AND GET REAL IMAGES FOR DISCRIMINATION
-                disc_target_batch = prep_discriminator_input(target_full.to(args.device), args.batch_size,
-                                                             args.network_input).to(args.device)
-                disc_output_batch = prep_discriminator_input(refined_out, args.batch_size, args.network_input, ).to(
-                    args.device)
+                disc_target_batch = prep_input_2_chan(target_full.to(args.device), args.network_input, disc=True).to(args.device)
+                disc_output_batch = prep_input_2_chan(refined_out, args.network_input, disc=True).to(args.device)
 
                 # PLOT VERY FIRST GENERATED IMAGE
                 if first:
@@ -321,9 +299,9 @@ def main(args):
                     CONSTANT_PLOTS['std'] = std.cpu()[2]
                     CONSTANT_PLOTS['gt'] = target_full.cpu()[2]
 
-                    im_check = complex_abs(fft2c_new(disc_output_batch[2].permute(1, 2, 0)))
+                    im_check = complex_abs(disc_output_batch[2].permute(1, 2, 0))
                     im_np = im_check.detach().cpu().numpy()
-                    true = complex_abs(fft2c_new(disc_target_batch[2].permute(1, 2, 0)))
+                    true = complex_abs(disc_target_batch[2].permute(1, 2, 0))
                     true = true.detach().cpu().numpy()
                     plt.figure()
                     plt.imshow(np.abs(im_np), origin='lower', cmap='gray', vmin=0, vmax=np.max(true))
