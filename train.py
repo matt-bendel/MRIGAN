@@ -317,7 +317,6 @@ def main(args):
                     plt.savefig(
                         f'/home/bendel.8/Git_Repos/MRIGAN/training_images/2_chan_z_mid/first_gen_{args.network_input}_{args.z_location}.png')
                     first = False
-                    exit()
 
                 # MAKE PREDICTIONS
                 real_pred = discriminator(disc_target_batch)
@@ -347,7 +346,7 @@ def main(args):
             else:
                 raise NotImplementedError
 
-            disc_inp = prep_discriminator_input(refined_out, args.batch_size, args.network_input)
+            disc_inp = prep_input_2_chan(refined_out, args.network_input, disc=True)
 
             # Loss measures generator's ability to fool the discriminator
             # Train on fake images
