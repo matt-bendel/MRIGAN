@@ -271,8 +271,8 @@ def main(args):
         for i, data in enumerate(train_loader):
             input, target_full, mean, std, nnz_index_mask = data
 
-            input = prep_input_2_chan(input, args.network_input, test=True)
-            target_full = prep_input_2_chan(target_full, args.network_input, test=True)
+            input = prep_input_2_chan(input, args.network_input)
+            target_full = prep_input_2_chan(target_full, args.network_input)
             z = torch.FloatTensor(np.random.normal(size=(input.shape[0], args.latent_size))).to(args.device)
 
             old_input = input.to(args.device)
