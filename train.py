@@ -388,7 +388,7 @@ def main(args):
 
         plot_epoch(args, generator, epoch)
 
-        if (epoch + 1) == 5:
+        if (epoch + 1) == 20:
             save_metrics(args)
             exit()
 
