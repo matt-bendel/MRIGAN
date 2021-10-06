@@ -283,7 +283,7 @@ def main(args):
             input = prep_input_2_chan(input, args.network_input)
             target_full = prep_input_2_chan(target_full, args.network_input)
 
-            temp_x = complex_abs(ifft2c_new(input[2].permute(1, 2, 0))).numpy()
+            temp_x = complex_abs(ifft2c_new(target_full[2].permute(1, 2, 0))).numpy()
 
             plt.figure()
             plt.imshow(np.abs(temp_x), origin='lower', cmap='gray')
