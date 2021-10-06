@@ -29,7 +29,7 @@ import numpy as np
 import torch.autograd as autograd
 
 from data import transforms
-from utils.fftc import ifft2c_new
+from utils.fftc import ifft2c_new, fft2c_new
 from utils.math import complex_abs
 from utils.evaluate import nmse
 from utils.training.prepare_data import create_data_loaders
@@ -124,7 +124,9 @@ def prep_input_2_chan(data_tensor, unet_type):
             output_tensor[:, :, :, 1] = output[8:16, :, :]
             output_x = ifft2c_new(output_tensor)
             output_x = transforms.root_sum_of_squares(output_x)
-            temp_x = complex_abs(output_x).numpy()
+            temp_x = fft2c_new(temp_x)
+            temp_x = ifft2c_new(temp_x)
+            complex_abs(output_x).numpy()
 
             plt.figure()
             plt.imshow(np.abs(temp_x),
