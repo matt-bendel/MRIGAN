@@ -146,17 +146,17 @@ class GeneratorModel(nn.Module):
         self.latent_size = latent_size
 
         self.initial_layers = nn.Sequential(
-            nn.Conv2d(self.in_chans, 32, kernel_size=(3, 3), padding=1),  # 384x384
-            ResidualBlock(32, 32, False),
+            nn.Conv2d(self.in_chans, 8, kernel_size=(3, 3), padding=1),  # 384x384
+            ResidualBlock(8, 8, False),
         )
 
         self.encoder_layers = nn.ModuleList()
-        self.encoder_layers += [FullDownBlock(32, 64)]  # 192x192
-        self.encoder_layers += [FullDownBlock(64, 128)]  # 96x96
-        self.encoder_layers += [FullDownBlock(128, 256)]  # 48x48
-        self.encoder_layers += [FullDownBlock(256, 512)]  # 24x24
-        self.encoder_layers += [FullDownBlock(512, 512)]  # 12x12
-        self.encoder_layers += [FullDownBlock(512, 512)]  # 6x6
+        self.encoder_layers += [FullDownBlock(8, 16)]  # 192x192
+        self.encoder_layers += [FullDownBlock(16, 32)]  # 96x96
+        self.encoder_layers += [FullDownBlock(32, 64)]  # 48x48
+        self.encoder_layers += [FullDownBlock(64, 128)]  # 24x24
+        self.encoder_layers += [FullDownBlock(128, 256)]  # 12x12
+        self.encoder_layers += [FullDownBlock(256, 512)]  # 6x6
 
         if z_location == 2:
             self.middle_z_grow_conv = nn.Sequential(
@@ -164,7 +164,11 @@ class GeneratorModel(nn.Module):
                 nn.LeakyReLU(negative_slope=0.2),
             )
             self.middle_z_grow_linear = nn.Sequential(
-                nn.Linear(latent_size, latent_size * 3 * 3),
+                nn.Linear(latent_size, latent_size * 3),
+                nn.BatchNorm2d(latent_size * 3),
+                nn.LeakyReLU(negative_slope=0.2),
+                nn.Linear(latent_size * 3, latent_size * 3 * 3),
+                nn.BatchNorm2d(latent_size * 3 * 3),
                 nn.LeakyReLU(negative_slope=0.2)
             )
             self.middle = nn.Sequential(
@@ -176,17 +180,17 @@ class GeneratorModel(nn.Module):
             self.middle = ResidualBlock(512, 512)  # 6x6
 
         self.decoder_layers = nn.ModuleList()
-        self.decoder_layers += [FullUpBlock(512, 512)]  # 12x12
-        self.decoder_layers += [FullUpBlock(512 * 2, 512)]  # 24x24
-        self.decoder_layers += [FullUpBlock(512 * 2, 256)]  # 48x48
-        self.decoder_layers += [FullUpBlock(256 * 2, 128)]  # 96x96
-        self.decoder_layers += [FullUpBlock(128 * 2, 64)]  # 192x192
-        self.decoder_layers += [FullUpBlock(64 * 2, 32)]  # 384x384
+        self.decoder_layers += [FullUpBlock(512, 256)]  # 12x12
+        self.decoder_layers += [FullUpBlock(256 * 2, 128)]  # 24x24
+        self.decoder_layers += [FullUpBlock(128 * 2, 64)]  # 48x48
+        self.decoder_layers += [FullUpBlock(64 * 2, 32)]  # 96x96
+        self.decoder_layers += [FullUpBlock(32 * 2, 16)]  # 192x192
+        self.decoder_layers += [FullUpBlock(16 * 2, 8)]  # 384x384
 
         self.final_conv = nn.Sequential(
-            nn.Conv2d(64, 32, kernel_size=(3, 3), padding=1),
+            nn.Conv2d(8, 4, kernel_size=(3, 3), padding=1),
             nn.LeakyReLU(negative_slope=0.2),
-            nn.Conv2d(32, self.out_chans, kernel_size=(1, 1)),
+            nn.Conv2d(4, self.out_chans, kernel_size=(1, 1)),
             nn.Tanh()
         )
 

@@ -109,18 +109,18 @@ class DiscriminatorModel(nn.Module):
         self.model_type = model_type
 
         self.initial_layers = nn.Sequential(
-            nn.Conv2d(self.in_chans, 32, kernel_size=(3, 3), padding=1),  # 384x384
-            nn.InstanceNorm2d(32),
+            nn.Conv2d(self.in_chans, 16, kernel_size=(3, 3), padding=1),  # 384x384
+            nn.InstanceNorm2d(16),
             nn.LeakyReLU()
             # ResidualBlock(32, 32, False),
         )
 
         self.encoder_layers = nn.ModuleList()
-        self.encoder_layers += [FullDownBlock(32, 64)]  # 192x192
-        self.encoder_layers += [FullDownBlock(64, 128)]  # 96x96
-        self.encoder_layers += [FullDownBlock(128, 256)]  # 48x48
-        self.encoder_layers += [FullDownBlock(256, 512)]  # 24x24
-        self.encoder_layers += [FullDownBlock(512, 512)]  # 12x12
+        self.encoder_layers += [FullDownBlock(16, 32)]  # 192x192
+        self.encoder_layers += [FullDownBlock(32, 64)]  # 96x96
+        self.encoder_layers += [FullDownBlock(64, 128)]  # 48x48
+        self.encoder_layers += [FullDownBlock(128, 256)]  # 24x24
+        self.encoder_layers += [FullDownBlock(256, 512)]  # 12x12
         self.encoder_layers += [FullDownBlock(512, 512)]  # 6x6
 
         self.dense = nn.Sequential(

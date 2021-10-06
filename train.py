@@ -277,9 +277,6 @@ def main(args):
 
             old_input = input.to(args.device)
 
-            if input.shape[0] != 16:
-                continue
-
             for j in range(args.num_iters_discriminator):
                 input_w_z = input  # add_z_to_input(args, input)
                 # ---------------------
