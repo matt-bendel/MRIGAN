@@ -115,8 +115,8 @@ def prep_input_2_chan(data_tensor, unet_type, disc=False):
             output_x = ifft2c_new(output_tensor)
             output_x = transforms.root_sum_of_squares(output_x)
             # REMOVE BELOW TWO LINES TO GO BACK UP
-            output_x_r = cv2.resize(output_x[:, :, 0].numpy(), dsize=(96, 96), interpolation=cv2.INTER_CUBIC)
-            output_x_c = cv2.resize(output_x[:, :, 1].numpy(), dsize=(96, 96), interpolation=cv2.INTER_CUBIC)
+            output_x_r = cv2.resize(output_x[:, :, 0].numpy(), dsize=(96, 96), interpolation=cv2.INTER_LINEAR)
+            output_x_c = cv2.resize(output_x[:, :, 1].numpy(), dsize=(96, 96), interpolation=cv2.INTER_LINEAR)
 
             output_x_r = torch.from_numpy(output_x_r).unsqueeze(-1)
             output_x_c = torch.from_numpy(output_x_c).unsqueeze(-1)
