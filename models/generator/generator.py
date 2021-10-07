@@ -160,14 +160,18 @@ class GeneratorModel(nn.Module):
 
         if z_location == 2:
             self.middle_z_grow_conv = nn.Sequential(
-                nn.Conv2d(latent_size, latent_size, kernel_size=(3, 3), padding=1),
+                nn.Conv2d(latent_size // 4, latent_size // 2, kernel_size=(3, 3), padding=1),
+                nn.BatchNorm2d(latent_size // 2),
+                nn.LeakyReLU(negative_slope=0.2),
+                nn.Conv2d(latent_size // 2, latent_size, kernel_size=(3, 3), padding=1),
+                nn.BatchNorm2d(latent_size),
                 nn.LeakyReLU(negative_slope=0.2),
             )
             self.middle_z_grow_linear = nn.Sequential(
-                nn.Linear(latent_size, latent_size * 3),
+                nn.Linear(latent_size, latent_size // 4 * 3 * 3),
                 nn.LeakyReLU(negative_slope=0.2),
-                nn.Linear(latent_size * 3, latent_size * 3 * 3),
-                nn.LeakyReLU(negative_slope=0.2)
+                # nn.Linear(latent_size * 3, latent_size * 3 * 3),
+                # nn.LeakyReLU(negative_slope=0.2)
             )
             self.middle = nn.Sequential(
                 nn.LeakyReLU(negative_slope=0.2),
@@ -186,7 +190,7 @@ class GeneratorModel(nn.Module):
         # self.decoder_layers += [FullUpBlock(16 * 2, 8)]  # 384x384
 
         self.final_conv = nn.Sequential(
-            nn.Conv2d(16, 8, kernel_size=(3, 3), padding=1),
+            nn.Conv2d(32, 8, kernel_size=(3, 3), padding=1),
             nn.LeakyReLU(negative_slope=0.2),
             nn.Conv2d(8, self.out_chans, kernel_size=(1, 1)),
             nn.Tanh()
@@ -207,7 +211,7 @@ class GeneratorModel(nn.Module):
         stack.pop()
         if self.z_location == 2:
             z_out = self.middle_z_grow_linear(z)
-            z_out = torch.reshape(z_out, (output.shape[0], self.latent_size, 3, 3))
+            z_out = torch.reshape(z_out, (output.shape[0], self.latent_size // 4, 3, 3))
             z_out = F.interpolate(z_out, scale_factor=2, mode='bilinear', align_corners=False)
             z_out = self.middle_z_grow_conv(z_out)
             output = torch.cat([output, z_out], dim=1)
