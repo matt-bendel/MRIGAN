@@ -1,14 +1,12 @@
+import pickle
+
 import numpy as np
+import matplotlib.pyplot as plt
 
-a = np.array(
-    [0, 10, 19, 28, 37, 46, 54, 61, 69, 76, 83, 89, 95, 101, 107, 112, 118, 122, 127, 132, 136, 140, 144, 148,
-     151, 155, 158, 161, 164,
-     167, 170, 173, 176, 178, 181, 183, 186, 188, 191, 193, 196, 198, 201, 203, 206, 208, 211, 214, 217, 220,
-     223, 226, 229, 233, 236,
-     240, 244, 248, 252, 257, 262, 266, 272, 277, 283, 289, 295, 301, 308, 315, 323, 330, 338, 347, 356, 365,
-     374])
-m = np.zeros((384, 384))
-m[:, a] = True
-m[:, 176:208] = True
+with open(f'/home/bendel.8/Git_Repos/MRIGAN/saved_metrics/loss_kspace_2.pkl', 'wb') as f:
+    loss_dict = pickle.load(f)
 
-print(np.where(m == 0)[1])
+plt.figure()
+plt.plot(np.arange(51), loss_dict['g_loss'])
+plt.plot(np.arange(51), loss_dict['d_loss'])
+plt.plot(np.arange(51), loss_dict['d_acc'])

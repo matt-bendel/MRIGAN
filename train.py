@@ -93,6 +93,27 @@ def add_z_to_input(args, input):
     return input
 
 
+def readd_measures_im(data_tensor, old):
+    im_size = 96
+    disc_inp = torch.zeros(data_tensor.shape[0], 2, im_size, im_size)
+
+    for k in range(data_tensor.shape[0]):
+        output = torch.squeeze(data_tensor[k])
+        output_tensor = fft2c_new(output.permute(1, 2, 0))
+
+        disc_inp[k, :, :, :] = output_tensor.permute(2, 0, 1)
+
+    disc_inp = disc_inp + old[:]
+
+    for k in range(data_tensor.shape[0]):
+        output = torch.squeeze(disc_inp[k])
+        output_tensor = ifft2c_new(output.permute(1, 2, 0))
+
+        disc_inp[k, :, :, :] = output_tensor.permute(2, 0, 1)
+
+    return disc_inp
+
+
 def prep_input_2_chan(data_tensor, unet_type, disc=False):
     im_size = 96
     disc_inp = torch.zeros(data_tensor.shape[0], 2, im_size, im_size)
@@ -100,9 +121,10 @@ def prep_input_2_chan(data_tensor, unet_type, disc=False):
     if disc:
         for k in range(data_tensor.shape[0]):
             output = torch.squeeze(data_tensor[k])
-            output_tensor = ifft2c_new(output.permute(1, 2, 0))
+            if args.network_input == 'kspace':
+                output_tensor = ifft2c_new(output.permute(1, 2, 0))
 
-            disc_inp[k, :, :, :] = output_tensor.permute(2, 0, 1)
+            disc_inp[k, :, :, :] = output  # output_tensor.permute(2, 0, 1)
 
         return disc_inp
 
@@ -121,10 +143,28 @@ def prep_input_2_chan(data_tensor, unet_type, disc=False):
             output_x_r = torch.from_numpy(output_x_r).unsqueeze(-1)
             output_x_c = torch.from_numpy(output_x_c).unsqueeze(-1)
             ######################################
+            output_x = torch.cat((output_x_r, output_x_c), dim=-1)
             output_x = fft2c_new(torch.cat((output_x_r, output_x_c), dim=-1))
 
             disc_inp[k, :, :, :] = output_x.permute(2, 0, 1)
     else:
+        for k in range(data_tensor.shape[0]):
+            output = torch.squeeze(data_tensor[k])
+            output_tensor = torch.zeros(8, 384, 384, 2)
+            output_tensor[:, :, :, 0] = output[0:8, :, :]
+            output_tensor[:, :, :, 1] = output[8:16, :, :]
+            output_x = ifft2c_new(output_tensor)
+            output_x = transforms.root_sum_of_squares(output_x)
+            # REMOVE BELOW TWO LINES TO GO BACK UP
+            output_x_r = cv2.resize(output_x[:, :, 0].numpy(), dsize=(96, 96), interpolation=cv2.INTER_LINEAR)
+            output_x_c = cv2.resize(output_x[:, :, 1].numpy(), dsize=(96, 96), interpolation=cv2.INTER_LINEAR)
+
+            output_x_r = torch.from_numpy(output_x_r).unsqueeze(-1)
+            output_x_c = torch.from_numpy(output_x_c).unsqueeze(-1)
+            ######################################
+            output_x = torch.cat((output_x_r, output_x_c), dim=-1)
+
+            disc_inp[k, :, :, :] = output_x.permute(2, 0, 1)
         raise NotImplementedError
 
     return disc_inp
@@ -212,7 +252,7 @@ def plot_epoch(args, generator, epoch):
     if args.network_input == 'kspace':
         refined_z_1_out = z_1_out.cpu() + CONSTANT_PLOTS['measures'].unsqueeze(0)
     else:
-        raise NotImplementedError
+        refined_z_1_out = readd_measures_im(z_1_out.cpu, CONSTANT_PLOTS['measures'].unsqueeze(0))
 
     target_prep = prep_input_2_chan(CONSTANT_PLOTS['gt'].unsqueeze(0), args.network_input, disc=True)[0]
     zfr = prep_input_2_chan(CONSTANT_PLOTS['measures'].unsqueeze(0), args.network_input, disc=True)[0]
@@ -303,8 +343,7 @@ def main(args):
                         # refined_out = output_gen + old_input[:, 0:16]
                         refined_out = output_gen + old_input[:]
                     else:
-                        # TODO: TRANSFORM IMAGE BACK TO K-SPACE AND ADD OLD OUT
-                        raise NotImplementedError
+                        refined_out = readd_measures_im(output_gen, old_input)
 
                     # TURN OUTPUT INTO IMAGE FOR DISCRIMINATION AND GET REAL IMAGES FOR DISCRIMINATION
                     disc_target_batch = prep_input_2_chan(target_full, args.network_input, disc=True).to(
@@ -401,6 +440,12 @@ def main(args):
 
             if (epoch + 1) == 50:
                 save_metrics(args)
+                im_check = complex_abs(output_gen[6].permute(1, 2, 0))
+                im_np = im_check.detach().cpu().numpy()
+                plt.figure()
+                plt.imshow(np.abs(im_np), origin='lower', cmap='gray', vmin=0, vmax=np.max(true))
+                plt.savefig(
+                    f'/home/bendel.8/Git_Repos/MRIGAN/training_images/2_chan_z_mid/final_gen_{args.network_input}_{args.z_location}.png')
                 exit()
 
 
