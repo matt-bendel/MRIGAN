@@ -101,9 +101,10 @@ def readd_measures_im(data_tensor, old):
         output = torch.squeeze(data_tensor[k])
         output_tensor = fft2c_new(output.permute(1, 2, 0))
 
-        disc_inp[k, :, :, :] = output_tensor.permute(2, 0, 1)
+        old_out = torch.squeeze(old)
+        old_out = fft2c_new(old_out.permute(1, 2, 0)).permute(2, 0, 1)
 
-    disc_inp = disc_inp + old[:]
+        disc_inp[k, :, :, :] = output_tensor.permute(2, 0, 1) + old_out
 
     for k in range(data_tensor.shape[0]):
         output = torch.squeeze(disc_inp[k])
@@ -123,8 +124,9 @@ def prep_input_2_chan(data_tensor, unet_type, disc=False):
             output = torch.squeeze(data_tensor[k])
             if args.network_input == 'kspace':
                 output_tensor = ifft2c_new(output.permute(1, 2, 0))
-
-            disc_inp[k, :, :, :] = output  # output_tensor.permute(2, 0, 1)
+                disc_inp[k, :, :, :] = output_tensor.permute(2, 0, 1)
+            else:
+                disc_inp[k, :, :, :] = output
 
         return disc_inp
 
@@ -143,7 +145,6 @@ def prep_input_2_chan(data_tensor, unet_type, disc=False):
             output_x_r = torch.from_numpy(output_x_r).unsqueeze(-1)
             output_x_c = torch.from_numpy(output_x_c).unsqueeze(-1)
             ######################################
-            output_x = torch.cat((output_x_r, output_x_c), dim=-1)
             output_x = fft2c_new(torch.cat((output_x_r, output_x_c), dim=-1))
 
             disc_inp[k, :, :, :] = output_x.permute(2, 0, 1)
