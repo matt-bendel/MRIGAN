@@ -95,7 +95,7 @@ def add_z_to_input(args, input):
 
 def readd_measures_im(data_tensor, old):
     im_size = 96
-    disc_inp = torch.zeros(data_tensor.shape[0], 2, im_size, im_size)
+    disc_inp = torch.zeros(data_tensor.shape[0], 2, im_size, im_size).to(args.device)
 
     for k in range(data_tensor.shape[0]):
         output = torch.squeeze(data_tensor[k])
@@ -338,8 +338,6 @@ def main(args):
                         # refined_out = output_gen + old_input[:, 0:16]
                         refined_out = output_gen + old_input[:]
                     else:
-                        print(output_gen.get_device())
-                        print(old_input.get_device())
                         refined_out = readd_measures_im(output_gen, old_input)
 
                     # TURN OUTPUT INTO IMAGE FOR DISCRIMINATION AND GET REAL IMAGES FOR DISCRIMINATION
