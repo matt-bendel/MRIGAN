@@ -103,7 +103,7 @@ def readd_measures_im(data_tensor, old):
 
         disc_inp[k, :, :, :] = output_tensor.permute(2, 0, 1)
 
-    disc_inp = disc_inp + old[:]
+    disc_inp = disc_inp + old[:].to(args.device)
 
     for k in range(data_tensor.shape[0]):
         output = torch.squeeze(disc_inp[k])
