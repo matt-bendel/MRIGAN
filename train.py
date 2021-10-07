@@ -203,7 +203,7 @@ def plot_epoch(args, generator, epoch):
     mean = CONSTANT_PLOTS['mean']
 
     z_1 = CONSTANT_PLOTS['measures'].unsqueeze(0).to(args.device)
-    z = torch.FloatTensor(np.random.normal(size=(z_1.shape[0], args.latent_size))).unsqueeze(-1).unsqueeze(-1).to(args.device)
+    z = torch.FloatTensor(np.random.normal(size=(z_1.shape[0], args.latent_size))).to(args.device)
 
     # generator.eval()
     # with torch.no_grad():
@@ -282,7 +282,7 @@ def main(args):
 
                 input = prep_input_2_chan(input, args.network_input)
                 target_full = prep_input_2_chan(target_full, args.network_input)
-                z = torch.FloatTensor(np.random.normal(size=(input.shape[0], args.latent_size))).unsqueeze(-1).unsqueeze(-1).to(args.device)
+                z = torch.FloatTensor(np.random.normal(size=(input.shape[0], args.latent_size))).to(args.device)
 
                 old_input = input.to(args.device)
 
