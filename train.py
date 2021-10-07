@@ -24,6 +24,7 @@ import os
 import shutil
 import time
 import torch
+import cv2
 
 import numpy as np
 import torch.autograd as autograd
@@ -112,13 +113,16 @@ def prep_input_2_chan(data_tensor, unet_type, disc=False):
             output_tensor[:, :, :, 1] = output[8:16, :, :]
             output_x = ifft2c_new(output_tensor)
             output_x = transforms.root_sum_of_squares(output_x)
-            output_x = fft2c_new(output_x)
+            output_x_r = cv2.resize(output_x[:, :, 0], dsize=(96, 96), interpolation=cv2.INTER_CUBIC)
+            output_x_c = cv2.resize(output_x[:, :, 1], dsize=(96, 96), interpolation=cv2.INTER_CUBIC)
+            output_x = fft2c_new(torch.cat((output_x_r, output_x_c), dim=1))
 
             disc_inp[k, :, :, :] = output_x.permute(2, 0, 1)
     else:
         raise NotImplementedError
 
     return disc_inp
+
 
 def save_model(args, epoch, model, optimizer, best_dev_loss, is_new_best, m_type):
     torch.save(
@@ -297,7 +301,8 @@ def main(args):
                     raise NotImplementedError
 
                 # TURN OUTPUT INTO IMAGE FOR DISCRIMINATION AND GET REAL IMAGES FOR DISCRIMINATION
-                disc_target_batch = prep_input_2_chan(target_full.to(args.device), args.network_input, disc=True).to(args.device)
+                disc_target_batch = prep_input_2_chan(target_full.to(args.device), args.network_input, disc=True).to(
+                    args.device)
                 disc_output_batch = prep_input_2_chan(refined_out, args.network_input, disc=True).to(args.device)
 
                 # PLOT VERY FIRST GENERATED IMAGE
@@ -312,11 +317,11 @@ def main(args):
                     true = complex_abs(disc_target_batch[2].permute(1, 2, 0))
                     true = true.detach().cpu().numpy()
                     plt.figure()
-                    plt.imshow(np.abs(im_np), origin='lower', cmap='gray', vmin=0, vmax=np.max(true))
+                    plt.imshow(np.abs(true), origin='lower', cmap='gray', vmin=0, vmax=np.max(true))
                     plt.savefig(
                         f'/home/bendel.8/Git_Repos/MRIGAN/training_images/2_chan_z_mid/first_gen_{args.network_input}_{args.z_location}.png')
                     first = False
-
+                    exit()
 
                 # MAKE PREDICTIONS
                 real_pred = discriminator(disc_target_batch)
@@ -379,7 +384,7 @@ def main(args):
         GLOBAL_LOSS_DICT['d_acc'].append(np.mean(batch_loss['d_acc']))
         GLOBAL_LOSS_DICT['mSSIM'].append(ssim_loss)
 
-        save_str = f"END OF EPOCH {epoch + 1}: [Average D loss: {GLOBAL_LOSS_DICT['d_loss'][epoch]}] [Average D Acc: {GLOBAL_LOSS_DICT['d_acc'][epoch]}] [Average G loss: {GLOBAL_LOSS_DICT['g_loss'][epoch]}] [Val mSSIM: {GLOBAL_LOSS_DICT['mSSIM'][epoch]}]\n"
+        save_str = f"END OF EPOCH {epoch + 1}: [Average D loss: {GLOBAL_LOSS_DICT['d_loss'][epoch]:.4f}] [Average D Acc: {GLOBAL_LOSS_DICT['d_acc'][epoch]:.4f}] [Average G loss: {GLOBAL_LOSS_DICT['g_loss'][epoch]:.4f}]\n"
         print(save_str)
         loss_file.write(save_str)
 
