@@ -128,7 +128,7 @@ def prep_input_2_chan(data_tensor, unet_type, disc=False):
 
         return disc_inp
 
-    if unet_type == 'kspace':
+    if unet_type == 'kspace' or unet_type == 'image':
         for k in range(data_tensor.shape[0]):
             output = torch.squeeze(data_tensor[k])
             output_tensor = torch.zeros(8, 384, 384, 2)
