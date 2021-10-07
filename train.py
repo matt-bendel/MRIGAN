@@ -338,7 +338,9 @@ def main(args):
                         # refined_out = output_gen + old_input[:, 0:16]
                         refined_out = output_gen + old_input[:]
                     else:
-                        refined_out = readd_measures_im(output_gen, old_input.to(args.device))
+                        print(refined_out.get_device())
+                        print(old_input.get_device())
+                        refined_out = readd_measures_im(output_gen, old_input)
 
                     # TURN OUTPUT INTO IMAGE FOR DISCRIMINATION AND GET REAL IMAGES FOR DISCRIMINATION
                     disc_target_batch = prep_input_2_chan(target_full, args.network_input, disc=True).to(
