@@ -147,7 +147,7 @@ class GeneratorModel(nn.Module):
 
         self.initial_layers = nn.Sequential(
             nn.Conv2d(self.in_chans, 16, kernel_size=(3, 3), padding=1),  # 384x384
-            ResidualBlock(8, 8, False),
+            ResidualBlock(16, 16, False),
         )
 
         self.encoder_layers = nn.ModuleList()
