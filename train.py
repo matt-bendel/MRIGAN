@@ -94,7 +94,8 @@ def add_z_to_input(args, input):
 
 
 def prep_input_2_chan(data_tensor, unet_type, disc=False):
-    disc_inp = torch.zeros(data_tensor.shape[0], 2, 384, 384)
+    im_size = 96
+    disc_inp = torch.zeros(data_tensor.shape[0], 2, im_size, im_size)
 
     if disc:
         for k in range(data_tensor.shape[0]):
