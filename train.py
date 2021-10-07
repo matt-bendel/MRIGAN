@@ -103,7 +103,7 @@ def readd_measures_im(data_tensor, old):
 
         disc_inp[k, :, :, :] = output_tensor.permute(2, 0, 1)
 
-    disc_inp = disc_inp + old[:].to(args.device)
+    disc_inp = disc_inp + old[:]
 
     for k in range(data_tensor.shape[0]):
         output = torch.squeeze(disc_inp[k])
@@ -251,7 +251,7 @@ def plot_epoch(args, generator, epoch):
     if args.network_input == 'kspace':
         refined_z_1_out = z_1_out.cpu() + CONSTANT_PLOTS['measures'].unsqueeze(0)
     else:
-        refined_z_1_out = readd_measures_im(z_1_out.cpu, CONSTANT_PLOTS['measures'].unsqueeze(0))
+        refined_z_1_out = readd_measures_im(z_1_out.cpu(), CONSTANT_PLOTS['measures'].unsqueeze(0))
 
     target_prep = prep_input_2_chan(CONSTANT_PLOTS['gt'].unsqueeze(0), args.network_input, disc=True)[0]
     zfr = prep_input_2_chan(CONSTANT_PLOTS['measures'].unsqueeze(0), args.network_input, disc=True)[0]
@@ -338,7 +338,7 @@ def main(args):
                         # refined_out = output_gen + old_input[:, 0:16]
                         refined_out = output_gen + old_input[:]
                     else:
-                        refined_out = readd_measures_im(output_gen, old_input)
+                        refined_out = readd_measures_im(output_gen, old_input.to(args.device))
 
                     # TURN OUTPUT INTO IMAGE FOR DISCRIMINATION AND GET REAL IMAGES FOR DISCRIMINATION
                     disc_target_batch = prep_input_2_chan(target_full, args.network_input, disc=True).to(
@@ -388,7 +388,7 @@ def main(args):
                 if args.network_input == 'kspace':
                     refined_out = output_gen + old_input[:]
                 else:
-                    raise NotImplementedError
+                    refined_out = readd_measures_im(output_gen, old_input.to(args.device))
 
                 disc_inp = prep_input_2_chan(refined_out, args.network_input, disc=True)
 
