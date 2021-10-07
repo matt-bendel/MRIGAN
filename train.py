@@ -128,7 +128,7 @@ def prep_input_2_chan(data_tensor, unet_type, disc=False):
 
         return disc_inp
 
-    if unet_type == 'kspace' or unet_type == 'image':
+    if unet_type == 'kspace':
         for k in range(data_tensor.shape[0]):
             output = torch.squeeze(data_tensor[k])
             output_tensor = torch.zeros(8, 384, 384, 2)
@@ -165,7 +165,6 @@ def prep_input_2_chan(data_tensor, unet_type, disc=False):
             output_x = torch.cat((output_x_r, output_x_c), dim=-1)
 
             disc_inp[k, :, :, :] = output_x.permute(2, 0, 1)
-        raise NotImplementedError
 
     return disc_inp
 
@@ -332,10 +331,6 @@ def main(args):
                     #  Train Discriminator
                     # ---------------------
                     optimizer_D.zero_grad()
-
-                    # TODO: TRANSFORM INTO 16 CHANNEL IMAGE
-                    if args.network_input == 'image':
-                        raise NotImplementedError
 
                     input_w_z = input_w_z.to(args.device)
                     output_gen = generator(input_w_z, z, device=args.device)
