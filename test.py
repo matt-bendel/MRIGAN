@@ -3,7 +3,7 @@ import pickle
 import numpy as np
 import matplotlib.pyplot as plt
 
-with open(f'/home/bendel.8/Git_Repos/MRIGAN/saved_metrics/loss_kspace_2.pkl', 'wb') as f:
+with open(f'/home/bendel.8/Git_Repos/MRIGAN/saved_metrics/loss_kspace_2.pkl', 'rb') as f:
     loss_dict = pickle.load(f)
 
 plt.figure()
