@@ -327,7 +327,6 @@ def main(args):
                         plt.savefig(
                             f'/home/bendel.8/Git_Repos/MRIGAN/training_images/2_chan_z_mid/first_gen_{args.network_input}_{args.z_location}.png')
                         first = False
-                        exit()
 
                     # MAKE PREDICTIONS
                     real_pred = discriminator(disc_target_batch)
@@ -400,7 +399,7 @@ def main(args):
             plot_epoch(args, generator, epoch)
             generator.train()
 
-            if (epoch + 1) == 25:
+            if (epoch + 1) == 50:
                 save_metrics(args)
                 exit()
 
