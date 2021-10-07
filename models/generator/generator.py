@@ -151,8 +151,8 @@ class GeneratorModel(nn.Module):
         )
 
         self.encoder_layers = nn.ModuleList()
-        self.encoder_layers += [FullDownBlock(8, 16)]  # 192x192
-        self.encoder_layers += [FullDownBlock(16, 32)]  # 96x96
+        # self.encoder_layers += [FullDownBlock(8, 16)]  # 192x192
+        # self.encoder_layers += [FullDownBlock(16, 32)]  # 96x96
         self.encoder_layers += [FullDownBlock(32, 64)]  # 48x48
         self.encoder_layers += [FullDownBlock(64, 128)]  # 24x24
         self.encoder_layers += [FullDownBlock(128, 256)]  # 12x12
@@ -182,11 +182,11 @@ class GeneratorModel(nn.Module):
         self.decoder_layers += [FullUpBlock(256 * 2, 128)]  # 24x24
         self.decoder_layers += [FullUpBlock(128 * 2, 64)]  # 48x48
         self.decoder_layers += [FullUpBlock(64 * 2, 32)]  # 96x96
-        self.decoder_layers += [FullUpBlock(32 * 2, 16)]  # 192x192
-        self.decoder_layers += [FullUpBlock(16 * 2, 8)]  # 384x384
+        # self.decoder_layers += [FullUpBlock(32 * 2, 16)]  # 192x192
+        # self.decoder_layers += [FullUpBlock(16 * 2, 8)]  # 384x384
 
         self.final_conv = nn.Sequential(
-            nn.Conv2d(16, 8, kernel_size=(3, 3), padding=1),
+            nn.Conv2d(32, 8, kernel_size=(3, 3), padding=1),
             nn.LeakyReLU(negative_slope=0.2),
             nn.Conv2d(8, self.out_chans, kernel_size=(1, 1)),
             nn.Tanh()

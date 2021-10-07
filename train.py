@@ -113,9 +113,14 @@ def prep_input_2_chan(data_tensor, unet_type, disc=False):
             output_tensor[:, :, :, 1] = output[8:16, :, :]
             output_x = ifft2c_new(output_tensor)
             output_x = transforms.root_sum_of_squares(output_x)
-            output_x_r = cv2.resize(output_x[:, :, 0], dsize=(96, 96), interpolation=cv2.INTER_CUBIC)
-            output_x_c = cv2.resize(output_x[:, :, 1], dsize=(96, 96), interpolation=cv2.INTER_CUBIC)
-            output_x = fft2c_new(torch.cat((output_x_r, output_x_c), dim=1))
+            # REMOVE BELOW TWO LINES TO GO BACK UP
+            output_x_r = cv2.resize(output_x[:, :, 0].numpy(), dsize=(96, 96), interpolation=cv2.INTER_CUBIC)
+            output_x_c = cv2.resize(output_x[:, :, 1].numpy(), dsize=(96, 96), interpolation=cv2.INTER_CUBIC)
+
+            output_x_r = torch.from_numpy(output_x_r).unsqueeze(-1)
+            output_x_c = torch.from_numpy(output_x_c).unsqueeze(-1)
+            ######################################
+            output_x = fft2c_new(torch.cat((output_x_r, output_x_c), dim=-1))
 
             disc_inp[k, :, :, :] = output_x.permute(2, 0, 1)
     else:
@@ -197,7 +202,7 @@ def plot_epoch(args, generator, epoch):
     mean = CONSTANT_PLOTS['mean']
 
     z_1 = CONSTANT_PLOTS['measures'].unsqueeze(0).to(args.device)
-    z = torch.FloatTensor(np.random.normal(size=(z_1.shape[0], args.latent_size))).to(args.device)
+    z = torch.FloatTensor(np.random.normal(size=(z_1.shape[0], args.latent_size))).unsqueeze(-1).unsqueeze(-1).to(args.device)
 
     # generator.eval()
     # with torch.no_grad():
@@ -263,142 +268,140 @@ def main(args):
 
     first = True
 
-    loss_file = open(f'trained_models/{args.network_input}/loss_{args.z_location}.txt', 'w')
+    with open(f'trained_models/{args.network_input}/loss_{args.z_location}.txt', 'w') as loss_file:
+        for epoch in range(start_epoch, args.num_epochs):
+            batch_loss = {
+                'g_loss': [],
+                'd_loss': [],
+                'd_acc': []
+            }
 
-    for epoch in range(start_epoch, args.num_epochs):
-        batch_loss = {
-            'g_loss': [],
-            'd_loss': [],
-            'd_acc': []
-        }
-        for i, data in enumerate(train_loader):
-            input, target_full, mean, std, nnz_index_mask = data
+            for i, data in enumerate(train_loader):
+                input, target_full, mean, std, nnz_index_mask = data
 
-            input = prep_input_2_chan(input, args.network_input)
-            target_full = prep_input_2_chan(target_full, args.network_input)
-            z = torch.FloatTensor(np.random.normal(size=(input.shape[0], args.latent_size))).to(args.device)
+                input = prep_input_2_chan(input, args.network_input)
+                target_full = prep_input_2_chan(target_full, args.network_input)
+                z = torch.FloatTensor(np.random.normal(size=(input.shape[0], args.latent_size))).unsqueeze(-1).unsqueeze(-1).to(args.device)
 
-            old_input = input.to(args.device)
+                old_input = input.to(args.device)
 
-            for j in range(args.num_iters_discriminator):
-                input_w_z = input  # add_z_to_input(args, input)
-                # ---------------------
-                #  Train Discriminator
-                # ---------------------
-                optimizer_D.zero_grad()
+                for j in range(args.num_iters_discriminator):
+                    input_w_z = input  # add_z_to_input(args, input)
+                    # ---------------------
+                    #  Train Discriminator
+                    # ---------------------
+                    optimizer_D.zero_grad()
 
-                # TODO: TRANSFORM INTO 16 CHANNEL IMAGE
-                if args.network_input == 'image':
-                    raise NotImplementedError
+                    # TODO: TRANSFORM INTO 16 CHANNEL IMAGE
+                    if args.network_input == 'image':
+                        raise NotImplementedError
 
-                input_w_z = input_w_z.to(args.device)
-                output_gen = generator(input_w_z, z, device=args.device)
+                    input_w_z = input_w_z.to(args.device)
+                    output_gen = generator(input_w_z, z, device=args.device)
+                    if args.network_input == 'kspace':
+                        # refined_out = output_gen + old_input[:, 0:16]
+                        refined_out = output_gen + old_input[:]
+                    else:
+                        # TODO: TRANSFORM IMAGE BACK TO K-SPACE AND ADD OLD OUT
+                        raise NotImplementedError
+
+                    # TURN OUTPUT INTO IMAGE FOR DISCRIMINATION AND GET REAL IMAGES FOR DISCRIMINATION
+                    disc_target_batch = prep_input_2_chan(target_full, args.network_input, disc=True).to(
+                        args.device)
+                    disc_output_batch = prep_input_2_chan(refined_out, args.network_input, disc=True).to(args.device)
+
+                    # PLOT VERY FIRST GENERATED IMAGE
+                    if first:
+                        CONSTANT_PLOTS['measures'] = input.cpu()[2]
+                        CONSTANT_PLOTS['mean'] = mean.cpu()[2]
+                        CONSTANT_PLOTS['std'] = std.cpu()[2]
+                        CONSTANT_PLOTS['gt'] = target_full[2]
+
+                        im_check = complex_abs(disc_output_batch[2].permute(1, 2, 0))
+                        im_np = im_check.detach().cpu().numpy()
+                        true = complex_abs(disc_target_batch[2].permute(1, 2, 0))
+                        true = true.detach().cpu().numpy()
+                        plt.figure()
+                        plt.imshow(np.abs(true), origin='lower', cmap='gray', vmin=0, vmax=np.max(true))
+                        plt.savefig(
+                            f'/home/bendel.8/Git_Repos/MRIGAN/training_images/2_chan_z_mid/first_gen_{args.network_input}_{args.z_location}.png')
+                        first = False
+                        exit()
+
+                    # MAKE PREDICTIONS
+                    real_pred = discriminator(disc_target_batch)
+                    fake_pred = discriminator(disc_output_batch)
+
+                    real_acc = real_pred[real_pred > 0].shape[0]
+                    fake_acc = fake_pred[fake_pred <= 0].shape[0]
+
+                    batch_loss['d_acc'].append((real_acc + fake_acc) / 32)
+
+                    # Gradient penalty
+                    gradient_penalty = compute_gradient_penalty(discriminator, disc_target_batch.data,
+                                                                disc_output_batch.data, args)
+                    # Adversarial loss
+                    d_loss = torch.mean(fake_pred) - torch.mean(real_pred) + lambda_gp * gradient_penalty
+
+                    d_loss.backward()
+                    optimizer_D.step()
+
+                optimizer_G.zero_grad()
+
+                # Generate a batch of images
+                output_gen = generator(input_w_z.to(args.device), z, device=args.device)
+
                 if args.network_input == 'kspace':
-                    # refined_out = output_gen + old_input[:, 0:16]
                     refined_out = output_gen + old_input[:]
                 else:
-                    # TODO: TRANSFORM IMAGE BACK TO K-SPACE AND ADD OLD OUT
                     raise NotImplementedError
 
-                # TURN OUTPUT INTO IMAGE FOR DISCRIMINATION AND GET REAL IMAGES FOR DISCRIMINATION
-                disc_target_batch = prep_input_2_chan(target_full.to(args.device), args.network_input, disc=True).to(
-                    args.device)
-                disc_output_batch = prep_input_2_chan(refined_out, args.network_input, disc=True).to(args.device)
+                disc_inp = prep_input_2_chan(refined_out, args.network_input, disc=True)
 
-                # PLOT VERY FIRST GENERATED IMAGE
-                if first:
-                    CONSTANT_PLOTS['measures'] = input.cpu()[2]
-                    CONSTANT_PLOTS['mean'] = mean.cpu()[2]
-                    CONSTANT_PLOTS['std'] = std.cpu()[2]
-                    CONSTANT_PLOTS['gt'] = target_full.cpu()[2]
+                # Loss measures generator's ability to fool the discriminator
+                # Train on fake images
+                fake_validity = discriminator(disc_inp)
+                g_loss = -torch.mean(fake_validity)
 
-                    im_check = complex_abs(disc_output_batch[2].permute(1, 2, 0))
-                    im_np = im_check.detach().cpu().numpy()
-                    true = complex_abs(disc_target_batch[2].permute(1, 2, 0))
-                    true = true.detach().cpu().numpy()
-                    plt.figure()
-                    plt.imshow(np.abs(true), origin='lower', cmap='gray', vmin=0, vmax=np.max(true))
-                    plt.savefig(
-                        f'/home/bendel.8/Git_Repos/MRIGAN/training_images/2_chan_z_mid/first_gen_{args.network_input}_{args.z_location}.png')
-                    first = False
-                    exit()
+                g_loss.backward()
+                optimizer_G.step()
 
-                # MAKE PREDICTIONS
-                real_pred = discriminator(disc_target_batch)
-                fake_pred = discriminator(disc_output_batch)
+                batch_loss['g_loss'].append(g_loss.item())
+                batch_loss['d_loss'].append(d_loss.item())
 
-                real_acc = real_pred[real_pred > 0].shape[0]
-                fake_acc = fake_pred[fake_pred <= 0].shape[0]
+                print(
+                    "[Epoch %d/%d] [Batch %d/%d] [D loss: %.4f] [G loss: %.4f]"
+                    % (epoch + 1, args.num_epochs, i, len(train_loader.dataset) / args.batch_size, d_loss.item(),
+                       g_loss.item())
+                )
 
-                batch_loss['d_acc'].append((real_acc + fake_acc) / 32)
+            # TODO: ADD VALIDATION HERE - ONLY A SMALL SUBSET OF VAL DATA, LIKE 1500 IMAGES (~10 BATCHES)
+            # for i, data in enumerate(train_loader):
+            #     input, target_full, mean, std, nnz_index_mask = data
+            #     old_input = input.to(args.device)
 
-                # Gradient penalty
-                gradient_penalty = compute_gradient_penalty(discriminator, disc_target_batch.data,
-                                                            disc_output_batch.data, args)
-                # Adversarial loss
-                d_loss = torch.mean(fake_pred) - torch.mean(real_pred) + lambda_gp * gradient_penalty
+            best_model = True  # val_data()
+            best_loss_val = 1e9  # val_data()
+            ssim_loss = 0
 
-                d_loss.backward()
-                optimizer_D.step()
+            GLOBAL_LOSS_DICT['g_loss'].append(np.mean(batch_loss['g_loss']))
+            GLOBAL_LOSS_DICT['d_loss'].append(np.mean(batch_loss['d_loss']))
+            GLOBAL_LOSS_DICT['d_acc'].append(np.mean(batch_loss['d_acc']))
+            GLOBAL_LOSS_DICT['mSSIM'].append(ssim_loss)
 
-            optimizer_G.zero_grad()
+            save_str = f"END OF EPOCH {epoch + 1}: [Average D loss: {GLOBAL_LOSS_DICT['d_loss'][epoch]:.4f}] [Average D Acc: {GLOBAL_LOSS_DICT['d_acc'][epoch]:.4f}] [Average G loss: {GLOBAL_LOSS_DICT['g_loss'][epoch]:.4f}]\n"
+            print(save_str)
+            loss_file.write(save_str)
 
-            # Generate a batch of images
-            output_gen = generator(input_w_z.to(args.device), z, device=args.device)
+            save_model(args, epoch, generator, optimizer_G, best_loss_val, best_model, 'generator')
+            save_model(args, epoch, discriminator, optimizer_D, best_loss_val, best_model, 'discriminator')
 
-            if args.network_input == 'kspace':
-                refined_out = output_gen + old_input[:]
-            else:
-                raise NotImplementedError
+            plot_epoch(args, generator, epoch)
+            generator.train()
 
-            disc_inp = prep_input_2_chan(refined_out, args.network_input, disc=True)
-
-            # Loss measures generator's ability to fool the discriminator
-            # Train on fake images
-            fake_validity = discriminator(disc_inp)
-            g_loss = -torch.mean(fake_validity)
-
-            g_loss.backward()
-            optimizer_G.step()
-
-            batch_loss['g_loss'].append(g_loss.item())
-            batch_loss['d_loss'].append(d_loss.item())
-
-            print(
-                "[Epoch %d/%d] [Batch %d/%d] [D loss: %.4f] [G loss: %.4f]"
-                % (epoch + 1, args.num_epochs, i, len(train_loader.dataset) / args.batch_size, d_loss.item(),
-                   g_loss.item())
-            )
-
-        # TODO: ADD VALIDATION HERE - ONLY A SMALL SUBSET OF VAL DATA, LIKE 1500 IMAGES (~10 BATCHES)
-        # for i, data in enumerate(train_loader):
-        #     input, target_full, mean, std, nnz_index_mask = data
-        #     old_input = input.to(args.device)
-
-        best_model = True  # val_data()
-        best_loss_val = 1e9  # val_data()
-        ssim_loss = 0
-
-        GLOBAL_LOSS_DICT['g_loss'].append(np.mean(batch_loss['g_loss']))
-        GLOBAL_LOSS_DICT['d_loss'].append(np.mean(batch_loss['d_loss']))
-        GLOBAL_LOSS_DICT['d_acc'].append(np.mean(batch_loss['d_acc']))
-        GLOBAL_LOSS_DICT['mSSIM'].append(ssim_loss)
-
-        save_str = f"END OF EPOCH {epoch + 1}: [Average D loss: {GLOBAL_LOSS_DICT['d_loss'][epoch]:.4f}] [Average D Acc: {GLOBAL_LOSS_DICT['d_acc'][epoch]:.4f}] [Average G loss: {GLOBAL_LOSS_DICT['g_loss'][epoch]:.4f}]\n"
-        print(save_str)
-        loss_file.write(save_str)
-
-        save_model(args, epoch, generator, optimizer_G, best_loss_val, best_model, 'generator')
-        save_model(args, epoch, discriminator, optimizer_D, best_loss_val, best_model, 'discriminator')
-
-        plot_epoch(args, generator, epoch)
-        generator.train()
-
-        if (epoch + 1) == 25:
-            save_metrics(args)
-            exit()
-
-    loss_file.close()
+            if (epoch + 1) == 25:
+                save_metrics(args)
+                exit()
 
 
 if __name__ == '__main__':
