@@ -101,7 +101,7 @@ def readd_measures_im(data_tensor, old):
         output = torch.squeeze(data_tensor[k])
         output_tensor = fft2c_new(output.permute(1, 2, 0))
 
-        old_out = torch.squeeze(old)
+        old_out = torch.squeeze(old[k])
         old_out = fft2c_new(old_out.permute(1, 2, 0))
 
         disc_inp[k, :, :, :] = output_tensor.permute(2, 0, 1) + old_out.permute(2, 0, 1)
