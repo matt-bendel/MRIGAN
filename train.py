@@ -98,11 +98,9 @@ def readd_measures_im(data_tensor, old):
     disc_inp = torch.zeros(data_tensor.shape[0], 2, im_size, im_size).to(args.device)
 
     for k in range(data_tensor.shape[0]):
-        print(data_tensor.shape)
         output = torch.squeeze(data_tensor[k])
         output_tensor = fft2c_new(output.permute(1, 2, 0))
 
-        print(old.shape)
         old_out = torch.squeeze(old[k])
         old_out = fft2c_new(old_out.permute(1, 2, 0))
 
