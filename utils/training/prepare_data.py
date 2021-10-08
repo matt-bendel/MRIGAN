@@ -105,7 +105,7 @@ class DataTransform:
         masked_kspace_noisy[:, :, nnz_index_mask, :] = nnz_masked_kspace_noisy
 
         ## commenting the bellow one line will make the experiment noiseless case
-        # masked_kspace = masked_kspace_noisy
+        masked_kspace = masked_kspace_noisy
 
         ###################################
 
