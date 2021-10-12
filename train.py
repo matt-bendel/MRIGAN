@@ -22,23 +22,18 @@ import pickle
 import random
 import os
 import shutil
-import time
 import torch
-import cv2
 
 import numpy as np
 import torch.autograd as autograd
+import matplotlib.pyplot as plt
 
-from data import transforms
-from utils.fftc import ifft2c_new, fft2c_new
 from utils.math import complex_abs
-from utils.evaluate import nmse
 from utils.training.prepare_data import create_data_loaders
 from utils.training.parse_args import create_arg_parser
 from utils.training.prepare_model import resume_train, fresh_start
-from tensorboardX import SummaryWriter
+from utils.general.helper import get_inverse_mask, readd_measures_im, prep_input_2_chan
 
-import matplotlib.pyplot as plt
 
 # Tunable weight for gradient penalty
 lambda_gp = 10
@@ -56,118 +51,6 @@ CONSTANT_PLOTS = {
     'std': None,
     'gt': None
 }
-
-
-def get_inverse_mask():
-    a = np.array(
-        [0, 10, 19, 28, 37, 46, 54, 61, 69, 76, 83, 89, 95, 101, 107, 112, 118, 122, 127, 132, 136, 140, 144, 148,
-         151, 155, 158, 161, 164,
-         167, 170, 173, 176, 178, 181, 183, 186, 188, 191, 193, 196, 198, 201, 203, 206, 208, 211, 214, 217, 220,
-         223, 226, 229, 233, 236,
-         240, 244, 248, 252, 257, 262, 266, 272, 277, 283, 289, 295, 301, 308, 315, 323, 330, 338, 347, 356, 365,
-         374])
-    m = np.ones((384, 384))
-    m[:, a] = 0
-    m[:, 176:208] = 0
-
-    return m
-
-
-def add_z_to_input(args, input):
-    """
-                    0: No latent vector
-                    1: Add latent vector to zero filled areas
-                    2: Add latent vector to middle of network (between encoder and decoder)
-                    3: Add as an extra input channel
-                    """
-    for i in range(input.shape[0]):
-        if args.z_location == 1 or args.z_location == 3:
-            z = np.random.normal(size=(384, 384))
-            z = Tensor(z * inverse_mask) if args.z_location == 1 else Tensor(z)
-            if args.z_location == 1:
-                for val in range(input.shape[1]):
-                    input[i, val, :, :] = input[i, val, :, :].add(z)
-            else:
-                input[i, 16, :, :] = z
-
-    return input
-
-
-def readd_measures_im(data_tensor, old):
-    im_size = 96
-    disc_inp = torch.zeros(data_tensor.shape[0], 2, im_size, im_size).to(args.device)
-
-    for k in range(data_tensor.shape[0]):
-        output = torch.squeeze(data_tensor[k])
-        output_tensor = fft2c_new(output.permute(1, 2, 0))
-
-        old_out = torch.squeeze(old[k])
-        old_out = fft2c_new(old_out.permute(1, 2, 0))
-
-        disc_inp[k, :, :, :] = output_tensor.permute(2, 0, 1) + old_out.permute(2, 0, 1)
-
-    for k in range(data_tensor.shape[0]):
-        output = torch.squeeze(disc_inp[k])
-        output_tensor = ifft2c_new(output.permute(1, 2, 0))
-
-        disc_inp[k, :, :, :] = output_tensor.permute(2, 0, 1)
-
-    return disc_inp
-
-
-def prep_input_2_chan(data_tensor, unet_type, disc=False):
-    im_size = 96
-    disc_inp = torch.zeros(data_tensor.shape[0], 2, im_size, im_size)
-
-    if disc:
-        for k in range(data_tensor.shape[0]):
-            output = torch.squeeze(data_tensor[k])
-            if args.network_input == 'kspace':
-                output_tensor = ifft2c_new(output.permute(1, 2, 0))
-                disc_inp[k, :, :, :] = output_tensor.permute(2, 0, 1)
-            else:
-                disc_inp[k, :, :, :] = output
-
-        return disc_inp
-
-    if unet_type == 'kspace':
-        for k in range(data_tensor.shape[0]):
-            output = torch.squeeze(data_tensor[k])
-            output_tensor = torch.zeros(8, 384, 384, 2)
-            output_tensor[:, :, :, 0] = output[0:8, :, :]
-            output_tensor[:, :, :, 1] = output[8:16, :, :]
-            output_x = ifft2c_new(output_tensor)
-            output_x = transforms.root_sum_of_squares(output_x)
-            # REMOVE BELOW TWO LINES TO GO BACK UP
-            output_x_r = cv2.resize(output_x[:, :, 0].numpy(), dsize=(96, 96), interpolation=cv2.INTER_LINEAR)
-            output_x_c = cv2.resize(output_x[:, :, 1].numpy(), dsize=(96, 96), interpolation=cv2.INTER_LINEAR)
-
-            output_x_r = torch.from_numpy(output_x_r).unsqueeze(-1)
-            output_x_c = torch.from_numpy(output_x_c).unsqueeze(-1)
-            ######################################
-            output_x = fft2c_new(torch.cat((output_x_r, output_x_c), dim=-1))
-
-            disc_inp[k, :, :, :] = output_x.permute(2, 0, 1)
-    else:
-        for k in range(data_tensor.shape[0]):
-            output = torch.squeeze(data_tensor[k])
-            output_tensor = torch.zeros(8, 384, 384, 2)
-            output_tensor[:, :, :, 0] = output[0:8, :, :]
-            output_tensor[:, :, :, 1] = output[8:16, :, :]
-            output_x = ifft2c_new(output_tensor)
-            output_x = transforms.root_sum_of_squares(output_x)
-            # REMOVE BELOW TWO LINES TO GO BACK UP
-            output_x_r = cv2.resize(output_x[:, :, 0].numpy(), dsize=(96, 96), interpolation=cv2.INTER_LINEAR)
-            output_x_c = cv2.resize(output_x[:, :, 1].numpy(), dsize=(96, 96), interpolation=cv2.INTER_LINEAR)
-
-            output_x_r = torch.from_numpy(output_x_r).unsqueeze(-1)
-            output_x_c = torch.from_numpy(output_x_c).unsqueeze(-1)
-            ######################################
-            output_x = torch.cat((output_x_r, output_x_c), dim=-1)
-
-            disc_inp[k, :, :, :] = output_x.permute(2, 0, 1)
-
-    return disc_inp
 
 
 def save_model(args, epoch, model, optimizer, best_dev_loss, is_new_best, m_type):
@@ -252,11 +135,11 @@ def plot_epoch(args, generator, epoch):
     if args.network_input == 'kspace':
         refined_z_1_out = z_1_out.cpu() + CONSTANT_PLOTS['measures'].unsqueeze(0)
     else:
-        refined_z_1_out = readd_measures_im(z_1_out.cpu(), CONSTANT_PLOTS['measures'].unsqueeze(0))
+        refined_z_1_out = readd_measures_im(z_1_out.cpu(), CONSTANT_PLOTS['measures'].unsqueeze(0), args)
 
-    target_prep = prep_input_2_chan(CONSTANT_PLOTS['gt'].unsqueeze(0), args.network_input, disc=True)[0]
-    zfr = prep_input_2_chan(CONSTANT_PLOTS['measures'].unsqueeze(0), args.network_input, disc=True)[0]
-    z_1_prep = prep_input_2_chan(refined_z_1_out, args.network_input, disc=True)[0]
+    target_prep = prep_input_2_chan(CONSTANT_PLOTS['gt'].unsqueeze(0), args.network_input, args, disc=True)[0]
+    zfr = prep_input_2_chan(CONSTANT_PLOTS['measures'].unsqueeze(0), args.network_input, args, disc=True)[0]
+    z_1_prep = prep_input_2_chan(refined_z_1_out, args.network_input, args, disc=True)[0]
 
     target_im = complex_abs(target_prep.permute(1, 2, 0)) * std + mean
     target_im = target_im.numpy()
@@ -320,8 +203,8 @@ def main(args):
             for i, data in enumerate(train_loader):
                 input, target_full, mean, std, nnz_index_mask = data
 
-                input = prep_input_2_chan(input, args.network_input)
-                target_full = prep_input_2_chan(target_full, args.network_input)
+                input = prep_input_2_chan(input, args.network_input, args)
+                target_full = prep_input_2_chan(target_full, args.network_input, args)
                 z = torch.FloatTensor(np.random.normal(size=(input.shape[0], args.latent_size))).to(args.device)
 
                 old_input = input.to(args.device)
@@ -335,16 +218,17 @@ def main(args):
 
                     input_w_z = input_w_z.to(args.device)
                     output_gen = generator(input_w_z, z, device=args.device)
+
                     if args.network_input == 'kspace':
                         # refined_out = output_gen + old_input[:, 0:16]
                         refined_out = output_gen + old_input[:]
                     else:
-                        refined_out = readd_measures_im(output_gen, old_input)
+                        refined_out = readd_measures_im(output_gen, old_input, args)
 
                     # TURN OUTPUT INTO IMAGE FOR DISCRIMINATION AND GET REAL IMAGES FOR DISCRIMINATION
-                    disc_target_batch = prep_input_2_chan(target_full, args.network_input, disc=True).to(
+                    disc_target_batch = prep_input_2_chan(target_full, args.network_input, args, disc=True).to(
                         args.device)
-                    disc_output_batch = prep_input_2_chan(refined_out, args.network_input, disc=True).to(args.device)
+                    disc_output_batch = prep_input_2_chan(refined_out, args.network_input, args, disc=True).to(args.device)
 
                     # PLOT VERY FIRST GENERATED IMAGE
                     if first:
@@ -389,9 +273,9 @@ def main(args):
                 if args.network_input == 'kspace':
                     refined_out = output_gen + old_input[:]
                 else:
-                    refined_out = readd_measures_im(output_gen, old_input.to(args.device))
+                    refined_out = readd_measures_im(output_gen, old_input.to(args.device), args)
 
-                disc_inp = prep_input_2_chan(refined_out, args.network_input, disc=True)
+                disc_inp = prep_input_2_chan(refined_out, args.network_input, args, disc=True)
 
                 # Loss measures generator's ability to fool the discriminator
                 # Train on fake images
