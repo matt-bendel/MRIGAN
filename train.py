@@ -310,12 +310,6 @@ def main(args):
 
             if (epoch + 1) == 50:
                 save_metrics(args)
-                im_check = complex_abs(output_gen[6].permute(1, 2, 0))
-                im_np = im_check.detach().cpu().numpy()
-                plt.figure()
-                plt.imshow(np.abs(im_np), origin='lower', cmap='gray', vmin=0, vmax=np.max(true))
-                plt.savefig(
-                    f'/home/bendel.8/Git_Repos/MRIGAN/training_images/2_chan_z_mid/final_gen_{args.network_input}_{args.z_location}.png')
                 exit()
 
 

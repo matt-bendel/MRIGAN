@@ -93,7 +93,7 @@ def main(args):
             with torch.no_grad():
                 input_w_z = input.to(args.device)
                 start = time.perf_counter()
-                output_gen = generator(input_w_z, z, device=args.device)
+                output_gen = generator(input=input_w_z, z=z, device=args.device)
                 finish = time.perf_counter() - start
 
                 if args.network_input == 'kspace':
