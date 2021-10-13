@@ -230,23 +230,6 @@ def main(args):
                         args.device)
                     disc_output_batch = prep_input_2_chan(refined_out, args.network_input, args, disc=True).to(args.device)
 
-                    # PLOT VERY FIRST GENERATED IMAGE
-                    if first:
-                        CONSTANT_PLOTS['measures'] = input.cpu()[2]
-                        CONSTANT_PLOTS['mean'] = mean.cpu()[2]
-                        CONSTANT_PLOTS['std'] = std.cpu()[2]
-                        CONSTANT_PLOTS['gt'] = target_full[2]
-
-                        im_check = complex_abs(disc_output_batch[2].permute(1, 2, 0))
-                        im_np = im_check.detach().cpu().numpy()
-                        true = complex_abs(disc_target_batch[2].permute(1, 2, 0))
-                        true = true.detach().cpu().numpy()
-                        plt.figure()
-                        plt.imshow(np.abs(im_np), origin='lower', cmap='gray', vmin=0, vmax=np.max(true))
-                        plt.savefig(
-                            f'/home/bendel.8/Git_Repos/MRIGAN/training_images/2_chan_z_mid/first_gen_{args.network_input}_{args.z_location}.png')
-                        first = False
-
                     # MAKE PREDICTIONS
                     real_pred = discriminator(disc_target_batch)
                     fake_pred = discriminator(disc_output_batch)
