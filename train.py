@@ -308,7 +308,7 @@ def main(args):
             plot_epoch(args, generator, epoch)
             generator.train()
 
-            if (epoch + 1) == 50:
+            if (epoch + 1) == 100:
                 save_metrics(args)
                 exit()
 

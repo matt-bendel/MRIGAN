@@ -58,9 +58,9 @@ def plot_loss():
         loss_dict = pickle.load(f)
 
     plt.figure()
-    plt.plot(np.arange(51), loss_dict['g_loss'])
-    plt.plot(np.arange(51), loss_dict['d_loss'])
-    plt.plot(np.arange(51), loss_dict['d_acc'])
+    plt.plot(np.arange(50), loss_dict['g_loss'])
+    plt.plot(np.arange(50), loss_dict['d_loss'])
+    plt.plot(np.arange(50), loss_dict['d_acc'])
     plt.savefig('loss.png')
 
 
