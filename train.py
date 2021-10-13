@@ -230,6 +230,13 @@ def main(args):
                         args.device)
                     disc_output_batch = prep_input_2_chan(refined_out, args.network_input, args, disc=True).to(args.device)
 
+                    if first:
+                        CONSTANT_PLOTS['measures'] = input.cpu()[2]
+                        CONSTANT_PLOTS['mean'] = mean.cpu()[2]
+                        CONSTANT_PLOTS['std'] = std.cpu()[2]
+                        CONSTANT_PLOTS['gt'] = target_full[2]
+                        first = False
+
                     # MAKE PREDICTIONS
                     real_pred = discriminator(disc_target_batch)
                     fake_pred = discriminator(disc_output_batch)

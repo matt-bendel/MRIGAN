@@ -157,3 +157,4 @@ if __name__ == '__main__':
     torch.manual_seed(args.seed)
 
     main(args)
+    plot_loss()
