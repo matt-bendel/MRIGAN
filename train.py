@@ -214,7 +214,6 @@ def main(args):
                     # ---------------------
                     #  Train Discriminator
                     # ---------------------
-                    generator.requires_grad_(False)
                     optimizer_D.zero_grad()
 
                     input_w_z = input_w_z.to(args.device)
@@ -256,7 +255,6 @@ def main(args):
                     d_loss.backward()
                     optimizer_D.step()
 
-                generator.requires_grad_(True)
                 optimizer_G.zero_grad()
 
                 # Generate a batch of images
