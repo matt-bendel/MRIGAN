@@ -214,6 +214,8 @@ def main(args):
                     # ---------------------
                     #  Train Discriminator
                     # ---------------------
+                    discriminator.requires_grad_(True)
+                    generator.requires_grad_(False)
                     optimizer_D.zero_grad()
 
                     input_w_z = input_w_z.to(args.device)
@@ -255,6 +257,8 @@ def main(args):
                     d_loss.backward()
                     optimizer_D.step()
 
+                discriminator.requires_grad_(False)
+                generator.requires_grad_(True)
                 optimizer_G.zero_grad()
 
                 # Generate a batch of images
@@ -281,7 +285,7 @@ def main(args):
                 print(
                     "[Epoch %d/%d] [Batch %d/%d] [D loss: %.4f] [G loss: %.4f]"
                     % (epoch + 1, args.num_epochs, i, len(train_loader.dataset) / args.batch_size, d_loss.item(),
-                       g_loss.item() if i + 1 % 5 == 0 else 0)
+                       g_loss.item())
                 )
 
             # TODO: ADD VALIDATION HERE - ONLY A SMALL SUBSET OF VAL DATA, LIKE 1500 IMAGES (~10 BATCHES)
