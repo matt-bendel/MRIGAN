@@ -121,7 +121,7 @@ class DiscriminatorModel(nn.Module):
         self.encoder_layers += [FullDownBlock(64, 128)]  # 48x48
         self.encoder_layers += [FullDownBlock(128, 256)]  # 24x24
         self.encoder_layers += [FullDownBlock(256, 512)]  # 12x12
-        self.encoder_layers += [FullDownBlock(256, 512)]  # 6x6
+        self.encoder_layers += [FullDownBlock(512, 512)]  # 6x6
         # self.encoder_layers += [FullDownBlock(512, 512)]  # 3x3
         # self.encoder_layers += nn.Sequential(
         #     nn.Conv2d(512, 512, kernel_size=(3, 3), padding=1),
