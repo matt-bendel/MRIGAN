@@ -214,7 +214,6 @@ def main(args):
                     # ---------------------
                     #  Train Discriminator
                     # ---------------------
-                    discriminator.requires_grad_(True)
                     generator.requires_grad_(False)
                     optimizer_D.zero_grad()
 
@@ -257,7 +256,6 @@ def main(args):
                     d_loss.backward()
                     optimizer_D.step()
 
-                discriminator.requires_grad_(False)
                 generator.requires_grad_(True)
                 optimizer_G.zero_grad()
 
