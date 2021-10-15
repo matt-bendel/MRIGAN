@@ -29,7 +29,7 @@ import random
 import shutil
 import time
 import os
-
+import pytorch_ssim
 import numpy as np
 import torch
 from tensorboardX import SummaryWriter
@@ -43,14 +43,14 @@ from utils.training.prepare_data import create_data_loaders
 from utils.training.parse_args import create_arg_parser
 from skimage.metrics import structural_similarity
 
-
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 
 def mssim_tensor(gt, pred):
     """ Compute Normalized Mean Squared Error (NMSE) """
-    return torch.norm(gt - pred) ** 2 / torch.norm(gt) ** 2
+    pytorch_ssim.ssim(gt, pred)
+    return pytorch_ssim.SSIM(window_size=11)
 
 
 def ssim_numpy(gt, pred):
@@ -69,7 +69,6 @@ def ssim_numpy(gt, pred):
 def l1_tensor(gt, pred):
     """ Compute Normalized Mean Squared Error (NMSE) """
     return torch.norm(gt - pred) ** 2 / torch.norm(gt) ** 2
-
 
 
 def train_epoch(args, epoch, model, data_loader, optimizer, writer):
@@ -255,16 +254,3 @@ if __name__ == '__main__':
     np.random.seed(args.seed)
     torch.manual_seed(args.seed)
     main(args)
-
-
-
-
-
-
-
-
-
-
-
-
-
