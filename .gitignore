@@ -3,3 +3,4 @@ trained_models/kspace/models
 venv/
 pycache/
 env/
+.idea/
