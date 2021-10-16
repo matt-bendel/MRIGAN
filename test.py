@@ -96,7 +96,7 @@ def average_gen(generator, input_w_z, z, old_input):
 
     finish = time.perf_counter() - start
 
-    return average_gen.div(7), finish
+    return torch.div(average_gen, 8), finish
 
 
 def main(args):
@@ -145,7 +145,7 @@ def main(args):
                 true_im = complex_abs(target_batch[2].permute(1, 2, 0)).cpu().numpy() * std[2].numpy() + mean[2].numpy()
 
                 plt.figure()
-                plt.imshow(np.abs(generared_im), cmap='gray', vmin=0, vmax=np.max(true_im))
+                plt.imshow(np.abs(generared_im), cmap='gray')
                 plt.savefig(f'gen_temp.png')
 
                 exit()
