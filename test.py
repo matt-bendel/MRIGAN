@@ -80,7 +80,8 @@ def non_average_gen(generator, input_w_z, z, old_input):
 
 def average_gen(generator, input_w_z, z, old_input):
     start = time.perf_counter()
-    average_gen = torch.empty(input_w_z.shape).to(args.device)
+    # average_gen = torch.empty(input_w_z.shape).to(args.device)
+    temp_list = []
     for j in range(8):
         z = torch.FloatTensor(np.random.normal(size=(input_w_z.shape[0], args.latent_size))).to(args.device)
         output_gen = generator(input=input_w_z, z=z, device=args.device)
@@ -91,12 +92,11 @@ def average_gen(generator, input_w_z, z, old_input):
         else:
             refined_out = readd_measures_im(output_gen, old_input, args)
 
-        average_gen = average_gen + refined_out
+        temp_list.append(refined_out)
 
-    average_gen = average_gen / 8
     finish = time.perf_counter() - start
 
-    return average_gen, finish
+    return temp_list, finish
 
 
 def main(args):
@@ -131,7 +131,10 @@ def main(args):
                 refined_out, finish = average_gen(generator, input_w_z, z, old_input)
 
                 target_batch = prep_input_2_chan(target_full, args.network_input, args, disc=True).to(args.device)
-                output_batch = prep_input_2_chan(refined_out, args.network_input, args, disc=True).to(args.device)
+                output_batch = prep_input_2_chan(refined_out[0], args.network_input, args, disc=True).to(args.device)
+                output_list = [output_batch]
+                for j in range(7):
+                    output_list.append(prep_input_2_chan(refined_out[j+1], args.network_input, args, disc=True).to(args.device))
 
                 metrics['time'] = finish / output_batch.shape[0]
 
@@ -141,15 +144,22 @@ def main(args):
                     'snr': []
                 }
 
+                for temp in range(8):
+                    generared_im = complex_abs(output_list[temp][2].permute(1, 2, 0)).cpu().numpy() * std[2].numpy() + mean[2].numpy()
+                    true_im = complex_abs(target_batch[2].permute(1, 2, 0)).cpu().numpy() * std[2].numpy() + mean[2].numpy()
+
+                    plt.figure()
+                    plt.imshow(np.abs(generared_im), cmap='gray', vmin=0, vmax=np.max(true_im))
+                    plt.savefig(f'gen_{temp}.png')
+
+                exit()
+
                 for j in range(output_batch.shape[0]):
                     generared_im = complex_abs(output_batch[j].permute(1, 2, 0))
                     true_im = complex_abs(target_batch[j].permute(1, 2, 0))
 
                     generated_im_np = generared_im.cpu().numpy() * std[j].numpy() + mean[j].numpy()
                     true_im_np = true_im.cpu().numpy() * std[j].numpy() + mean[j].numpy()
-
-                    plt.imshow(np.abs(generated_im_np), cmap='gray')
-                    plt.savefig('temp.png')
 
                     batch_metrics['psnr'].append(psnr(true_im_np, generated_im_np, np.max(true_im_np)))
                     batch_metrics['ssim'].append(ssim(true_im_np, generated_im_np, np.max(true_im_np)))
