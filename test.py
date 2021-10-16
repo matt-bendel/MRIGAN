@@ -64,6 +64,20 @@ def plot_loss():
     plt.savefig('loss.png')
 
 
+def non_average_gen(generator, input_w_z, z, old_input):
+    start = time.perf_counter()
+    output_gen = generator(input=input_w_z, z=z, device=args.device)
+    finish = time.perf_counter() - start
+
+    if args.network_input == 'kspace':
+        # refined_out = output_gen + old_input[:, 0:16]
+        refined_out = output_gen + old_input[:]
+    else:
+        refined_out = readd_measures_im(output_gen, old_input, args)
+
+    return refined_out, finish
+
+
 def main(args):
     args.exp_dir.mkdir(parents=True, exist_ok=True)
 
@@ -92,15 +106,7 @@ def main(args):
 
             with torch.no_grad():
                 input_w_z = input.to(args.device)
-                start = time.perf_counter()
-                output_gen = generator(input=input_w_z, z=z, device=args.device)
-                finish = time.perf_counter() - start
-
-                if args.network_input == 'kspace':
-                    # refined_out = output_gen + old_input[:, 0:16]
-                    refined_out = output_gen + old_input[:]
-                else:
-                    refined_out = readd_measures_im(output_gen, old_input, args)
+                refined_out, finish = non_average_gen(generator, input_w_z, z, old_input)
 
                 target_batch = prep_input_2_chan(target_full, args.network_input, args, disc=True).to(args.device)
                 output_batch = prep_input_2_chan(refined_out, args.network_input, args, disc=True).to(args.device)
@@ -157,4 +163,4 @@ if __name__ == '__main__':
     torch.manual_seed(args.seed)
 
     main(args)
-    plot_loss()
+    # plot_loss()
