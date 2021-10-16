@@ -110,7 +110,7 @@ class DiscriminatorModel(nn.Module):
 
         # CHANGE BACK TO 16 FOR MORE
         self.initial_layers = nn.Sequential(
-            nn.Conv2d(self.in_chans, 32, kernel_size=(3, 3), padding=1),  # 384x384
+            nn.Conv2d(self.in_chans, 64, kernel_size=(3, 3), padding=1),  # 384x384
             nn.LeakyReLU()
             # ResidualBlock(32, 32, False),
         )
@@ -118,11 +118,12 @@ class DiscriminatorModel(nn.Module):
         self.encoder_layers = nn.ModuleList()
         # self.encoder_layers += [FullDownBlock(16, 32)]  # 192x192
         # self.encoder_layers += [FullDownBlock(32, 64)]  # 96x96
-        self.encoder_layers += [FullDownBlock(32, 64)]  # 48x48
-        self.encoder_layers += [FullDownBlock(64, 128)]  # 24x24
-        self.encoder_layers += [FullDownBlock(128, 256)]  # 12x12
-        self.encoder_layers += [FullDownBlock(256, 512)]  # 6x6
-        self.encoder_layers += [FullDownBlock(512, 512)]  # 3x3
+        self.encoder_layers += [FullDownBlock(64, 128)]  # 48x48
+        self.encoder_layers += [FullDownBlock(128, 256)]  # 24x24
+        self.encoder_layers += [FullDownBlock(256, 512)]  # 12x12
+        self.encoder_layers += [FullDownBlock(512, 512)]  # 6x6
+        # self.encoder_layers += [FullDownBlock(512, 512)]  # 3x3
+        # INCLUDE BELOW FOR IMAGE
         # self.encoder_layers += nn.Sequential(
         #     nn.Conv2d(512, 512, kernel_size=(3, 3), padding=1),
         #     nn.InstanceNorm2d(512),
@@ -136,7 +137,7 @@ class DiscriminatorModel(nn.Module):
 
         self.dense = nn.Sequential(
             nn.Flatten(),
-            nn.Linear(512 * 3 * 3, 1),
+            nn.Linear(512 * 6 * 6, 1),
         )
 
     def forward(self, input):
