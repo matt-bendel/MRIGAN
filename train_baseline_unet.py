@@ -168,7 +168,7 @@ def build_model(args):
     model = UnetModel(
         in_chans=2,
         out_chans=2,
-        chans=args.num_chans,
+        chans=32,
         num_pool_layers=5,
     ).to(torch.device('cuda'))
     return model
