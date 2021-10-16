@@ -49,8 +49,8 @@ logger = logging.getLogger(__name__)
 
 def mssim_tensor(gt, pred):
     """ Compute Normalized Mean Squared Error (NMSE) """
-    pytorch_ssim.ssim(gt, pred)
-    return pytorch_ssim.SSIM(window_size=11)
+    ssim_loss = pytorch_ssim.SSIM()
+    return ssim_loss(gt, pred)
 
 
 def ssim_numpy(gt, pred):
