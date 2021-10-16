@@ -203,17 +203,6 @@ def main(args):
         best_dev_loss = checkpoint['best_dev_loss']
         start_epoch = checkpoint['epoch']
         del checkpoint
-    elif args.warm_start is not None:
-        checkpoint, model, _ = load_model(args.warm_start)
-        temp_args = checkpoint['args']
-        # Save model params
-        args.num_pools = temp_args.num_pools
-        args.num_chans = temp_args.num_chans
-        args.drop_prob = temp_args.drop_prob
-        optimizer = build_optim(args, model.parameters())
-        best_dev_loss = 1e9
-        start_epoch = 0
-        del checkpoint
     else:
         model = build_model(args)
         if args.data_parallel:
