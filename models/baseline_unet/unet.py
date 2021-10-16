@@ -63,7 +63,7 @@ class UnetModel(nn.Module):
         computing and computer-assisted intervention, pages 234–241. Springer, 2015.
     """
 
-    def __init__(self, in_chans, out_chans, chans, num_pool_layers, drop_prob):
+    def __init__(self, in_chans, out_chans, chans, num_pool_layers):
         """
         Args:
             in_chans (int): Number of channels in the input to the U-Net model.
@@ -78,20 +78,19 @@ class UnetModel(nn.Module):
         self.out_chans = out_chans
         self.chans = chans
         self.num_pool_layers = num_pool_layers
-        self.drop_prob = drop_prob
 
-        self.down_sample_layers = nn.ModuleList([ConvBlock(in_chans, chans, drop_prob)])
+        self.down_sample_layers = nn.ModuleList([ConvBlock(in_chans, chans, 0)])
         ch = chans
         for i in range(num_pool_layers - 1):
-            self.down_sample_layers += [ConvBlock(ch, ch * 2, drop_prob)]
+            self.down_sample_layers += [ConvBlock(ch, ch * 2, 0)]
             ch *= 2
-        self.conv = ConvBlock(ch, ch, drop_prob)
+        self.conv = ConvBlock(ch, ch, 0)
 
         self.up_sample_layers = nn.ModuleList()
         for i in range(num_pool_layers - 1):
-            self.up_sample_layers += [ConvBlock(ch * 2, ch // 2, drop_prob)]
+            self.up_sample_layers += [ConvBlock(ch * 2, ch // 2, 0)]
             ch //= 2
-        self.up_sample_layers += [ConvBlock(ch * 2, ch, drop_prob)]
+        self.up_sample_layers += [ConvBlock(ch * 2, ch, 0)]
         self.conv2 = nn.Sequential(
             nn.Conv2d(ch, ch // 2, kernel_size=1),
             nn.Conv2d(ch // 2, out_chans, kernel_size=1),
