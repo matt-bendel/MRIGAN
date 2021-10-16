@@ -118,7 +118,7 @@ def evaluate(args, epoch, model, data_loader, writer):
 
     with torch.no_grad():
         for iter, data in enumerate(data_loader):
-            input, target_full, mean, std = data
+            input, target, mean, std, nnz_index_mask = data
             input = input.to(args.device)
             target = target.to(args.device)
 
