@@ -132,9 +132,6 @@ def main(args):
 
                 target_batch = prep_input_2_chan(target_full, args.network_input, args, disc=True).to(args.device)
                 output_batch = prep_input_2_chan(refined_out, args.network_input, args, disc=True).to(args.device)
-                output_list = [output_batch]
-                for j in range(7):
-                    output_list.append(prep_input_2_chan(refined_out[j+1], args.network_input, args, disc=True).to(args.device))
 
                 metrics['time'] = finish / output_batch.shape[0]
 
@@ -144,7 +141,7 @@ def main(args):
                     'snr': []
                 }
 
-                generared_im = complex_abs(output_list[2].permute(1, 2, 0)).cpu().numpy() * std[2].numpy() + mean[2].numpy()
+                generared_im = complex_abs(output_batch[2].permute(1, 2, 0)).cpu().numpy() * std[2].numpy() + mean[2].numpy()
                 true_im = complex_abs(target_batch[2].permute(1, 2, 0)).cpu().numpy() * std[2].numpy() + mean[2].numpy()
 
                 plt.figure()
