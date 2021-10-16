@@ -213,7 +213,7 @@ def main(args):
     logging.info(args)
     logging.info(model)
 
-    train_loader, dev_loader, display_loader = create_data_loaders(args)
+    train_loader, dev_loader = create_data_loaders(args)
 
     for epoch in range(start_epoch, args.num_epochs):
         train_loss, train_time = train_epoch(args, epoch, model, train_loader, optimizer, writer)
