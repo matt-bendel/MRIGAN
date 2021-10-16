@@ -84,7 +84,6 @@ def average_gen(generator, input_w_z, z, old_input):
     for j in range(8):
         z = torch.FloatTensor(np.random.normal(size=(input_w_z.shape[0], args.latent_size))).to(args.device)
         output_gen = generator(input=input_w_z, z=z, device=args.device)
-        finish = time.perf_counter() - start
 
         if args.network_input == 'kspace':
             # refined_out = output_gen + old_input[:, 0:16]
@@ -92,9 +91,9 @@ def average_gen(generator, input_w_z, z, old_input):
         else:
             refined_out = readd_measures_im(output_gen, old_input, args)
 
-        average_gen = torch.add(average_gen, output_gen, alpha=1)
+        average_gen = average_gen + refined_out
 
-    average_gen = torch.div(average_gen, 8)
+    average_gen = average_gen / 8
     finish = time.perf_counter() - start
 
     return average_gen, finish
