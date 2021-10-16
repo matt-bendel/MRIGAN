@@ -231,6 +231,7 @@ def main(args):
 
 if __name__ == '__main__':
     args = create_arg_parser().parse_args()
+    args.num_epochs = 100
     # restrict visible cuda devices
     if args.data_parallel or (args.device >= 0):
         if not args.data_parallel:
