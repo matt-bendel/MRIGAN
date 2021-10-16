@@ -141,14 +141,6 @@ def main(args):
                     'snr': []
                 }
 
-                generared_im = complex_abs(output_batch[2].permute(1, 2, 0)).cpu().numpy() * std[2].numpy() + mean[2].numpy()
-                true_im = complex_abs(target_batch[2].permute(1, 2, 0)).cpu().numpy() * std[2].numpy() + mean[2].numpy()
-
-                plt.figure()
-                plt.imshow(np.abs(generared_im), cmap='gray', vmin=0, vmax=np.max(true_im))
-                plt.savefig(f'gen_temp.png')
-
-                exit()
 
                 for j in range(output_batch.shape[0]):
                     generared_im = complex_abs(output_batch[j].permute(1, 2, 0))
