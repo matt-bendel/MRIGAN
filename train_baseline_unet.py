@@ -127,10 +127,10 @@ def evaluate(args, epoch, model, data_loader, writer):
 
             output_full = model(input)
 
-            target_im = prep_input_2_chan(target, args.network_input, args, disc=True).to(args.device).permute(2, 0, 1)
-            output_im = prep_input_2_chan(output, args.network_input, args, disc=True).to(args.device).permute(2, 0, 1)
+            target_im = prep_input_2_chan(target, args.network_input, args, disc=True).to(args.device).permute(0, 2, 3, 1)
+            output_im = prep_input_2_chan(output, args.network_input, args, disc=True).to(args.device).permute(0, 2, 3, 1)
 
-            for i in range(output_full.size(0)):
+            for i in range(output_im.shape[0]):
                 output = complex_abs(output_im[i])
                 target = complex_abs(target_im[i])
 
