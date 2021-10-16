@@ -78,6 +78,28 @@ def non_average_gen(generator, input_w_z, z, old_input):
     return refined_out, finish
 
 
+def average_gen(generator, input_w_z, z, old_input):
+    start = time.perf_counter()
+    average_gen = torch.empty(input_w_z.shape)
+    for j in range(8):
+        z = torch.FloatTensor(np.random.normal(size=(input_w_z.shape[0], args.latent_size))).to(args.device)
+        output_gen = generator(input=input_w_z, z=z, device=args.device)
+        finish = time.perf_counter() - start
+
+        if args.network_input == 'kspace':
+            # refined_out = output_gen + old_input[:, 0:16]
+            refined_out = output_gen + old_input[:]
+        else:
+            refined_out = readd_measures_im(output_gen, old_input, args)
+
+        average_gen = torch.add(average_gen, output_gen, alpha=1)
+
+    average_gen = torch.div(average_gen, 8)
+    finish = time.perf_counter() - start
+
+    return average_gen, finish
+
+
 def main(args):
     args.exp_dir.mkdir(parents=True, exist_ok=True)
 
@@ -106,7 +128,8 @@ def main(args):
 
             with torch.no_grad():
                 input_w_z = input.to(args.device)
-                refined_out, finish = non_average_gen(generator, input_w_z, z, old_input)
+                # refined_out, finish = non_average_gen(generator, input_w_z, z, old_input)
+                refined_out, finish = average_gen(generator, input_w_z, z, old_input)
 
                 target_batch = prep_input_2_chan(target_full, args.network_input, args, disc=True).to(args.device)
                 output_batch = prep_input_2_chan(refined_out, args.network_input, args, disc=True).to(args.device)
