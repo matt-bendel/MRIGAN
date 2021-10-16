@@ -193,7 +193,7 @@ def build_optim(args, params):
 
 
 def main(args):
-    args.exp_dir = f'/home/bendel.8/Git_Repos/MRIGAN/trained_models/baseline/{args.network_input}'
+    args.exp_dir = pathlib.Path(f'/home/bendel.8/Git_Repos/MRIGAN/trained_models/baseline/{args.network_input}')
     args.exp_dir.mkdir(parents=True, exist_ok=True)
     writer = SummaryWriter(log_dir=str(args.exp_dir / 'summary'))
 
