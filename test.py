@@ -148,6 +148,9 @@ def main(args):
                     generated_im_np = generared_im.cpu().numpy() * std[j].numpy() + mean[j].numpy()
                     true_im_np = true_im.cpu().numpy() * std[j].numpy() + mean[j].numpy()
 
+                    plt.imshow(np.abs(generated_im_np), cmap='gray')
+                    plt.savefig('temp.png')
+
                     batch_metrics['psnr'].append(psnr(true_im_np, generated_im_np, np.max(true_im_np)))
                     batch_metrics['ssim'].append(ssim(true_im_np, generated_im_np, np.max(true_im_np)))
                     batch_metrics['snr'].append(snr(true_im_np, generated_im_np))
