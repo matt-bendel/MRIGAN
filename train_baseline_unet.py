@@ -143,7 +143,7 @@ def evaluate(args, epoch, model, data_loader, writer):
             if iter + 1 == 20:
                 break
 
-        writer.add_scalar('Dev SSIM:', np.mean(losses), epoch)
+        writer.add_scalar('DevSSIM:', np.mean(losses), epoch)
 
     return np.mean(losses), time.perf_counter() - start
 
