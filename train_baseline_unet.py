@@ -125,7 +125,7 @@ def evaluate(args, epoch, model, data_loader, writer):
             input = prep_input_2_chan(input, args.network_input, args)
             target = prep_input_2_chan(target, args.network_input, args)
 
-            output_full = model(input)
+            output = model(input)
 
             target_im = prep_input_2_chan(target, args.network_input, args, disc=True).to(args.device).permute(0, 2, 3, 1)
             output_im = prep_input_2_chan(output, args.network_input, args, disc=True).to(args.device).permute(0, 2, 3, 1)
