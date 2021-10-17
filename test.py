@@ -83,7 +83,7 @@ def average_gen(generator, input_w_z, z, old_input):
     average_gen = torch.zeros(input_w_z.shape).to(args.device)
 
     for j in range(8):
-        z = torch.FloatTensor(np.random.normal(size=(input_w_z.shape[0], args.latent_size), scale=1)).to(args.device)
+        z = torch.FloatTensor(np.random.normal(size=(input_w_z.shape[0], args.latent_size), scale=np.sqrt(1000))).to(args.device)
         output_gen = generator(input=input_w_z, z=z, device=args.device)
 
         if args.network_input == 'kspace':
@@ -127,8 +127,8 @@ def main(args):
 
             with torch.no_grad():
                 input_w_z = input.to(args.device)
-                refined_out, finish = non_average_gen(generator, input_w_z, z, old_input)
-                # refined_out, finish = average_gen(generator, input_w_z, z, old_input)
+                # refined_out, finish = non_average_gen(generator, input_w_z, z, old_input)
+                refined_out, finish = average_gen(generator, input_w_z, z, old_input)
 
                 target_batch = prep_input_2_chan(target_full, args.network_input, args, disc=True).to(args.device)
                 output_batch = prep_input_2_chan(refined_out, args.network_input, args, disc=True).to(args.device)
