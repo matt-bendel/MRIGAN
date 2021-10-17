@@ -219,19 +219,19 @@ def main(args):
         train_loss, train_time = train_epoch(args, epoch, model, train_loader, optimizer, writer)
         dev_loss, dev_time = evaluate(args, epoch, model, dev_loader, writer)
 
-        is_new_best = dev_loss < best_dev_loss
-        best_dev_loss = min(best_dev_loss, dev_loss)
+        is_new_best = -dev_loss < best_dev_loss
+        best_dev_loss = min(best_dev_loss, -dev_loss)
         save_model(args, args.exp_dir, epoch, model, optimizer, best_dev_loss, is_new_best)
         logging.info(
             f'Epoch = [{epoch:4d}/{args.num_epochs:4d}] TrainLoss = {train_loss:.4g} '
-            f'DevLoss = {dev_loss:.4g} TrainTime = {train_time:.4f}s DevTime = {dev_time:.4f}s',
+            f'SSIM = {dev_loss:.4g} TrainTime = {train_time:.4f}s DevTime = {dev_time:.4f}s',
         )
     writer.close()
 
 
 if __name__ == '__main__':
     args = create_arg_parser().parse_args()
-    args.num_epochs = 100
+    args.num_epochs = 50
     # restrict visible cuda devices
     if args.data_parallel or (args.device >= 0):
         if not args.data_parallel:
