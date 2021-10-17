@@ -205,11 +205,12 @@ def main(args):
 
                 input = prep_input_2_chan(input, args.network_input, args)
                 target_full = prep_input_2_chan(target_full, args.network_input, args)
-                z = torch.FloatTensor(np.random.normal(size=(input.shape[0], args.latent_size))).to(args.device)
 
                 old_input = input.to(args.device)
 
                 for j in range(args.num_iters_discriminator):
+                    z = torch.FloatTensor(
+                        np.random.normal(size=(input.shape[0], args.latent_size), scale=np.sqrt(0.001))).to(args.device)
                     input_w_z = input  # add_z_to_input(args, input)
                     # ---------------------
                     #  Train Discriminator
@@ -258,6 +259,8 @@ def main(args):
                 optimizer_G.zero_grad()
 
                 # Generate a batch of images
+                z = torch.FloatTensor(
+                    np.random.normal(size=(input.shape[0], args.latent_size), scale=np.sqrt(0.001))).to(args.device)
                 output_gen = generator(input_w_z.to(args.device), z, device=args.device)
 
                 if args.network_input == 'kspace':
