@@ -11,7 +11,7 @@ from typing import Optional
 from utils.math import complex_abs
 from utils.training.prepare_data import create_data_loaders
 from utils.training.parse_args import create_arg_parser
-from utils.training.prepare_model import resume_train, fresh_start
+from utils.training.prepare_model import resume_train_unet
 from utils.general.helper import readd_measures_im, prep_input_2_chan
 from skimage.metrics import peak_signal_noise_ratio, structural_similarity
 
@@ -53,60 +53,14 @@ def ssim(
     return ssim
 
 
-def plot_loss():
-    with open(f'/home/bendel.8/Git_Repos/MRIGAN/saved_metrics/loss_kspace_2.pkl', 'rb') as f:
-        loss_dict = pickle.load(f)
-
-    plt.figure()
-    plt.plot(np.arange(50), loss_dict['g_loss'])
-    plt.plot(np.arange(50), loss_dict['d_loss'])
-    plt.plot(np.arange(50), loss_dict['d_acc'])
-    plt.savefig('loss.png')
-
-
-def non_average_gen(generator, input_w_z, z, old_input):
-    start = time.perf_counter()
-    output_gen = generator(input=input_w_z, z=z, device=args.device)
-    finish = time.perf_counter() - start
-
-    if args.network_input == 'kspace':
-        # refined_out = output_gen + old_input[:, 0:16]
-        refined_out = output_gen + old_input[:]
-    else:
-        refined_out = readd_measures_im(output_gen, old_input, args)
-
-    return refined_out, finish
-
-
-def average_gen(generator, input_w_z, z, old_input):
-    start = time.perf_counter()
-    average_gen = torch.zeros(input_w_z.shape).to(args.device)
-
-    for j in range(8):
-        z = torch.FloatTensor(np.random.normal(size=(input_w_z.shape[0], args.latent_size), scale=10)).to(args.device)
-        output_gen = generator(input=input_w_z, z=z, device=args.device)
-
-        if args.network_input == 'kspace':
-            # refined_out = output_gen + old_input[:, 0:16]
-            refined_out = output_gen + old_input[:]
-        else:
-            refined_out = readd_measures_im(output_gen, old_input, args)
-
-        average_gen = torch.add(average_gen, refined_out)
-
-    finish = time.perf_counter() - start
-
-    return torch.div(average_gen, 8), finish
-
-
 def main(args):
     args.exp_dir.mkdir(parents=True, exist_ok=True)
 
-    args.in_chans = 17 if args.z_location == 3 else 2
+    args.in_chans = 2
     args.out_chans = 2
 
-    generator, optimizer_G, discriminator, optimizer_D, args, best_dev_loss, start_epoch = resume_train(args)
-    generator.eval()
+    unet, opt, args, best_dev_loss, start_epoch = resume_train_unet(args)
+    unet.eval()
     train_loader, dev_loader = create_data_loaders(args)
 
     with open(f'trained_models/{args.network_input}/metrics_{args.z_location}.txt', 'w') as metric_file:
@@ -122,13 +76,12 @@ def main(args):
 
             input = prep_input_2_chan(input, args.network_input, args)
             target_full = prep_input_2_chan(target_full, args.network_input, args)
-            z = torch.FloatTensor(np.random.normal(size=(input.shape[0], args.latent_size))).to(args.device)
-            old_input = input.to(args.device)
 
             with torch.no_grad():
                 input_w_z = input.to(args.device)
-                # refined_out, finish = non_average_gen(generator, input_w_z, z, old_input)
-                refined_out, finish = average_gen(generator, input_w_z, z, old_input)
+                start = time.perf_counter()
+                refined_out = unet(input_w_z)
+                finish = time.perf_counter() - start
 
                 target_batch = prep_input_2_chan(target_full, args.network_input, args, disc=True).to(args.device)
                 output_batch = prep_input_2_chan(refined_out, args.network_input, args, disc=True).to(args.device)
