@@ -161,7 +161,7 @@ def get_unet(args, type):
     unet = build_unet(args)
 
     if args.data_parallel:
-        unet = torch.nn.DataParallel(generator)
+        unet = torch.nn.DataParallel(unet)
 
     unet.load_state_dict(checkpoint_unet['model'])
 
