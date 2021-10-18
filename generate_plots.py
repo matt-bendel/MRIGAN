@@ -17,7 +17,7 @@ from utils.general.helper import readd_measures_im, prep_input_2_chan
 from skimage.metrics import peak_signal_noise_ratio, structural_similarity
 
 
-def psnr(
+def get_psnr(
         gt: np.ndarray, pred: np.ndarray, maxval: Optional[float] = None
 ) -> np.ndarray:
     """Compute Peak Signal to Noise Ratio metric (PSNR)"""
@@ -28,7 +28,7 @@ def psnr(
     return psnr_val
 
 
-def snr(gt: np.ndarray, pred: np.ndarray) -> np.ndarray:
+def get_snr(gt: np.ndarray, pred: np.ndarray) -> np.ndarray:
     """Compute the Signal to Noise Ratio metric (SNR)"""
     noise_mse = np.mean((gt - pred) ** 2)
     snr = 10 * np.log10(np.mean(gt ** 2) / noise_mse)
@@ -36,7 +36,7 @@ def snr(gt: np.ndarray, pred: np.ndarray) -> np.ndarray:
     return snr
 
 
-def ssim(
+def get_ssim(
         gt: np.ndarray, pred: np.ndarray, maxval: Optional[float] = None
 ) -> np.ndarray:
     """Compute Structural Similarity Index Metric (SSIM)"""
