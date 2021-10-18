@@ -71,13 +71,13 @@ def average_gen(generator, input_w_z, z, old_input):
         gen_list.append(refined_out)
         average_gen = torch.add(average_gen, refined_out)
 
-    std_dev = torch.zeros(input_w_z.shape).to(args.device)
-    for i in gen_list:
-        std_dev = torch.add(std_dev, torch.pow(torch.subtract(i - average_gen), 2))
+    # std_dev = torch.zeros(input_w_z.shape).to(args.device)
+    # for i in gen_list:
+    #     std_dev = torch.add(std_dev, torch.pow(torch.subtract(i - average_gen), 2))
+    #
+    # std_dev = torch.sqrt(std_dev)
 
-    std_dev = torch.sqrt(std_dev)
-
-    return torch.div(average_gen, 8), torch.div(std_dev, 8), gen_list
+    return torch.div(average_gen, 8), gen_list
 
 
 def generate_image(fig, target, image, method, image_ind):
@@ -167,12 +167,15 @@ def main(args):
 
         with torch.no_grad():
             input_w_z = input.to(args.device)
-            kspace_mean, kspace_std, kspace_gens = average_gen(kspace_gen, input_w_z, None, old_input)
-            image_mean, image_std, image_gens = average_gen(image_gen, input_w_z, None, old_input)
+            kspace_mean, kspace_gens = average_gen(kspace_gen, input_w_z, None, old_input)
+            image_mean, image_gens = average_gen(image_gen, input_w_z, None, old_input)
 
             target_batch = prep_input_2_chan(target_full, args.network_input, args, disc=True).to(args.device)
             kspace_mean_batch = prep_input_2_chan(kspace_mean, args.network_input, args, disc=True).to(args.device)
-            image_mean_batch = prep_input_2_chan(kspace_mean, args.network_input, args, disc=True).to(args.device)
+            image_mean_batch = prep_input_2_chan(image_mean, args.network_input, args, disc=True).to(args.device)
+            kspace_gens_batch_list = []
+            for val in kspace_gens:
+                kspace_gens_batch_list.append(prep_input_2_chan(val, args.network_input, args, disc=True).to(args.device))
 
             for j in range(output_batch.shape[0]):
                 if j == 2:

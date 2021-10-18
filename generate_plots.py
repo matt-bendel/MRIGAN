@@ -101,7 +101,7 @@ def generate_image(fig, target, image, method, image_ind):
     plt.xlabel(f'{method} Reconstruction')
 
 
-def generate_error_map(fig, target, recon, method, image_ind, relative=False, k=3):
+def generate_error_map(fig, target, recon, method, image_ind, relative=False, k=1):
     # Assume rows and cols are available globally
     # rows and cols are both previously defined ints
     ax = fig.add_subplot(rows, cols, image_ind)  # Add to subplot
@@ -155,7 +155,7 @@ def get_gen(args, type):
 
 
 def get_unet(args, type):
-    checkpoint_file_unet = pathlib.Path(f'/home/bendel.8/Git_Repos/MRIGAN/trained_models/baseline/{type}/best_model.pt')
+    checkpoint_file_unet = pathlib.Path(f'/home/bendel.8/Git_Repos/MRIGAN/trained_models/baseline/{type}/model.pt')
     checkpoint_unet = torch.load(checkpoint_file_unet, map_location=torch.device('cuda'))
 
     unet = build_unet(args)
@@ -186,29 +186,27 @@ def main(args):
     for i, data in enumerate(dev_loader):
         input, target_full, mean, std, nnz_index_mask = data
 
-        input = prep_input_2_chan(input, args.network_input, args)
+        input_k = prep_input_2_chan(input, 'image', args).to(args.device)
+        input_im = prep_input_2_chan(input, 'image', args).to(args.device)
         target_full = prep_input_2_chan(target_full, args.network_input, args)
-        z = torch.FloatTensor(np.random.normal(size=(input.shape[0], args.latent_size), scale=np.sqrt(100000))).to(
-            args.device)
         old_input = input.to(args.device)
 
         with torch.no_grad():
-            input_w_z = input.to(args.device)
-            kspace_gen_out = average_gen(kspace_gen, input_w_z, z, old_input)
-            image_gen_out = average_gen(image_gen, input_w_z, z, old_input)
-            kspace_unet_out = kspace_unet(input_w_z)
-            image_unet_out = image_unet(input_w_z)
+            kspace_gen_out = average_gen(kspace_gen, input_k, None, old_input)
+            image_gen_out = average_gen(image_gen, input_im, None, old_input)
+            kspace_unet_out = kspace_unet(input_k)
+            image_unet_out = image_unet(input_im)
 
             target_batch = prep_input_2_chan(target_full, args.network_input, args, disc=True).to(args.device)
-            kspace_gen_batch = prep_input_2_chan(kspace_gen_out, args.network_input, args, disc=True).to(args.device)
-            image_gen_batch = prep_input_2_chan(image_gen_out, args.network_input, args, disc=True).to(args.device)
-            kspace_unet_batch = prep_input_2_chan(kspace_unet_out, args.network_input, args, disc=True).to(args.device)
-            image_unet_batch = prep_input_2_chan(image_unet_out, args.network_input, args, disc=True).to(args.device)
+            kspace_gen_batch = prep_input_2_chan(kspace_gen_out, 'kspace', args, disc=True).to(args.device)
+            image_gen_batch = prep_input_2_chan(image_gen_out, 'image', args, disc=True).to(args.device)
+            kspace_unet_batch = prep_input_2_chan(kspace_unet_out, 'kspace', args, disc=True).to(args.device)
+            image_unet_batch = prep_input_2_chan(image_unet_out, 'image', args, disc=True).to(args.device)
 
             for j in range(target_batch.shape[0]):
                 if j == 2:
                     true_im = complex_abs(target_batch[j].permute(1, 2, 0))
-                    zfr_im = complex_abs(input_w_z[j].permute(1, 2, 0))
+                    zfr_im = complex_abs(input_im[j].permute(1, 2, 0))
                     gen_kspace_im = complex_abs(kspace_gen_batch[j].permute(1, 2, 0))
                     gen_image_im = complex_abs(image_gen_batch[j].permute(1, 2, 0))
                     unet_kspace_im = complex_abs(kspace_unet_batch[j].permute(1, 2, 0))
