@@ -88,7 +88,7 @@ def prep_input_2_chan(data_tensor, unet_type, args, disc=False):
             output_tensor[:, :, :, 1] = output[8:16, :, :]
             output_x = ifft2c_new(output_tensor)
             output_x = transforms.root_sum_of_squares(output_x)
-            # REMOVE BELOW TWO LINES TO GO BACK UP
+            # REMOVE BELOW LINES TO GO BACK UP
             output_x_r = cv2.resize(output_x[:, :, 0].numpy(), dsize=(96, 96), interpolation=cv2.INTER_LINEAR)
             output_x_c = cv2.resize(output_x[:, :, 1].numpy(), dsize=(96, 96), interpolation=cv2.INTER_LINEAR)
 
