@@ -155,7 +155,7 @@ def get_gen(args, type):
 
 
 def get_unet(args, type):
-    checkpoint_file_unet = pathlib.Path(f'/home/bendel.8/Git_Repos/MRIGAN/trained_models/baseline/{type}/generator_model.pt')
+    checkpoint_file_unet = pathlib.Path(f'/home/bendel.8/Git_Repos/MRIGAN/trained_models/baseline/{type}/best_model.pt')
     checkpoint_unet = torch.load(checkpoint_file_unet, map_location=torch.device('cuda'))
 
     unet = build_model(checkpoint_unet['args'])
