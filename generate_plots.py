@@ -3,6 +3,7 @@ import pickle
 import random
 import os
 import torch
+import pathlib
 
 import numpy as np
 import matplotlib.pyplot as plt
@@ -68,11 +69,11 @@ def non_average_gen(generator, input_w_z, z, old_input):
 
 
 def average_gen(generator, input_w_z, z, old_input):
-    start = time.perf_counter()
     average_gen = torch.zeros(input_w_z.shape).to(args.device)
 
-    for j in range(16):
-        z = torch.FloatTensor(np.random.normal(size=(input_w_z.shape[0], args.latent_size), scale=np.sqrt(10000))).to(args.device)
+    for j in range(8):
+        z = torch.FloatTensor(np.random.normal(size=(input_w_z.shape[0], args.latent_size), scale=np.sqrt(10000))).to(
+            args.device)
         output_gen = generator(input=input_w_z, z=z, device=args.device)
 
         if args.network_input == 'kspace':
@@ -83,9 +84,88 @@ def average_gen(generator, input_w_z, z, old_input):
 
         average_gen = torch.add(average_gen, refined_out)
 
-    finish = time.perf_counter() - start
+    return torch.div(average_gen, 8)
 
-    return torch.div(average_gen, 16), finish
+
+def generate_image(fig, target, image, method, image_ind):
+    # rows and cols are both previously defined ints
+    ax = fig.add_subplot(rows, cols, image_ind)
+    if method != 'GT':
+        psnr_val = psnr(target, image)
+        snr_val = get_snr(target, image)
+        ssim_val = get_ssim(target, image)
+        ax.set_title(f'PSNR: {psnr_val:.2f}, SNR: {snr_val:.2f}\nSSIM: {ssim_val:.4f}')
+    ax.imshow(np.abs(image), cmap='gray', vmin=0, vmax=np.max(target))
+    ax.set_xticks([])
+    ax.set_yticks([])
+    plt.xlabel(f'{method} Reconstruction')
+
+
+def generate_error_map(fig, target, recon, method, image_ind, relative=False, k=3):
+    # Assume rows and cols are available globally
+    # rows and cols are both previously defined ints
+    ax = fig.add_subplot(rows, cols, image_ind)  # Add to subplot
+
+    # Normalize error between target and reconstruction
+    error = (target - recon) if relative else np.abs(target - recon)
+    # normalized_error = error / error.max() if not relative else error
+    if relative:
+        im = ax.imshow(k * error, cmap='bwr', origin='lower', vmin=-0.0001, vmax=0.0001)  # Plot image
+        plt.gca().invert_yaxis()
+    else:
+        im = ax.imshow(k * error, cmap='jet')  # Plot image
+
+    # Remove axis ticks
+    ax.set_xticks([])
+    ax.set_yticks([])
+
+    # Assign x label for plot
+    plt.xlabel(f'{method} Relative Error' if relative else f'{method} Absolute Error')
+
+    # Return plotted image and its axis in the subplot
+    return im, ax
+
+
+def get_colorbar(fig, im, ax):
+    fig.subplots_adjust(right=0.85)  # Make room for colorbar
+
+    # Get position of final error map axis
+    [[x10, y10], [x11, y11]] = ax.get_position().get_points()
+
+    # Appropriately rescale final axis so that colorbar does not effect formatting
+    pad = 0.01
+    width = 0.02
+    cbar_ax = fig.add_axes([x11 + pad, y10, width, y11 - y10])
+
+    fig.colorbar(im, cax=cbar_ax)  # Generate colorbar
+
+
+def get_gen(args, type):
+    checkpoint_file_gen = pathlib.Path(f'/home/bendel.8/Git_Repos/MRIGAN/trained_models/{type}/2/generator_model.pt')
+    checkpoint_gen = torch.load(checkpoint_file_gen, map_location=torch.device('cuda'))
+
+    generator = build_model(checkpoint_gen['args'])
+
+    if args.data_parallel:
+        generator = torch.nn.DataParallel(generator)
+
+    generator.load_state_dict(checkpoint_gen['model'])
+
+    return generator
+
+
+def get_unet(args, type):
+    checkpoint_file_unet = pathlib.Path(f'/home/bendel.8/Git_Repos/MRIGAN/trained_models/baseline/{type}/generator_model.pt')
+    checkpoint_unet = torch.load(checkpoint_file_unet, map_location=torch.device('cuda'))
+
+    unet = build_model(checkpoint_unet['args'])
+
+    if args.data_parallel:
+        unet = torch.nn.DataParallel(generator)
+
+    unet.load_state_dict(checkpoint_unet['model'])
+
+    return unet
 
 
 def main(args):
@@ -93,72 +173,80 @@ def main(args):
     args.out_chans = 2
 
     kspace_gen = get_gen(args, 'kspace')
+    kspace_gen.eval()
     image_gen = get_gen(args, 'image')
+    image_gen.eval()
     kspace_unet = get_unet(args, 'kspace')
+    kspace_unet.eval()
     image_unet = get_unet(args, 'image')
+    image_unet.eval()
 
     train_loader, dev_loader = create_data_loaders(args, val_only=True)
 
-    with open(f'trained_models/{args.network_input}/metrics_{args.z_location}.txt', 'w') as metric_file:
-        metrics = {
-            'ssim': [],
-            'psnr': [],
-            'snr': [],
-            'time': []
-        }
+    for i, data in enumerate(dev_loader):
+        input, target_full, mean, std, nnz_index_mask = data
 
-        for i, data in enumerate(dev_loader):
-            input, target_full, mean, std, nnz_index_mask = data
+        input = prep_input_2_chan(input, args.network_input, args)
+        target_full = prep_input_2_chan(target_full, args.network_input, args)
+        z = torch.FloatTensor(np.random.normal(size=(input.shape[0], args.latent_size), scale=np.sqrt(100000))).to(
+            args.device)
+        old_input = input.to(args.device)
 
-            input = prep_input_2_chan(input, args.network_input, args)
-            target_full = prep_input_2_chan(target_full, args.network_input, args)
-            z = torch.FloatTensor(np.random.normal(size=(input.shape[0], args.latent_size), scale=np.sqrt(100000))).to(args.device)
-            old_input = input.to(args.device)
+        with torch.no_grad():
+            input_w_z = input.to(args.device)
+            kspace_gen_out = average_gen(kspace_gen, input_w_z, z, old_input)
+            image_gen_out = average_gen(image_gen, input_w_z, z, old_input)
+            kspace_unet_out = kspace_unet(input_w_z)
+            image_unet_out = image_unet(input_w_z)
 
-            with torch.no_grad():
-                input_w_z = input.to(args.device)
-                # refined_out, finish = non_average_gen(generator, input_w_z, z, old_input)
-                refined_out, finish = average_gen(generator, input_w_z, z, old_input)
+            target_batch = prep_input_2_chan(target_full, args.network_input, args, disc=True).to(args.device)
+            kspace_gen_batch = prep_input_2_chan(kspace_gen_out, args.network_input, args, disc=True).to(args.device)
+            image_gen_batch = prep_input_2_chan(image_gen_out, args.network_input, args, disc=True).to(args.device)
+            kspace_unet_batch = prep_input_2_chan(kspace_unet_out, args.network_input, args, disc=True).to(args.device)
+            image_unet_batch = prep_input_2_chan(image_unet_out, args.network_input, args, disc=True).to(args.device)
 
-                target_batch = prep_input_2_chan(target_full, args.network_input, args, disc=True).to(args.device)
-                output_batch = prep_input_2_chan(refined_out, args.network_input, args, disc=True).to(args.device)
-
-                metrics['time'] = finish / output_batch.shape[0]
-
-                batch_metrics = {
-                    'psnr': [],
-                    'ssim': [],
-                    'snr': []
-                }
-
-
-                for j in range(output_batch.shape[0]):
-                    generared_im = complex_abs(output_batch[j].permute(1, 2, 0))
+            for j in range(output_batch.shape[0]):
+                if j == 2:
                     true_im = complex_abs(target_batch[j].permute(1, 2, 0))
+                    zfr_im = complex_abs(input_w_z[j].permute(1, 2, 0))
+                    gen_kspace_im = complex_abs(kspace_gen_batch[j].permute(1, 2, 0))
+                    gen_image_im = complex_abs(image_gen_batch[j].permute(1, 2, 0))
+                    unet_kspace_im = complex_abs(kspace_unet_batch[j].permute(1, 2, 0))
+                    unet_image_im = complex_abs(image_unet_batch[j].permute(1, 2, 0))
 
-                    generated_im_np = generared_im.cpu().numpy() * std[j].numpy() + mean[j].numpy()
                     true_im_np = true_im.cpu().numpy() * std[j].numpy() + mean[j].numpy()
+                    zfr_im_np = zfr_im.cpu().numpy() * std[j].numpy() + mean[j].numpy()
+                    gen_kspace_im_np = gen_kspace_im.cpu().numpy() * std[j].numpy() + mean[j].numpy()
+                    gen_image_im_np = gen_image_im.cpu().numpy() * std[j].numpy() + mean[j].numpy()
+                    unet_kspace_im_np = unet_kspace_im.cpu().numpy() * std[j].numpy() + mean[j].numpy()
+                    unet_image_im_np = unet_image_im.cpu().numpy() * std[j].numpy() + mean[j].numpy()
 
-                    batch_metrics['psnr'].append(psnr(true_im_np, generated_im_np, np.max(true_im_np)))
-                    batch_metrics['ssim'].append(ssim(true_im_np, generated_im_np, np.max(true_im_np)))
-                    batch_metrics['snr'].append(snr(true_im_np, generated_im_np))
+                    fig = plt.figure(figsize=(18, 9))
+                    fig.suptitle('Reconstructions')
 
-                metrics['psnr'].append(np.mean(batch_metrics['psnr']))
-                metrics['snr'].append(np.mean(batch_metrics['snr']))
-                metrics['ssim'].append(np.mean(batch_metrics['ssim']))
+                    generate_image(fig, target, true_im_np, 'GT', 1)
+                    generate_image(fig, target, zfr_im_np, 'ZFR', 2)
+                    generate_image(fig, target, gen_kspace_im_np, 'K-Space Generator', 3)
+                    generate_image(fig, target, gen_image_im_np, 'Image Generator', 4)
+                    generate_image(fig, target, unet_kspace_im_np, 'K-Space U-Net', 5)
+                    generate_image(fig, target, unet_image_im_np, 'Image U-Net', 6)
 
-                print(
-                    "[Avg. Batch PSNR %.2f] [Avg. Batch SNR %.2f]  [Avg. Batch SSIM %.4f]"
-                    % (np.mean(batch_metrics['psnr']), np.mean(batch_metrics['snr']), np.mean(batch_metrics['ssim']))
-                )
+                    generate_error_map(fig, target, zfr_im_np, 'ZFR', 8)
+                    generate_error_map(fig, target, gen_kspace_im_np, 'K-Space Generator', 9)
+                    generate_error_map(fig, target, gen_image_im_np, 'Image Generator', 10)
+                    generate_error_map(fig, target, unet_kspace_im_np, 'K-Space U-Net', 11)
+                    im, ax = generate_error_map(fig, target, unet_image_im_np, 'Image U-Net', 12)
 
-        save_str = f"[Avg. PSNR: {np.mean(metrics['psnr'])}] [Avg. SNR: {np.mean(metrics['snr'])}] [Avg. SSIM: {np.mean(metrics['ssim'])}], [Avg. Time: {np.mean(metrics['time'])}]"
-        metric_file.write(save_str)
-        print(save_str)
+                    get_colorbar(fig, im, ax)
+                    plt.savefig(f'/home/bendel.8/Git_Repos/MRIGAN/recons_{i}.png')
 
+        if i + 1 == 5:
+            exit()
 
 
 if __name__ == '__main__':
+    rows = 2
+    cols = 6
     cuda = True if torch.cuda.is_available() else False
     Tensor = torch.FloatTensor
 

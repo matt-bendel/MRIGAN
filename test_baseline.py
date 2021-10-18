@@ -62,7 +62,7 @@ def main(args):
     args.checkpoint = pathlib.Path(f'/home/bendel.8/Git_Repos/MRIGAN/trained_models/baseline/{args.network_input}/best_model.pt')
     unet, opt, args, best_dev_loss, start_epoch = resume_train_unet(args)
     unet.eval()
-    train_loader, dev_loader = create_data_loaders(args)
+    train_loader, dev_loader = create_data_loaders(args, val_only=True)
 
     with open(f'trained_models/{args.network_input}/metrics_{args.z_location}.txt', 'w') as metric_file:
         metrics = {
