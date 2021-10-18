@@ -12,7 +12,7 @@ from typing import Optional
 from utils.math import complex_abs
 from utils.training.prepare_data import create_data_loaders
 from utils.training.parse_args import create_arg_parser
-from utils.training.prepare_model import resume_train, fresh_start, build_model
+from utils.training.prepare_model import resume_train, fresh_start
 from utils.general.helper import readd_measures_im, prep_input_2_chan
 from skimage.metrics import peak_signal_noise_ratio, structural_similarity
 
@@ -54,23 +54,9 @@ def ssim(
     return ssim
 
 
-def non_average_gen(generator, input_w_z, z, old_input):
-    start = time.perf_counter()
-    output_gen = generator(input=input_w_z, z=z, device=args.device)
-    finish = time.perf_counter() - start
-
-    if args.network_input == 'kspace':
-        # refined_out = output_gen + old_input[:, 0:16]
-        refined_out = output_gen + old_input[:]
-    else:
-        refined_out = readd_measures_im(output_gen, old_input, args)
-
-    return refined_out, finish
-
-
 def average_gen(generator, input_w_z, z, old_input):
     average_gen = torch.zeros(input_w_z.shape).to(args.device)
-
+    gen_list = []
     for j in range(8):
         z = torch.FloatTensor(np.random.normal(size=(input_w_z.shape[0], args.latent_size), scale=np.sqrt(10000))).to(
             args.device)
@@ -82,6 +68,7 @@ def average_gen(generator, input_w_z, z, old_input):
         else:
             refined_out = readd_measures_im(output_gen, old_input, args)
 
+        gen_list.append(refined_out)
         average_gen = torch.add(average_gen, refined_out)
 
     return torch.div(average_gen, 8)
@@ -154,20 +141,6 @@ def get_gen(args, type):
     return generator
 
 
-def get_unet(args, type):
-    checkpoint_file_unet = pathlib.Path(f'/home/bendel.8/Git_Repos/MRIGAN/trained_models/baseline/{type}/generator_model.pt')
-    checkpoint_unet = torch.load(checkpoint_file_unet, map_location=torch.device('cuda'))
-
-    unet = build_model(checkpoint_unet['args'])
-
-    if args.data_parallel:
-        unet = torch.nn.DataParallel(generator)
-
-    unet.load_state_dict(checkpoint_unet['model'])
-
-    return unet
-
-
 def main(args):
     args.in_chans = 2
     args.out_chans = 2
@@ -176,10 +149,6 @@ def main(args):
     kspace_gen.eval()
     image_gen = get_gen(args, 'image')
     image_gen.eval()
-    kspace_unet = get_unet(args, 'kspace')
-    kspace_unet.eval()
-    image_unet = get_unet(args, 'image')
-    image_unet.eval()
 
     train_loader, dev_loader = create_data_loaders(args, val_only=True)
 
@@ -196,14 +165,10 @@ def main(args):
             input_w_z = input.to(args.device)
             kspace_gen_out = average_gen(kspace_gen, input_w_z, z, old_input)
             image_gen_out = average_gen(image_gen, input_w_z, z, old_input)
-            kspace_unet_out = kspace_unet(input_w_z)
-            image_unet_out = image_unet(input_w_z)
 
             target_batch = prep_input_2_chan(target_full, args.network_input, args, disc=True).to(args.device)
             kspace_gen_batch = prep_input_2_chan(kspace_gen_out, args.network_input, args, disc=True).to(args.device)
             image_gen_batch = prep_input_2_chan(image_gen_out, args.network_input, args, disc=True).to(args.device)
-            kspace_unet_batch = prep_input_2_chan(kspace_unet_out, args.network_input, args, disc=True).to(args.device)
-            image_unet_batch = prep_input_2_chan(image_unet_out, args.network_input, args, disc=True).to(args.device)
 
             for j in range(output_batch.shape[0]):
                 if j == 2:
@@ -211,15 +176,11 @@ def main(args):
                     zfr_im = complex_abs(input_w_z[j].permute(1, 2, 0))
                     gen_kspace_im = complex_abs(kspace_gen_batch[j].permute(1, 2, 0))
                     gen_image_im = complex_abs(image_gen_batch[j].permute(1, 2, 0))
-                    unet_kspace_im = complex_abs(kspace_unet_batch[j].permute(1, 2, 0))
-                    unet_image_im = complex_abs(image_unet_batch[j].permute(1, 2, 0))
 
                     true_im_np = true_im.cpu().numpy() * std[j].numpy() + mean[j].numpy()
                     zfr_im_np = zfr_im.cpu().numpy() * std[j].numpy() + mean[j].numpy()
                     gen_kspace_im_np = gen_kspace_im.cpu().numpy() * std[j].numpy() + mean[j].numpy()
                     gen_image_im_np = gen_image_im.cpu().numpy() * std[j].numpy() + mean[j].numpy()
-                    unet_kspace_im_np = unet_kspace_im.cpu().numpy() * std[j].numpy() + mean[j].numpy()
-                    unet_image_im_np = unet_image_im.cpu().numpy() * std[j].numpy() + mean[j].numpy()
 
                     fig = plt.figure(figsize=(18, 9))
                     fig.suptitle('Reconstructions')
@@ -228,19 +189,15 @@ def main(args):
                     generate_image(fig, target, zfr_im_np, 'ZFR', 2)
                     generate_image(fig, target, gen_kspace_im_np, 'K-Space Generator', 3)
                     generate_image(fig, target, gen_image_im_np, 'Image Generator', 4)
-                    generate_image(fig, target, unet_kspace_im_np, 'K-Space U-Net', 5)
-                    generate_image(fig, target, unet_image_im_np, 'Image U-Net', 6)
 
                     generate_error_map(fig, target, zfr_im_np, 'ZFR', 8)
                     generate_error_map(fig, target, gen_kspace_im_np, 'K-Space Generator', 9)
-                    generate_error_map(fig, target, gen_image_im_np, 'Image Generator', 10)
-                    generate_error_map(fig, target, unet_kspace_im_np, 'K-Space U-Net', 11)
-                    im, ax = generate_error_map(fig, target, unet_image_im_np, 'Image U-Net', 12)
+                    im, ax = generate_error_map(fig, target, gen_image_im_np, 'Image Generator', 10)
 
                     get_colorbar(fig, im, ax)
                     plt.savefig(f'/home/bendel.8/Git_Repos/MRIGAN/recons_{i}.png')
 
-        if i + 1 == 5:
+        if i + 1 == 1:
             exit()
 
 
