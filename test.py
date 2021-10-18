@@ -53,17 +53,6 @@ def ssim(
     return ssim
 
 
-def plot_loss():
-    with open(f'/home/bendel.8/Git_Repos/MRIGAN/saved_metrics/loss_kspace_2.pkl', 'rb') as f:
-        loss_dict = pickle.load(f)
-
-    plt.figure()
-    plt.plot(np.arange(50), loss_dict['g_loss'])
-    plt.plot(np.arange(50), loss_dict['d_loss'])
-    plt.plot(np.arange(50), loss_dict['d_acc'])
-    plt.savefig('loss.png')
-
-
 def non_average_gen(generator, input_w_z, z, old_input):
     start = time.perf_counter()
     output_gen = generator(input=input_w_z, z=z, device=args.device)

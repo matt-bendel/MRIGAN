@@ -3,7 +3,6 @@ import pickle
 import random
 import os
 import torch
-import pathlib
 
 import numpy as np
 import matplotlib.pyplot as plt
@@ -12,7 +11,7 @@ from typing import Optional
 from utils.math import complex_abs
 from utils.training.prepare_data import create_data_loaders
 from utils.training.parse_args import create_arg_parser
-from utils.training.prepare_model import resume_train_unet
+from utils.training.prepare_model import resume_train, fresh_start
 from utils.general.helper import readd_measures_im, prep_input_2_chan
 from skimage.metrics import peak_signal_noise_ratio, structural_similarity
 
@@ -54,15 +53,51 @@ def ssim(
     return ssim
 
 
-def main(args):
-    args.exp_dir.mkdir(parents=True, exist_ok=True)
+def non_average_gen(generator, input_w_z, z, old_input):
+    start = time.perf_counter()
+    output_gen = generator(input=input_w_z, z=z, device=args.device)
+    finish = time.perf_counter() - start
 
+    if args.network_input == 'kspace':
+        # refined_out = output_gen + old_input[:, 0:16]
+        refined_out = output_gen + old_input[:]
+    else:
+        refined_out = readd_measures_im(output_gen, old_input, args)
+
+    return refined_out, finish
+
+
+def average_gen(generator, input_w_z, z, old_input):
+    start = time.perf_counter()
+    average_gen = torch.zeros(input_w_z.shape).to(args.device)
+
+    for j in range(16):
+        z = torch.FloatTensor(np.random.normal(size=(input_w_z.shape[0], args.latent_size), scale=np.sqrt(10000))).to(args.device)
+        output_gen = generator(input=input_w_z, z=z, device=args.device)
+
+        if args.network_input == 'kspace':
+            # refined_out = output_gen + old_input[:, 0:16]
+            refined_out = output_gen + old_input[:]
+        else:
+            refined_out = readd_measures_im(output_gen, old_input, args)
+
+        average_gen = torch.add(average_gen, refined_out)
+
+    finish = time.perf_counter() - start
+
+    return torch.div(average_gen, 16), finish
+
+
+def main(args):
     args.in_chans = 2
     args.out_chans = 2
-    args.checkpoint = pathlib.Path(f'/home/bendel.8/Git_Repos/MRIGAN/trained_models/baseline/{args.network_input}/best_model.pt')
-    unet, opt, args, best_dev_loss, start_epoch = resume_train_unet(args)
-    unet.eval()
-    train_loader, dev_loader = create_data_loaders(args)
+
+    kspace_gen = get_gen(args, 'kspace')
+    image_gen = get_gen(args, 'image')
+    kspace_unet = get_unet(args, 'kspace')
+    image_unet = get_unet(args, 'image')
+
+    train_loader, dev_loader = create_data_loaders(args, val_only=True)
 
     with open(f'trained_models/{args.network_input}/metrics_{args.z_location}.txt', 'w') as metric_file:
         metrics = {
@@ -77,12 +112,13 @@ def main(args):
 
             input = prep_input_2_chan(input, args.network_input, args)
             target_full = prep_input_2_chan(target_full, args.network_input, args)
+            z = torch.FloatTensor(np.random.normal(size=(input.shape[0], args.latent_size), scale=np.sqrt(100000))).to(args.device)
+            old_input = input.to(args.device)
 
             with torch.no_grad():
                 input_w_z = input.to(args.device)
-                start = time.perf_counter()
-                refined_out = unet(input_w_z)
-                finish = time.perf_counter() - start
+                # refined_out, finish = non_average_gen(generator, input_w_z, z, old_input)
+                refined_out, finish = average_gen(generator, input_w_z, z, old_input)
 
                 target_batch = prep_input_2_chan(target_full, args.network_input, args, disc=True).to(args.device)
                 output_batch = prep_input_2_chan(refined_out, args.network_input, args, disc=True).to(args.device)

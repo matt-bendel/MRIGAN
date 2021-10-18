@@ -155,16 +155,17 @@ def create_datasets(args):
     return dev_data, train_data
 
 
-def create_data_loaders(args):
+def create_data_loaders(args, val_only=False):
     dev_data, train_data = create_datasets(args)
 
-    train_loader = DataLoader(
-        dataset=train_data,
-        batch_size=args.batch_size,
-        shuffle=True,
-        num_workers=24,
-        pin_memory=True,
-    )
+    if not val_only:
+        train_loader = DataLoader(
+            dataset=train_data,
+            batch_size=args.batch_size,
+            shuffle=True,
+            num_workers=24,
+            pin_memory=True,
+        )
 
     dev_loader = DataLoader(
         dataset=dev_data,
@@ -173,7 +174,7 @@ def create_data_loaders(args):
         pin_memory=True,
     )
 
-    return train_loader, dev_loader
+    return train_loader if not val_only else None, dev_loader
 
 
 # Helper functions for Transform
