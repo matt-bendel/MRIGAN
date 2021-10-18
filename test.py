@@ -96,7 +96,7 @@ def average_gen(generator, input_w_z, z, old_input):
 
     finish = time.perf_counter() - start
 
-    return torch.div(average_gen, 8), finish
+    return torch.div(average_gen, 16), finish
 
 
 def main(args):
