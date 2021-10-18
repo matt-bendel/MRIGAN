@@ -91,7 +91,7 @@ def generate_image(fig, target, image, method, image_ind):
     # rows and cols are both previously defined ints
     ax = fig.add_subplot(rows, cols, image_ind)
     if method != 'GT':
-        psnr_val = psnr(target, image)
+        psnr_val = get_psnr(target, image)
         snr_val = get_snr(target, image)
         ssim_val = get_ssim(target, image)
         ax.set_title(f'PSNR: {psnr_val:.2f}, SNR: {snr_val:.2f}\nSSIM: {ssim_val:.4f}')
