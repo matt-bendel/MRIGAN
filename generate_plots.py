@@ -189,11 +189,10 @@ def main(args):
         input_k = prep_input_2_chan(input, 'image', args).to(args.device)
         input_im = prep_input_2_chan(input, 'image', args).to(args.device)
         target_full = prep_input_2_chan(target_full, args.network_input, args)
-        old_input = input.to(args.device)
 
         with torch.no_grad():
-            kspace_gen_out = average_gen(kspace_gen, input_k, None, old_input)
-            image_gen_out = average_gen(image_gen, input_im, None, old_input)
+            kspace_gen_out = average_gen(kspace_gen, input_k, None, input_k)
+            image_gen_out = average_gen(image_gen, input_im, None, input_k)
             kspace_unet_out = kspace_unet(input_k)
             image_unet_out = image_unet(input_im)
 
