@@ -122,7 +122,7 @@ def main(args):
 
             input = prep_input_2_chan(input, args.network_input, args)
             target_full = prep_input_2_chan(target_full, args.network_input, args)
-            z = torch.FloatTensor(np.random.normal(size=(input.shape[0], args.latent_size), sclae=np.sqrt(100000))).to(args.device)
+            z = torch.FloatTensor(np.random.normal(size=(input.shape[0], args.latent_size), scale=np.sqrt(100000))).to(args.device)
             old_input = input.to(args.device)
 
             with torch.no_grad():
