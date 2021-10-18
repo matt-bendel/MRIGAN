@@ -186,7 +186,7 @@ def main(args):
     for i, data in enumerate(dev_loader):
         input, target_full, mean, std, nnz_index_mask = data
 
-        input_k = prep_input_2_chan(input, 'image', args).to(args.device)
+        input_k = prep_input_2_chan(input, 'kspace', args).to(args.device)
         input_im = prep_input_2_chan(input, 'image', args).to(args.device)
         target_full = prep_input_2_chan(target_full, args.network_input, args)
 
@@ -198,8 +198,9 @@ def main(args):
 
             target_batch = prep_input_2_chan(target_full, args.network_input, args, disc=True).to(args.device)
             kspace_gen_batch = prep_input_2_chan(kspace_gen_out, 'kspace', args, disc=True).to(args.device)
-            image_gen_batch = prep_input_2_chan(image_gen_out, 'image', args, disc=True).to(args.device)
             kspace_unet_batch = prep_input_2_chan(kspace_unet_out, 'kspace', args, disc=True).to(args.device)
+            args.network_input = 'image'
+            image_gen_batch = prep_input_2_chan(image_gen_out, 'image', args, disc=True).to(args.device)
             image_unet_batch = prep_input_2_chan(image_unet_out, 'image', args, disc=True).to(args.device)
 
             for j in range(target_batch.shape[0]):
