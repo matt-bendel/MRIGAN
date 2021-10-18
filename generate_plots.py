@@ -12,7 +12,7 @@ from typing import Optional
 from utils.math import complex_abs
 from utils.training.prepare_data import create_data_loaders
 from utils.training.parse_args import create_arg_parser
-from utils.training.prepare_model import resume_train, fresh_start, build_model
+from utils.training.prepare_model import resume_train, fresh_start, build_model, build_unet
 from utils.general.helper import readd_measures_im, prep_input_2_chan
 from skimage.metrics import peak_signal_noise_ratio, structural_similarity
 
@@ -144,7 +144,7 @@ def get_gen(args, type):
     checkpoint_file_gen = pathlib.Path(f'/home/bendel.8/Git_Repos/MRIGAN/trained_models/{type}/2/generator_model.pt')
     checkpoint_gen = torch.load(checkpoint_file_gen, map_location=torch.device('cuda'))
 
-    generator = build_model(checkpoint_gen['args'])
+    generator = build_model(args)
 
     if args.data_parallel:
         generator = torch.nn.DataParallel(generator)
@@ -158,7 +158,7 @@ def get_unet(args, type):
     checkpoint_file_unet = pathlib.Path(f'/home/bendel.8/Git_Repos/MRIGAN/trained_models/baseline/{type}/best_model.pt')
     checkpoint_unet = torch.load(checkpoint_file_unet, map_location=torch.device('cuda'))
 
-    unet = build_model(checkpoint_unet['args'])
+    unet = build_unet(args)
 
     if args.data_parallel:
         unet = torch.nn.DataParallel(generator)
