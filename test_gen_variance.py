@@ -73,6 +73,7 @@ def average_gen(generator, input_w_z, z, old_input):
 
     std_dev = torch.zeros(input_w_z.shape).to(args.device)
     for i in gen_list:
+        temp = torch.subtract()
 
 
     return torch.div(average_gen, 8), gen_list,
