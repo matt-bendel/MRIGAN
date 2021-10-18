@@ -76,7 +76,7 @@ def average_gen(generator, input_w_z, z, old_input):
         temp = torch.subtract()
 
 
-    return torch.div(average_gen, 8), gen_list,
+    return torch.div(average_gen, 8), std_dev, gen_list
 
 
 def generate_image(fig, target, image, method, image_ind):
