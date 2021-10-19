@@ -128,9 +128,9 @@ def plot_epoch(args, generator, epoch):
     z_1 = CONSTANT_PLOTS['measures'].unsqueeze(0).to(args.device)
     z = torch.FloatTensor(np.random.normal(size=(z_1.shape[0], args.latent_size))).to(args.device)
 
-    # generator.eval()
-    # with torch.no_grad():
-    z_1_out = generator(input=z_1, z=z, device=args.device)
+    generator.eval()
+    with torch.no_grad():
+        z_1_out = generator(input=z_1, z=z, device=args.device)
 
     if args.network_input == 'kspace':
         refined_z_1_out = z_1_out.cpu() + CONSTANT_PLOTS['measures'].unsqueeze(0)
