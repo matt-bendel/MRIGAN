@@ -151,7 +151,7 @@ def main(args):
     train_loader, dev_loader = create_data_loaders(args, val_only=True)
 
     for i, data in enumerate(dev_loader):
-        input, target_full, mean, std, nnz_index_mask = data
+        input, target_full, mean_val, std, nnz_index_mask = data
 
         input = prep_input_2_chan(input, args.network_input, args)
         target_full = prep_input_2_chan(target_full, args.network_input, args)
@@ -169,18 +169,17 @@ def main(args):
 
             for j in range(mean_batch.shape[0]):
                 if j == 2:
-                    print(mean_batch[j].shape)
                     true_im = complex_abs(target_batch[j].permute(1, 2, 0))
                     gen_mean_im = complex_abs(mean_batch[j].permute(1, 2, 0))
                     gens_im_list = []
                     for val in gens_batch_list:
                         gens_im_list.append(complex_abs(val[j].permute(1, 2, 0)))
 
-                    true_im_np = true_im.cpu().numpy() * std[j].cpu().numpy() + mean[j].cpu().numpy()
-                    gen_mean_im_np = gen_mean_im.cpu().numpy() * std[j].cpu().numpy() + mean[j].cpu().numpy()
+                    true_im_np = true_im.cpu().numpy() * std[j].cpu().numpy() + mean_val[j].cpu().numpy()
+                    gen_mean_im_np = gen_mean_im.cpu().numpy() * std[j].cpu().numpy() + mean_val[j].cpu().numpy()
                     gen_im_np_list = []
                     for val in gens_im_list:
-                        gen_im_np_list.append(val.cpu().numpy() * std[j].cpu().numpy() + mean[j].cpu().numpy())
+                        gen_im_np_list.append(val.cpu().numpy() * std[j].cpu().numpy() + mean_val[j].cpu().numpy())
 
                     std_dev = np.zeros(gen_mean_im_np.shape)
                     for val in gen_im_np_list:
