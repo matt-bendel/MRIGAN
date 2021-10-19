@@ -98,7 +98,7 @@ def generate_image(fig, target, image, method, image_ind):
     ax.imshow(np.abs(image), cmap='gray', vmin=0, vmax=np.max(target))
     ax.set_xticks([])
     ax.set_yticks([])
-    plt.xlabel(f'{method} Reconstruction')
+    plt.xlabel(f'{method}')
 
 
 def generate_error_map(fig, target, recon, method, image_ind, relative=False, k=1):
@@ -118,9 +118,6 @@ def generate_error_map(fig, target, recon, method, image_ind, relative=False, k=
     # Remove axis ticks
     ax.set_xticks([])
     ax.set_yticks([])
-
-    # Assign x label for plot
-    plt.xlabel(f'{method} Relative Error' if relative else f'{method} Absolute Error')
 
     # Return plotted image and its axis in the subplot
     return im, ax
@@ -192,7 +189,7 @@ def main(args):
 
         with torch.no_grad():
             kspace_gen_out = average_gen(kspace_gen, input_k, None, input_k)
-            image_gen_out = average_gen(image_gen, input_im, None, input_k)
+            image_gen_out = average_gen(image_gen, input_im, None, input_im)
             kspace_unet_out = kspace_unet(input_k)
             image_unet_out = image_unet(input_im)
 
