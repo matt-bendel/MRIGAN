@@ -101,7 +101,6 @@ def resume_train_unet(args):
     args = checkpoint['args']
     best_dev_loss = checkpoint['best_dev_loss']
     start_epoch = checkpoint['epoch']
-    del checkpoint
     return unet, opt, args, best_dev_loss, start_epoch
 
 
