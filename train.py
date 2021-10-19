@@ -34,7 +34,6 @@ from utils.training.parse_args import create_arg_parser
 from utils.training.prepare_model import resume_train, fresh_start
 from utils.general.helper import get_inverse_mask, readd_measures_im, prep_input_2_chan
 
-
 # Tunable weight for gradient penalty
 lambda_gp = 10
 
@@ -227,9 +226,11 @@ def main(args):
                         refined_out = readd_measures_im(output_gen, old_input, args)
 
                     # TURN OUTPUT INTO IMAGE FOR DISCRIMINATION AND GET REAL IMAGES FOR DISCRIMINATION
-                    disc_target_batch = prep_input_2_chan(target_full, args.network_input, args, disc=True).to(
+                    disc_target_batch = prep_input_2_chan(target_full, args.network_input, args, disc=True,
+                                                          disc_image=not args.disc_kspace).to(
                         args.device)
-                    disc_output_batch = prep_input_2_chan(refined_out, args.network_input, args, disc=True).to(args.device)
+                    disc_output_batch = prep_input_2_chan(refined_out, args.network_input, args, disc=True,
+                                                          disc_image=not args.disc_kspace).to(args.device)
 
                     if first:
                         CONSTANT_PLOTS['measures'] = input.cpu()[2]
@@ -268,7 +269,8 @@ def main(args):
                 else:
                     refined_out = readd_measures_im(output_gen, old_input.to(args.device), args)
 
-                disc_inp = prep_input_2_chan(refined_out, args.network_input, args, disc=True)
+                disc_inp = prep_input_2_chan(refined_out, args.network_input, args, disc=True,
+                                             disc_image=not args.disc_kspace)
 
                 # Loss measures generator's ability to fool the discriminator
                 # Train on fake images
@@ -290,7 +292,13 @@ def main(args):
             # TODO: ADD VALIDATION HERE - ONLY A SMALL SUBSET OF VAL DATA, LIKE 1500 IMAGES (~10 BATCHES)
             # for i, data in enumerate(train_loader):
             #     input, target_full, mean, std, nnz_index_mask = data
+            #
+            #     input = prep_input_2_chan(input, args.network_input, args)
+            #     target_full = prep_input_2_chan(target_full, args.network_input, args)
+            #
             #     old_input = input.to(args.device)
+            #     if i == 10:
+            #         break
 
             best_model = True  # val_data()
             best_loss_val = 1e9  # val_data()

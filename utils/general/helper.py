@@ -6,6 +6,7 @@ import numpy as np
 from data import transforms
 from utils.fftc import ifft2c_new, fft2c_new
 
+
 def get_inverse_mask():
     a = np.array(
         [0, 10, 19, 28, 37, 46, 54, 61, 69, 76, 83, 89, 95, 101, 107, 112, 118, 122, 127, 132, 136, 140, 144, 148,
@@ -65,11 +66,11 @@ def readd_measures_im(data_tensor, old, args):
     return disc_inp
 
 
-def prep_input_2_chan(data_tensor, unet_type, args, disc=False):
+def prep_input_2_chan(data_tensor, unet_type, args, disc=False, disc_image=True):
     im_size = 96
     disc_inp = torch.zeros(data_tensor.shape[0], 2, im_size, im_size)
 
-    if disc:
+    if disc and disc_image:
         for k in range(data_tensor.shape[0]):
             output = torch.squeeze(data_tensor[k])
             if args.network_input == 'kspace':
@@ -77,6 +78,17 @@ def prep_input_2_chan(data_tensor, unet_type, args, disc=False):
                 disc_inp[k, :, :, :] = output_tensor.permute(2, 0, 1)
             else:
                 disc_inp[k, :, :, :] = output
+
+        return disc_inp
+
+    if disc and not disc_image:
+        for k in range(data_tensor.shape[0]):
+            output = torch.squeeze(data_tensor[k])
+            if args.network_input == 'kspace':
+                disc_inp[k, :, :, :] = output
+            else:
+                output_tensor = fft2c_new(output.permute(1, 2, 0))
+                disc_inp[k, :, :, :] = output_tensor.permute(2, 0, 1)
 
         return disc_inp
 
