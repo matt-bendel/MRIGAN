@@ -210,7 +210,7 @@ def main(args):
                         place += 1
 
                     get_colorbar(fig, im, ax)
-                    plt.savefig(f'/home/bendel.8/Git_Repos/MRIGAN/recons_{i}.png')
+                    plt.savefig(f'/home/bendel.8/Git_Repos/MRIGAN/comparison_{args.network_input}.png')
 
         if i + 1 == 1:
             exit()
