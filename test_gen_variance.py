@@ -198,9 +198,9 @@ def main(args):
                     fig = plt.figure()
                     fig.suptitle(f'Mean and Std. Deviation for 8 {args.network_input} Generations')
 
-                    generate_image(fig, target, true_im_np, 'GT', 1, 1, 3)
-                    generate_image(fig, target, gen_mean_im_np, 'Mean', 2, 1, 3)
-                    generate_image(fig, target, std_dev, 'Std. Dev', 3, 1, 3)
+                    generate_image(fig, true_im_np, true_im_np, 'GT', 1, 1, 3)
+                    generate_image(fig, true_im_np, gen_mean_im_np, 'Mean', 2, 1, 3)
+                    generate_image(fig, true_im_np, std_dev, 'Std. Dev', 3, 1, 3)
 
                     plt.savefig(f'/home/bendel.8/Git_Repos/MRIGAN/mean_and_std_{args.network_input}.png')
 
@@ -209,11 +209,11 @@ def main(args):
                     place = 1
                     for val in gen_im_np_list:
                         if place <= 4:
-                            generate_image(fig, target, val, f'z {place}', place, 4, 4)
-                            im, ax = generate_error_map(fig, target, val, f'z {place}', place + 4, 4, 4)
+                            generate_image(fig, true_im_np, val, f'z {place}', place, 4, 4)
+                            im, ax = generate_error_map(fig, true_im_np, val, f'z {place}', place + 4, 4, 4)
                         else:
-                            generate_image(fig, target, val, f'z {place}', place + 4, 4, 4)
-                            im, ax = generate_error_map(fig, target, val, f'z {place}', place + 8, 4, 4)
+                            generate_image(fig, true_im_np, val, f'z {place}', place + 4, 4, 4)
+                            im, ax = generate_error_map(fig, true_im_np, val, f'z {place}', place + 8, 4, 4)
                         place += 1
 
                     get_colorbar(fig, im, ax)
