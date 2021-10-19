@@ -71,12 +71,6 @@ def average_gen(generator, input_w_z, z, old_input):
         gen_list.append(refined_out)
         average_gen = torch.add(average_gen, refined_out)
 
-    # std_dev = torch.zeros(input_w_z.shape).to(args.device)
-    # for i in gen_list:
-    #     std_dev = torch.add(std_dev, torch.pow(torch.subtract(i - average_gen), 2))
-    #
-    # std_dev = torch.sqrt(std_dev)
-
     return torch.div(average_gen, 8), gen_list
 
 
@@ -175,6 +169,7 @@ def main(args):
 
             for j in range(mean_batch.shape[0]):
                 if j == 2:
+                    print(mean_batch[j].shape)
                     true_im = complex_abs(target_batch[j].permute(1, 2, 0))
                     gen_mean_im = complex_abs(mean_batch[j].permute(1, 2, 0))
                     gens_im_list = []
@@ -184,9 +179,7 @@ def main(args):
                     true_im_np = true_im.cpu().numpy() * std[j].cpu().numpy() + mean[j].cpu().numpy()
                     gen_mean_im_np = gen_mean_im.cpu().numpy() * std[j].cpu().numpy() + mean[j].cpu().numpy()
                     gen_im_np_list = []
-                    print(gen_mean_im_np.shape)
                     for val in gens_im_list:
-                        print(val.shape)
                         gen_im_np_list.append(val.cpu().numpy() * std[j].cpu().numpy() + mean[j].cpu().numpy())
 
                     std_dev = np.zeros(gen_mean_im_np.shape)
