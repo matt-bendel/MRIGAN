@@ -25,29 +25,6 @@ def to_tensor(data):
     return torch.from_numpy(data)
 
 
-def apply_mask(data, mask_func, seed=None):
-    """
-    Subsample given k-space by multiplying with a mask.
-
-    Args:
-        data (torch.Tensor): The input k-space data. This should have at least 3 dimensions, where
-            dimensions -3 and -2 are the spatial dimensions, and the final dimension has size
-            2 (for complex values).
-        mask_func (callable): A function that takes a shape (tuple of ints) and a random
-            number seed and returns a mask.
-        seed (int or 1-d array_like, optional): Seed for the random number generator.
-
-    Returns:
-        (tuple): tuple containing:
-            masked data (torch.Tensor): Subsampled k-space data
-            mask (torch.Tensor): The generated mask
-    """
-    shape = np.array(data.shape)
-    shape[:-3] = 1
-    mask = mask_func(shape, seed)
-    return data * mask, mask
-
-
 def fft2(data):
     """
     Apply centered 2 dimensional Fast Fourier Transform.
@@ -100,6 +77,7 @@ def complex_abs(data):
     assert data.size(-1) == 2
     return (data ** 2).sum(dim=-1).sqrt()
 
+
 def phase(data):
     """
     Compute the phse of a complex valued input tensor.
@@ -112,37 +90,38 @@ def phase(data):
         torch.Tensor: Phase of data
     """
     assert data.size(-1) == 2
-    real = data[...,0]
-    imag = data[...,1]
+    real = data[..., 0]
+    imag = data[..., 1]
     # real, imag = data.chunk(2,dim=-1)
-    return torch.atan2(imag,real)
+    return torch.atan2(imag, real)
 
-def polar_to_rect(mag,phase):
+
+def polar_to_rect(mag, phase):
     assert mag.size() == phase.size()
-    real = mag*torch.cos(phase)
-    imag = mag*torch.sin(phase)
-    return torch.stack([real,imag], dim=real.dim())
+    real = mag * torch.cos(phase)
+    imag = mag * torch.sin(phase)
+    return torch.stack([real, imag], dim=real.dim())
+
 
 def best_rotate(x, num_angles):
-
     x_mag, x_phase = complex_abs(x), phase(x)
 
     if num_angles < 1:
         return x, 0
-    elif num_angles<2:
-        rot_angle = np.pi/4;
-        x_rotate = polar_to_rect(x_mag, rot_angle+x_phase)
+    elif num_angles < 2:
+        rot_angle = np.pi / 4;
+        x_rotate = polar_to_rect(x_mag, rot_angle + x_phase)
         return x_rotate, rot_angle
 
-    rot_angle_ = np.pi/2*np.array(range(num_angles))/(num_angles-1); # try angles in [0,pi/2]
+    rot_angle_ = np.pi / 2 * np.array(range(num_angles)) / (num_angles - 1);  # try angles in [0,pi/2]
     best_ratio = 0
 
     for tmp_angle in rot_angle_:
         tmp_phase = x_phase + tmp_angle
         tmp_x = polar_to_rect(x_mag, tmp_phase)
-        tmp_ratio = torch.sqrt(torch.sum(tmp_x[...,0]**2))/torch.sqrt(torch.sum(tmp_x[...,1]**2))
+        tmp_ratio = torch.sqrt(torch.sum(tmp_x[..., 0] ** 2)) / torch.sqrt(torch.sum(tmp_x[..., 1] ** 2))
         if tmp_ratio > 1:
-            tmp_ratio**-1
+            tmp_ratio ** -1
         if tmp_ratio > best_ratio:
             best_ratio = tmp_ratio
             best_angle = tmp_angle
@@ -150,19 +129,6 @@ def best_rotate(x, num_angles):
 
     return x_rotate, best_angle
 
-def denoiser_normalize(data, is_complex=False, use_std=False):
-    if is_complex:
-        abs_data = complex_abs(data)
-    else:
-        abs_data = data
-    if use_std:
-        scale = torch.std(abs_data)
-    else:
-        scale = torch.max(abs_data)
-    return data/scale, scale
-
-def denoiser_denormalize(data, scale):
-    return data*scale
 
 def root_sum_of_squares(data, dim=0):
     """
@@ -222,6 +188,7 @@ def complex_center_crop(data, shape):
     h_to = h_from + shape[1]
     return data[..., w_from:w_to, h_from:h_to, :]
 
+
 def complex_random_crop(data, shape):
     """
     Apply a center crop to the input image or batch of complex images.
@@ -238,8 +205,8 @@ def complex_random_crop(data, shape):
     """
     assert 0 < shape[0] <= data.shape[-3]
     assert 0 < shape[1] <= data.shape[-2]
-    w_from = np.random.randint(0,data.shape[-3]-shape[0]+1)
-    h_from = np.random.randint(0,data.shape[-2]-shape[1]+1)
+    w_from = np.random.randint(0, data.shape[-3] - shape[0] + 1)
+    h_from = np.random.randint(0, data.shape[-2] - shape[1] + 1)
     # w_from = (data.shape[-3] - shape[0]) // 2
     # h_from = (data.shape[-2] - shape[1]) // 2
     w_to = w_from + shape[0]
@@ -263,6 +230,7 @@ def normalize(data, mean, stddev, eps=0.):
     """
     return (data - mean) / (stddev + eps)
 
+
 def normalize_instance(data, eps=0.):
     """
         Normalize the given tensor using:
@@ -281,7 +249,6 @@ def normalize_instance(data, eps=0.):
     return normalize(data, mean, std, eps), mean, std
 
 
-
 def complex_normalize(data, mean, std, eps=0.0):
     """
     Normalize the given complex tensor using:
@@ -298,6 +265,7 @@ def complex_normalize(data, mean, std, eps=0.0):
     """
     return (data - mean) / (std + eps)
 
+
 def complex_normalize_instance(data, eps=0.):
     """
         Normalize the given tensor using:
@@ -311,18 +279,20 @@ def complex_normalize_instance(data, eps=0.):
         Returns:
             torch.Tensor: Normalized tensor
         """
-    mean = data.mean(dim=[1,2], keepdim=True)
+    mean = data.mean(dim=[1, 2], keepdim=True)
     std = data.std()[None, None, None]
     return complex_normalize(data, mean, std, eps), mean, std
 
-def complex_mult(x,y):
-    real_z = x[...,0]*y[...,0] - x[...,1]*y[...,1]
-    imag_z = x[...,0]*y[...,1] + x[...,1]*y[...,0]
-    return torch.stack([real_z,imag_z], dim=real_z.dim())
+
+def complex_mult(x, y):
+    real_z = x[..., 0] * y[..., 0] - x[..., 1] * y[..., 1]
+    imag_z = x[..., 0] * y[..., 1] + x[..., 1] * y[..., 0]
+    return torch.stack([real_z, imag_z], dim=real_z.dim())
+
 
 def complex_conj(x):
     copy_x = x.clone()
-    copy_x[...,1] = -copy_x[...,1]
+    copy_x[..., 1] = -copy_x[..., 1]
     return copy_x
 
 
