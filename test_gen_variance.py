@@ -151,10 +151,8 @@ def main(args):
     args.in_chans = 2
     args.out_chans = 2
 
-    kspace_gen = get_gen(args, 'kspace')
-    kspace_gen.eval()
-    image_gen = get_gen(args, 'image')
-    image_gen.eval()
+    gen = get_gen(args, args.network_input)
+    gen.eval()
 
     train_loader, dev_loader = create_data_loaders(args, val_only=True)
 
@@ -167,27 +165,21 @@ def main(args):
 
         with torch.no_grad():
             input_w_z = input.to(args.device)
-            kspace_mean, kspace_gens = average_gen(kspace_gen, input_w_z, None, old_input)
-            image_mean, image_gens = average_gen(image_gen, input_w_z, None, old_input)
+            mean, gens = average_gen(gen, input_w_z, None, old_input)
 
             target_batch = prep_input_2_chan(target_full, args.network_input, args, disc=True).to(args.device)
-            kspace_mean_batch = prep_input_2_chan(kspace_mean, args.network_input, args, disc=True).to(args.device)
-            image_mean_batch = prep_input_2_chan(image_mean, args.network_input, args, disc=True).to(args.device)
-            kspace_gens_batch_list = []
-            for val in kspace_gens:
-                kspace_gens_batch_list.append(prep_input_2_chan(val, args.network_input, args, disc=True).to(args.device))
+            mean_batch = prep_input_2_chan(mean, args.network_input, args, disc=True).to(args.device)
+            gens_batch_list = []
+            for val in gens:
+                gens_batch_list.append(prep_input_2_chan(val, args.network_input, args, disc=True).to(args.device))
 
             for j in range(output_batch.shape[0]):
                 if j == 2:
                     true_im = complex_abs(target_batch[j].permute(1, 2, 0))
-                    zfr_im = complex_abs(input_w_z[j].permute(1, 2, 0))
                     gen_kspace_im = complex_abs(kspace_gen_batch[j].permute(1, 2, 0))
-                    gen_image_im = complex_abs(image_gen_batch[j].permute(1, 2, 0))
 
                     true_im_np = true_im.cpu().numpy() * std[j].numpy() + mean[j].numpy()
-                    zfr_im_np = zfr_im.cpu().numpy() * std[j].numpy() + mean[j].numpy()
                     gen_kspace_im_np = gen_kspace_im.cpu().numpy() * std[j].numpy() + mean[j].numpy()
-                    gen_image_im_np = gen_image_im.cpu().numpy() * std[j].numpy() + mean[j].numpy()
 
                     fig = plt.figure(figsize=(18, 9))
                     fig.suptitle('Reconstructions')
@@ -195,11 +187,9 @@ def main(args):
                     generate_image(fig, target, true_im_np, 'GT', 1)
                     generate_image(fig, target, zfr_im_np, 'ZFR', 2)
                     generate_image(fig, target, gen_kspace_im_np, 'K-Space Generator', 3)
-                    generate_image(fig, target, gen_image_im_np, 'Image Generator', 4)
 
                     generate_error_map(fig, target, zfr_im_np, 'ZFR', 8)
-                    generate_error_map(fig, target, gen_kspace_im_np, 'K-Space Generator', 9)
-                    im, ax = generate_error_map(fig, target, gen_image_im_np, 'Image Generator', 10)
+                    im, ax = generate_error_map(fig, target, gen_kspace_im_np, 'K-Space Generator', 9)
 
                     get_colorbar(fig, im, ax)
                     plt.savefig(f'/home/bendel.8/Git_Repos/MRIGAN/recons_{i}.png')
