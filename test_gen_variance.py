@@ -170,16 +170,32 @@ def main(args):
             target_batch = prep_input_2_chan(target_full, args.network_input, args, disc=True).to(args.device)
             mean_batch = prep_input_2_chan(mean, args.network_input, args, disc=True).to(args.device)
             gens_batch_list = []
-            for val in gens:
-                gens_batch_list.append(prep_input_2_chan(val, args.network_input, args, disc=True).to(args.device))
 
             for j in range(output_batch.shape[0]):
                 if j == 2:
                     true_im = complex_abs(target_batch[j].permute(1, 2, 0))
-                    gen_kspace_im = complex_abs(kspace_gen_batch[j].permute(1, 2, 0))
+                    gen_mean_im = complex_abs(mean_batch[j].permute(1, 2, 0))
+                    gens_im_list = []
+                    for val in gens_batch_list:
+                        gens_im_list.append(complex_abs(val[j].permute(1, 2, 0)))
 
                     true_im_np = true_im.cpu().numpy() * std[j].numpy() + mean[j].numpy()
-                    gen_kspace_im_np = gen_kspace_im.cpu().numpy() * std[j].numpy() + mean[j].numpy()
+                    gen_mean_im_np = gen_mean_im.cpu().numpy() * std[j].numpy() + mean[j].numpy()
+                    gen_im_np_list = []
+                    for val in gens_im_list:
+                        gen_im_np_list.append(val.cpu().numpy() * std[j].numpy() + mean[j].numpy())
+
+                    std_dev = np.zeros(gen_mean_im_np.shape)
+                    for val in gens:
+                        std_dev = std_dev + np.pow((val - gen_mean_im_np), 2)
+
+                    std_dev = std_dev / 8
+                    std_dev = np.sqrt(std_dev)
+
+                    plt.figure()
+                    plt.plot(std_dev, cmap='viridis')
+                    plt.savefig('temp_std.png')
+                    exit()
 
                     fig = plt.figure(figsize=(18, 9))
                     fig.suptitle('Reconstructions')
