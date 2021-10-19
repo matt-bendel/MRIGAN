@@ -37,7 +37,7 @@ from torch.nn import functional as F
 
 from data import transforms
 from utils.math import complex_abs
-from models.baseline_unet.unet import UnetModel
+from models.baseline_unet.unet_residual import UnetModelRes
 from utils.general.helper import prep_input_2_chan
 from utils.training.prepare_data import create_data_loaders
 from utils.training.parse_args import create_arg_parser
@@ -165,7 +165,7 @@ def save_model(args, exp_dir, epoch, model, optimizer, best_dev_loss, is_new_bes
 
 
 def build_model(args):
-    model = UnetModel(
+    model = UnetModelRes(
         in_chans=2,
         out_chans=2,
         chans=32,
@@ -204,6 +204,7 @@ def main(args):
         start_epoch = checkpoint['epoch']
         del checkpoint
     else:
+        print('new')
         model = build_model(args)
         if args.data_parallel:
             model = torch.nn.DataParallel(model)
