@@ -189,7 +189,7 @@ def main(args):
 
                     std_dev = np.zeros(gen_mean_im_np.shape)
                     for val in gens:
-                        std_dev = std_dev + np.pow((val - gen_mean_im_np), 2)
+                        std_dev = std_dev + np.power((val - gen_mean_im_np), 2)
 
                     std_dev = std_dev / 8
                     std_dev = np.sqrt(std_dev)
