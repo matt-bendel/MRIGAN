@@ -193,7 +193,7 @@ def main(args):
             kspace_unet_out = kspace_unet(input_k)
             image_unet_out = image_unet(input_im)
 
-            args.network_input = 'image'
+            args.network_input = 'kspace'
             target_batch = prep_input_2_chan(target_full, args.network_input, args, disc=True).to(args.device)
             kspace_gen_batch = prep_input_2_chan(kspace_gen_out, 'kspace', args, disc=True).to(args.device)
             kspace_unet_batch = prep_input_2_chan(kspace_unet_out, 'kspace', args, disc=True).to(args.device)
