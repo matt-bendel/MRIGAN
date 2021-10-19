@@ -2,7 +2,7 @@ import torch
 
 from models.generator.generator import GeneratorModel
 from models.discriminator.discriminator import DiscriminatorModel
-from models.baseline_unet.unet import UnetModel
+from models.baseline_unet.unet_residual import UnetModel
 
 
 def build_model(args):
