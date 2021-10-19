@@ -84,13 +84,15 @@ def generate_image(fig, target, image, method, image_ind, rows, cols):
         ax.set_title(f'PSNR: {psnr_val:.2f}, SNR: {snr_val:.2f}\nSSIM: {ssim_val:.4f}')
 
     if method == 'Std. Dev':
-        ax.imshow(image, cmap='viridis')
+        im = ax.imshow(image, cmap='viridis')
         ax.set_xticks([])
         ax.set_yticks([])
     else:
-        ax.imshow(np.abs(image), cmap='gray', vmin=0, vmax=np.max(target))
+        im = ax.imshow(np.abs(image), cmap='gray', vmin=0, vmax=np.max(target))
         ax.set_xticks([])
         ax.set_yticks([])
+
+    return im, ax
 
 
 def generate_error_map(fig, target, recon, method, image_ind, rows, cols, relative=False, k=1):
@@ -194,7 +196,8 @@ def main(args):
 
                     generate_image(fig, true_im_np, true_im_np, 'GT', 1, 1, 3)
                     generate_image(fig, true_im_np, gen_mean_im_np, 'Mean', 2, 1, 3)
-                    generate_image(fig, true_im_np, std_dev, 'Std. Dev', 3, 1, 3)
+                    im, ax = generate_image(fig, true_im_np, std_dev, 'Std. Dev', 3, 1, 3)
+                    get_colorbar(fig, im, ax)
 
                     plt.savefig(f'/home/bendel.8/Git_Repos/MRIGAN/mean_and_std_{args.network_input}.png')
 
