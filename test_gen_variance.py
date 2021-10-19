@@ -195,7 +195,7 @@ def main(args):
                     std_dev = np.sqrt(std_dev)
 
                     plt.figure()
-                    plt.plot(std_dev, cmap='viridis')
+                    plt.imshow(std_dev, cmap='viridis')
                     plt.savefig('temp_std.png')
                     exit()
 
