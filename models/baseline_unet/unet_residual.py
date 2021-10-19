@@ -81,6 +81,7 @@ class ConvBlock(nn.Module):
             nn.Conv2d(out_chans, out_chans, kernel_size=3, padding=1)
         )
         self.res = ResidualBlock(out_chans, out_chans)
+        print('Res')
 
     def forward(self, input):
         """
