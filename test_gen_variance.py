@@ -92,7 +92,6 @@ def generate_image(fig, target, image, method, image_ind, rows, cols):
         ax.imshow(np.abs(image), cmap='gray', vmin=0, vmax=np.max(target))
         ax.set_xticks([])
         ax.set_yticks([])
-        plt.xlabel(f'{method} Reconstruction')
 
 
 def generate_error_map(fig, target, recon, method, image_ind, rows, cols, relative=False, k=1):
@@ -112,9 +111,6 @@ def generate_error_map(fig, target, recon, method, image_ind, rows, cols, relati
     # Remove axis ticks
     ax.set_xticks([])
     ax.set_yticks([])
-
-    # Assign x label for plot
-    plt.xlabel(f'{method} Relative Error' if relative else f'{method} Absolute Error')
 
     # Return plotted image and its axis in the subplot
     return im, ax
@@ -203,7 +199,7 @@ def main(args):
 
                     plt.savefig(f'/home/bendel.8/Git_Repos/MRIGAN/mean_and_std_{args.network_input}.png')
 
-                    fig = plt.figure(figsize=(16, 16))
+                    fig = plt.figure(figsize=(14, 14))
                     place = 1
                     for val in gen_im_np_list:
                         if place <= 4:
