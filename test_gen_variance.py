@@ -87,7 +87,6 @@ def generate_image(fig, target, image, method, image_ind, rows, cols):
         ax.imshow(image, cmap='viridis')
         ax.set_xticks([])
         ax.set_yticks([])
-        plt.xlabel(f'{method}')
     else:
         ax.imshow(np.abs(image), cmap='gray', vmin=0, vmax=np.max(target))
         ax.set_xticks([])
