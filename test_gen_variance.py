@@ -95,7 +95,7 @@ def generate_image(fig, target, image, method, image_ind, rows, cols):
         plt.xlabel(f'{method} Reconstruction')
 
 
-def generate_error_map(fig, target, recon, method, image_ind, rows, cols, relative=False, k=3):
+def generate_error_map(fig, target, recon, method, image_ind, rows, cols, relative=False, k=1):
     # Assume rows and cols are available globally
     # rows and cols are both previously defined ints
     ax = fig.add_subplot(rows, cols, image_ind)  # Add to subplot
