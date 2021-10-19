@@ -97,7 +97,7 @@ class ConvBlock(nn.Module):
             f'drop_prob={self.drop_prob})'
 
 
-class UnetModel(nn.Module):
+class UnetModelRes(nn.Module):
     """
     PyTorch implementation of a U-Net model.
 

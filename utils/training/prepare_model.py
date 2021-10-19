@@ -2,7 +2,7 @@ import torch
 
 from models.generator.generator import GeneratorModel
 from models.discriminator.discriminator import DiscriminatorModel
-from models.baseline_unet.unet_residual import UnetModel
+from models.baseline_unet.unet_residual import UnetModelRes
 
 
 def build_model(args):
@@ -27,7 +27,7 @@ def build_discriminator(args):
 
 
 def build_unet(args):
-    model = UnetModel(
+    model = UnetModelRes(
         in_chans=2,
         out_chans=2,
         chans=32,
