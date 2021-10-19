@@ -131,16 +131,17 @@ class DataTransform:
         return stacked_masked_kspace, stacked_kspace, mean, std, nnz_index_mask
 
 
-def create_datasets(args):
-    train_data = SelectiveSliceData(
-        root=args.data_path / 'multicoil_train',
-        transform=DataTransform(args),
-        challenge='multicoil',
-        sample_rate=1,
-        use_top_slices=True,
-        number_of_top_slices=args.num_of_top_slices,
-        restrict_size=False,
-    )
+def create_datasets(args, val_only):
+    if not val_only:
+        train_data = SelectiveSliceData(
+            root=args.data_path / 'multicoil_train',
+            transform=DataTransform(args),
+            challenge='multicoil',
+            sample_rate=1,
+            use_top_slices=True,
+            number_of_top_slices=args.num_of_top_slices,
+            restrict_size=False,
+        )
 
     dev_data = SelectiveSliceData_Val(
         root=args.data_path / 'multicoil_val',
@@ -152,11 +153,11 @@ def create_datasets(args):
         restrict_size=False,
     )
 
-    return dev_data, train_data
+    return dev_data, train_data if not val_only else None
 
 
 def create_data_loaders(args, val_only=False):
-    dev_data, train_data = create_datasets(args)
+    dev_data, train_data = create_datasets(args, val_only)
 
     if not val_only:
         train_loader = DataLoader(
