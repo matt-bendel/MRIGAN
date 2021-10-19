@@ -204,7 +204,7 @@ def main(args):
 
                     plt.savefig(f'/home/bendel.8/Git_Repos/MRIGAN/mean_and_std_{args.network_input}.png')
 
-                    fig = plt.figure(figsize=(16, 16))
+                    fig = plt.figure()
                     fig.suptitle(f'Mean and Std. Deviation for 8 {args.network_input} Generations')
                     place = 1
                     for val in gen_im_np_list:
