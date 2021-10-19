@@ -196,7 +196,6 @@ def main(args):
                     std_dev = np.sqrt(std_dev)
 
                     fig = plt.figure()
-                    fig.suptitle(f'Mean and Std. Deviation for 8 {args.network_input} Generations')
 
                     generate_image(fig, true_im_np, true_im_np, 'GT', 1, 1, 3)
                     generate_image(fig, true_im_np, gen_mean_im_np, 'Mean', 2, 1, 3)
@@ -204,8 +203,7 @@ def main(args):
 
                     plt.savefig(f'/home/bendel.8/Git_Repos/MRIGAN/mean_and_std_{args.network_input}.png')
 
-                    fig = plt.figure()
-                    fig.suptitle(f'Mean and Std. Deviation for 8 {args.network_input} Generations')
+                    fig = plt.figure(figsize=(16, 16))
                     place = 1
                     for val in gen_im_np_list:
                         if place <= 4:
