@@ -72,7 +72,7 @@ def average_gen(generator, input_w_z, z, old_input):
     average_gen = torch.zeros(input_w_z.shape).to(args.device)
 
     for j in range(8):
-        z = torch.FloatTensor(np.random.normal(size=(input_w_z.shape[0], args.latent_size), scale=np.sqrt(10000))).to(
+        z = torch.FloatTensor(np.random.normal(size=(input_w_z.shape[0], args.latent_size), scale=np.sqrt(100000))).to(
             args.device)
         output_gen = generator(input=input_w_z, z=z, device=args.device)
 
@@ -216,7 +216,7 @@ def main(args):
                     unet_kspace_im_np = unet_kspace_im.cpu().numpy() * std[j].numpy() + mean[j].numpy()
                     unet_image_im_np = unet_image_im.cpu().numpy() * std[j].numpy() + mean[j].numpy()
 
-                    fig = plt.figure(figsize=(18, 9))
+                    fig = plt.figure(figsize=(12, 6))
                     fig.suptitle('Reconstructions')
 
                     generate_image(fig, true_im_np, true_im_np, 'GT', 1)

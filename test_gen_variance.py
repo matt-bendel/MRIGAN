@@ -58,7 +58,7 @@ def average_gen(generator, input_w_z, z, old_input):
     average_gen = torch.zeros(input_w_z.shape).to(args.device)
     gen_list = []
     for j in range(8):
-        z = torch.FloatTensor(np.random.normal(size=(input_w_z.shape[0], args.latent_size), scale=np.sqrt(10000))).to(
+        z = torch.FloatTensor(np.random.normal(size=(input_w_z.shape[0], args.latent_size), scale=np.sqrt(100000))).to(
             args.device)
         output_gen = generator(input=input_w_z, z=z, device=args.device)
 
@@ -74,21 +74,28 @@ def average_gen(generator, input_w_z, z, old_input):
     return torch.div(average_gen, 8), gen_list
 
 
-def generate_image(fig, target, image, method, image_ind):
+def generate_image(fig, target, image, method, image_ind, rows, cols):
     # rows and cols are both previously defined ints
     ax = fig.add_subplot(rows, cols, image_ind)
-    if method != 'GT':
+    if method != 'GT' and method != 'Std. Dev':
         psnr_val = psnr(target, image)
         snr_val = get_snr(target, image)
         ssim_val = get_ssim(target, image)
         ax.set_title(f'PSNR: {psnr_val:.2f}, SNR: {snr_val:.2f}\nSSIM: {ssim_val:.4f}')
-    ax.imshow(np.abs(image), cmap='gray', vmin=0, vmax=np.max(target))
-    ax.set_xticks([])
-    ax.set_yticks([])
-    plt.xlabel(f'{method} Reconstruction')
+
+    if method == 'Std. Dev':
+        ax.imshow(image, cmap='viridis')
+        ax.set_xticks([])
+        ax.set_yticks([])
+        plt.xlabel(f'{method}')
+    else:
+        ax.imshow(np.abs(image), cmap='gray', vmin=0, vmax=np.max(target))
+        ax.set_xticks([])
+        ax.set_yticks([])
+        plt.xlabel(f'{method} Reconstruction')
 
 
-def generate_error_map(fig, target, recon, method, image_ind, relative=False, k=3):
+def generate_error_map(fig, target, recon, method, image_ind, rows, cols, relative=False, k=3):
     # Assume rows and cols are available globally
     # rows and cols are both previously defined ints
     ax = fig.add_subplot(rows, cols, image_ind)  # Add to subplot
@@ -168,7 +175,7 @@ def main(args):
                 gens_batch_list.append(prep_input_2_chan(val, args.network_input, args, disc=True).to(args.device))
 
             for j in range(mean_batch.shape[0]):
-                if j == 2:
+                if j == 5:
                     true_im = complex_abs(target_batch[j].permute(1, 2, 0))
                     gen_mean_im = complex_abs(mean_batch[j].permute(1, 2, 0))
                     gens_im_list = []
@@ -188,20 +195,26 @@ def main(args):
                     std_dev = std_dev / 8
                     std_dev = np.sqrt(std_dev)
 
-                    plt.figure()
-                    plt.imshow(std_dev, cmap='viridis')
-                    plt.savefig('temp_std.png')
-                    exit()
+                    fig = plt.figure()
+                    fig.suptitle(f'Mean and Std. Deviation for 8 {args.network_input} Generations')
 
-                    fig = plt.figure(figsize=(18, 9))
-                    fig.suptitle('Reconstructions')
+                    generate_image(fig, target, true_im_np, 'GT', 1, 1, 3)
+                    generate_image(fig, target, gen_mean_im_np, 'Mean', 2, 1, 3)
+                    generate_image(fig, target, std_dev, 'Std. Dev', 3, 1, 3)
 
-                    generate_image(fig, target, true_im_np, 'GT', 1)
-                    generate_image(fig, target, zfr_im_np, 'ZFR', 2)
-                    generate_image(fig, target, gen_kspace_im_np, 'K-Space Generator', 3)
+                    plt.savefig(f'/home/bendel.8/Git_Repos/MRIGAN/mean_and_std_{args.network_input}.png')
 
-                    generate_error_map(fig, target, zfr_im_np, 'ZFR', 8)
-                    im, ax = generate_error_map(fig, target, gen_kspace_im_np, 'K-Space Generator', 9)
+                    fig = plt.figure(figsize=(16, 16))
+                    fig.suptitle(f'Mean and Std. Deviation for 8 {args.network_input} Generations')
+                    place = 1
+                    for val in gen_im_np_list:
+                        if place <= 4:
+                            generate_image(fig, target, val, f'z {place}', place, 4, 4)
+                            im, ax = generate_error_map(fig, target, val, f'z {place}', place + 4, 4, 4)
+                        else:
+                            generate_image(fig, target, val, f'z {place}', place + 4, 4, 4)
+                            im, ax = generate_error_map(fig, target, val, f'z {place}', place + 8, 4, 4)
+                        place += 1
 
                     get_colorbar(fig, im, ax)
                     plt.savefig(f'/home/bendel.8/Git_Repos/MRIGAN/recons_{i}.png')
@@ -211,8 +224,6 @@ def main(args):
 
 
 if __name__ == '__main__':
-    rows = 2
-    cols = 6
     cuda = True if torch.cuda.is_available() else False
     Tensor = torch.FloatTensor
 
