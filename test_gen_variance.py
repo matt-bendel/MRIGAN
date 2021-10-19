@@ -188,7 +188,7 @@ def main(args):
                         gen_im_np_list.append(val.cpu().numpy() * std[j].cpu().numpy() + mean[j].cpu().numpy())
 
                     std_dev = np.zeros(gen_mean_im_np.shape)
-                    for val in gens:
+                    for val in gen_im_np_list:
                         std_dev = std_dev + np.power((val - gen_mean_im_np), 2)
 
                     std_dev = std_dev / 8
