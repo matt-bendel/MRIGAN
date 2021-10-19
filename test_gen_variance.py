@@ -181,11 +181,11 @@ def main(args):
                     for val in gens_batch_list:
                         gens_im_list.append(complex_abs(val[j].permute(1, 2, 0)))
 
-                    true_im_np = true_im.cpu().numpy() * std[j].numpy() + mean[j].numpy()
-                    gen_mean_im_np = gen_mean_im.cpu().numpy() * std[j].numpy() + mean[j].numpy()
+                    true_im_np = true_im.cpu().numpy() * std[j].cpu().numpy() + mean[j].cpu().numpy()
+                    gen_mean_im_np = gen_mean_im.cpu().numpy() * std[j].cpu().numpy() + mean[j].cpu().numpy()
                     gen_im_np_list = []
                     for val in gens_im_list:
-                        gen_im_np_list.append(val.cpu().numpy() * std[j].numpy() + mean[j].numpy())
+                        gen_im_np_list.append(val.cpu().numpy() * std[j].cpu().numpy() + mean[j].cpu().numpy())
 
                     std_dev = np.zeros(gen_mean_im_np.shape)
                     for val in gens:
