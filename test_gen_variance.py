@@ -184,7 +184,9 @@ def main(args):
                     true_im_np = true_im.cpu().numpy() * std[j].cpu().numpy() + mean[j].cpu().numpy()
                     gen_mean_im_np = gen_mean_im.cpu().numpy() * std[j].cpu().numpy() + mean[j].cpu().numpy()
                     gen_im_np_list = []
+                    print(gen_mean_im_np.shape)
                     for val in gens_im_list:
+                        print(val.shape)
                         gen_im_np_list.append(val.cpu().numpy() * std[j].cpu().numpy() + mean[j].cpu().numpy())
 
                     std_dev = np.zeros(gen_mean_im_np.shape)
