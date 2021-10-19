@@ -201,7 +201,7 @@ def main(args):
             image_unet_batch = prep_input_2_chan(image_unet_out, 'image', args, disc=True).to(args.device)
 
             for j in range(target_batch.shape[0]):
-                if j == 3:
+                if j == 2:
                     true_im = complex_abs(target_batch[j].permute(1, 2, 0))
                     zfr_im = complex_abs(input_im[j].permute(1, 2, 0))
                     gen_kspace_im = complex_abs(kspace_gen_batch[j].permute(1, 2, 0))
