@@ -216,7 +216,7 @@ def main(args):
                     unet_kspace_im_np = unet_kspace_im.cpu().numpy() * std[j].numpy() + mean[j].numpy()
                     unet_image_im_np = unet_image_im.cpu().numpy() * std[j].numpy() + mean[j].numpy()
 
-                    fig = plt.figure(figsize=(12, 6))
+                    fig = plt.figure(figsize=(18, 9))
                     fig.suptitle('Reconstructions')
 
                     generate_image(fig, true_im_np, true_im_np, 'GT', 1)
