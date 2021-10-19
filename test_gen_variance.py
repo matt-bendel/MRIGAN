@@ -170,8 +170,10 @@ def main(args):
             target_batch = prep_input_2_chan(target_full, args.network_input, args, disc=True).to(args.device)
             mean_batch = prep_input_2_chan(mean, args.network_input, args, disc=True).to(args.device)
             gens_batch_list = []
+            for val in gens:
+                gens_batch_list.append(prep_input_2_chan(val, args.network_input, args, disc=True).to(args.device))
 
-            for j in range(output_batch.shape[0]):
+            for j in range(mean_batch.shape[0]):
                 if j == 2:
                     true_im = complex_abs(target_batch[j].permute(1, 2, 0))
                     gen_mean_im = complex_abs(mean_batch[j].permute(1, 2, 0))
