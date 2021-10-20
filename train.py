@@ -33,6 +33,7 @@ from utils.training.prepare_data import create_data_loaders
 from utils.training.parse_args import create_arg_parser
 from utils.training.prepare_model import resume_train, fresh_start
 from utils.general.helper import get_inverse_mask, readd_measures_im, prep_input_2_chan
+from torch.nn import functional as F
 
 # Tunable weight for gradient penalty
 lambda_gp = 10
