@@ -198,6 +198,7 @@ def main(args):
     writer = SummaryWriter(log_dir=str(args.exp_dir / 'summary'))
 
     if args.resume:
+        args.checkpoint = pathlib.Path(f'/home/bendel.8/trained_models/baseline/{args.network_input}/model.pt')
         checkpoint, model, optimizer = load_model(args.checkpoint)
         args = checkpoint['args']
         best_dev_loss = checkpoint['best_dev_loss']
