@@ -275,7 +275,7 @@ def main(args):
                 # Loss measures generator's ability to fool the discriminator
                 # Train on fake images
                 fake_validity = discriminator(disc_inp)
-                g_loss = -torch.mean(fake_validity)
+                g_loss = -torch.mean(fake_validity) + F.l1_loss(disc_inp, disc_target_batch)
 
                 g_loss.backward()
                 optimizer_G.step()
