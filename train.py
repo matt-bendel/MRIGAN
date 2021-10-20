@@ -23,6 +23,7 @@ import random
 import os
 import shutil
 import torch
+import pytorch_ssim
 
 import numpy as np
 import torch.autograd as autograd
@@ -52,6 +53,10 @@ CONSTANT_PLOTS = {
     'gt': None
 }
 
+def mssim_tensor(gt, pred):
+    """ Compute Normalized Mean Squared Error (NMSE) """
+    ssim_loss = pytorch_ssim.SSIM()
+    return ssim_loss(gt, pred)
 
 def save_model(args, epoch, model, optimizer, best_dev_loss, is_new_best, m_type):
     torch.save(
@@ -276,7 +281,7 @@ def main(args):
                 # Loss measures generator's ability to fool the discriminator
                 # Train on fake images
                 fake_validity = discriminator(disc_inp)
-                g_loss = -torch.mean(fake_validity) + F.l1_loss(disc_inp, disc_target_batch)
+                g_loss = -torch.mean(fake_validity) - 10 * mssim_tensor(disc_target_batch, disc_inp)
 
                 g_loss.backward()
                 optimizer_G.step()
