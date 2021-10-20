@@ -142,10 +142,10 @@ def plot_epoch(args, generator, epoch):
     z_1_prep = prep_input_2_chan(refined_z_1_out, args.network_input, args, disc=True)[0]
 
     target_im = complex_abs(target_prep.permute(1, 2, 0)) * std + mean
-    target_im = target_im.numpy()
+    target_im = target_im.cpu().numpy()
 
     zfr = complex_abs(zfr.permute(1, 2, 0)) * std + mean
-    zfr = zfr.numpy()
+    zfr = zfr.cpu().numpy()
 
     z_1_im = complex_abs(z_1_prep.permute(1, 2, 0)) * std + mean
     z_1_im = z_1_im.detach().cpu().numpy()
