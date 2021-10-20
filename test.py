@@ -55,7 +55,7 @@ def ssim(
 
 def non_average_gen(generator, input_w_z, z, old_input):
     start = time.perf_counter()
-    output_gen = generator(input=input_w_z, z=z, device=args.device)
+    output_gen = generator(input=input_w_z, z=z)
     finish = time.perf_counter() - start
 
     if args.network_input == 'kspace':
@@ -73,7 +73,7 @@ def average_gen(generator, input_w_z, z, old_input):
 
     for j in range(16):
         z = torch.FloatTensor(np.random.normal(size=(input_w_z.shape[0], args.latent_size), scale=np.sqrt(100000))).to(args.device)
-        output_gen = generator(input=input_w_z, z=z, device=args.device)
+        output_gen = generator(input=input_w_z, z=z)
 
         if args.network_input == 'kspace':
             # refined_out = output_gen + old_input[:, 0:16]
