@@ -1,6 +1,6 @@
 import torch
 
-from models.generator.generator import GeneratorModel
+from models.generator.generator_experimental import GeneratorModel
 from models.discriminator.discriminator import DiscriminatorModel
 from models.baseline_unet.unet_residual import UnetModelRes
 
@@ -10,7 +10,6 @@ def build_model(args):
         in_chans=args.in_chans,
         out_chans=args.out_chans,
         z_location=args.z_location,
-        model_type=args.network_input,
         latent_size=args.latent_size
     ).to(torch.device('cuda'))
     return model

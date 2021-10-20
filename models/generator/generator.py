@@ -131,7 +131,7 @@ class FullUpBlock(nn.Module):
 
 
 class GeneratorModel(nn.Module):
-    def __init__(self, in_chans, out_chans, z_location, model_type, latent_size=None):
+    def __init__(self, in_chans, out_chans, z_location, latent_size=None):
         """
         Args:
             in_chans (int): Number of channels in the input to the U-Net model.
@@ -142,7 +142,6 @@ class GeneratorModel(nn.Module):
         self.in_chans = in_chans
         self.out_chans = out_chans
         self.z_location = z_location
-        self.model_type = model_type
         self.latent_size = latent_size
 
         self.initial_layers = nn.Sequential(
