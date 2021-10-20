@@ -135,7 +135,7 @@ def plot_epoch(args, generator, epoch):
 
     generator.eval()
     with torch.no_grad():
-        z_1_out = generator(input=z_1, z=z, device=args.device)
+        z_1_out = generator(input=z_1, z=z)
 
     if args.network_input == 'kspace':
         refined_z_1_out = z_1_out.cpu() + CONSTANT_PLOTS['measures'].unsqueeze(0)
@@ -223,7 +223,7 @@ def main(args):
                     optimizer_D.zero_grad()
 
                     input_w_z = input_w_z.to(args.device)
-                    output_gen = generator(input_w_z, z, device=args.device)
+                    output_gen = generator(input_w_z, z)
 
                     if args.network_input == 'kspace':
                         # refined_out = output_gen + old_input[:, 0:16]
@@ -268,7 +268,7 @@ def main(args):
                 # Generate a batch of images
                 z = torch.FloatTensor(
                     np.random.normal(size=(input.shape[0], args.latent_size), scale=np.sqrt(0.001))).to(args.device)
-                output_gen = generator(input_w_z.to(args.device), z, device=args.device)
+                output_gen = generator(input_w_z.to(args.device), z)
 
                 if args.network_input == 'kspace':
                     refined_out = output_gen + old_input[:]
