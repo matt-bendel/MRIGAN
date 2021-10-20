@@ -68,7 +68,7 @@ def readd_measures_im(data_tensor, old, args):
 
 def prep_input_2_chan(data_tensor, unet_type, args, disc=False, disc_image=True):
     im_size = 96
-    disc_inp = torch.zeros(data_tensor.shape[0], 2, im_size, im_size)
+    disc_inp = torch.zeros(data_tensor.shape[0], 2, im_size, im_size).to(args.device)
 
     if disc and disc_image:
         for k in range(data_tensor.shape[0]):
