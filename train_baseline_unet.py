@@ -37,7 +37,7 @@ from torch.nn import functional as F
 
 from data import transforms
 from utils.math import complex_abs
-from models.baseline_unet.unet_residual import UnetModelRes
+from models.baseline_unet.unet_gen import UnetModel
 from utils.general.helper import prep_input_2_chan
 from utils.training.prepare_data import create_data_loaders
 from utils.training.parse_args import create_arg_parser
@@ -84,7 +84,9 @@ def train_epoch(args, epoch, model, data_loader, optimizer, writer):
         input = prep_input_2_chan(input, args.network_input, args)
         target = prep_input_2_chan(target, args.network_input, args)
 
-        output = model(input)  # .squeeze(1)
+        z = torch.zeros((input.shape[0], 512))
+
+        output = model(input, z)  # .squeeze(1)
 
         target_im = prep_input_2_chan(target, args.network_input, args, disc=True).to(args.device).permute(0, 2, 3, 1)
         output_im = prep_input_2_chan(output, args.network_input, args, disc=True).to(args.device).permute(0, 2, 3, 1)
@@ -125,7 +127,9 @@ def evaluate(args, epoch, model, data_loader, writer):
             input = prep_input_2_chan(input, args.network_input, args)
             target = prep_input_2_chan(target, args.network_input, args)
 
-            output = model(input)
+            z = torch.zeros((input.shape[0], 512))
+
+            output = model(input, z)
 
             target_im = prep_input_2_chan(target, args.network_input, args, disc=True).to(args.device).permute(0, 2, 3, 1)
             output_im = prep_input_2_chan(output, args.network_input, args, disc=True).to(args.device).permute(0, 2, 3, 1)
@@ -165,11 +169,11 @@ def save_model(args, exp_dir, epoch, model, optimizer, best_dev_loss, is_new_bes
 
 
 def build_model(args):
-    model = UnetModelRes(
+    model = UnetModel(
         in_chans=2,
         out_chans=2,
-        chans=32,
-        num_pool_layers=5,
+        z_location=1,
+        latent_size=512,
     ).to(torch.device('cuda'))
     return model
 
