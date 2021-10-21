@@ -37,7 +37,7 @@ from torch.nn import functional as F
 
 from data import transforms
 from utils.math import complex_abs
-from models.baseline_unet.unet_gen import UnetModel
+from models.generator.generator_experimental import GeneratorModel
 from utils.general.helper import prep_input_2_chan
 from utils.training.prepare_data import create_data_loaders
 from utils.training.parse_args import create_arg_parser
@@ -169,10 +169,10 @@ def save_model(args, exp_dir, epoch, model, optimizer, best_dev_loss, is_new_bes
 
 
 def build_model(args):
-    model = UnetModel(
+    model = GeneratorModel(
         in_chans=2,
         out_chans=2,
-        z_location=1,
+        z_location=2,
         latent_size=512,
     ).to(torch.device('cuda'))
     return model
