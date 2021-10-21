@@ -235,7 +235,7 @@ def main(args):
                     disc_target_batch = prep_input_2_chan(target_full, args.network_input, args, disc=True,
                                                           disc_image=not args.disc_kspace).to(
                         args.device)
-                    disc_output_batch = prep_input_2_chan(output_gen, args.network_input, args, disc=True,
+                    disc_output_batch = prep_input_2_chan(refined_out, args.network_input, args, disc=True,
                                                           disc_image=not args.disc_kspace).to(args.device)
 
                     if first:
@@ -275,7 +275,7 @@ def main(args):
                 else:
                     refined_out = readd_measures_im(output_gen, old_input.to(args.device), args)
 
-                disc_inp = prep_input_2_chan(output_gen, args.network_input, args, disc=True,
+                disc_inp = prep_input_2_chan(refined_out, args.network_input, args, disc=True,
                                              disc_image=not args.disc_kspace)
 
                 # Loss measures generator's ability to fool the discriminator

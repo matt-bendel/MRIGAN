@@ -38,7 +38,7 @@ from torch.nn import functional as F
 from data import transforms
 from utils.math import complex_abs
 from models.generator.generator_experimental import GeneratorModel
-from utils.general.helper import prep_input_2_chan
+from utils.general.helper import prep_input_2_chan, readd_measures_im
 from utils.training.prepare_data import create_data_loaders
 from utils.training.parse_args import create_arg_parser
 from skimage.metrics import structural_similarity
@@ -88,6 +88,8 @@ def train_epoch(args, epoch, model, data_loader, optimizer, writer):
 
         output = model(input, z)  # .squeeze(1)
 
+        output = readd_measures_im(output, input, args)
+
         target_im = prep_input_2_chan(target, args.network_input, args, disc=True).to(args.device).permute(0, 2, 3, 1)
         output_im = prep_input_2_chan(output, args.network_input, args, disc=True).to(args.device).permute(0, 2, 3, 1)
 
@@ -130,6 +132,8 @@ def evaluate(args, epoch, model, data_loader, writer):
             z = torch.zeros((input.shape[0], 512))
 
             output = model(input, z)
+
+            output = readd_measures_im(output, input, args)
 
             target_im = prep_input_2_chan(target, args.network_input, args, disc=True).to(args.device).permute(0, 2, 3, 1)
             output_im = prep_input_2_chan(output, args.network_input, args, disc=True).to(args.device).permute(0, 2, 3, 1)
