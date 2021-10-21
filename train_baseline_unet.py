@@ -192,7 +192,8 @@ def load_model(checkpoint_file):
 
 
 def build_optim(args, params):
-    optimizer = torch.optim.RMSprop(params, 0.0003)
+    # optimizer = torch.optim.RMSprop(params, 0.0003)
+    optimizer = torch.optim.Adam(params, lr=args.lr, betas=(args.beta_1, args.beta_2))
     return optimizer
 
 
