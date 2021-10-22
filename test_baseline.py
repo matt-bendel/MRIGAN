@@ -80,8 +80,9 @@ def main(args):
 
             with torch.no_grad():
                 input_w_z = input.to(args.device)
+                z = torch.zeros((input.shape[0], 512))
                 start = time.perf_counter()
-                refined_out = unet(input_w_z)
+                refined_out = unet(input_w_z, z)
                 finish = time.perf_counter() - start
 
                 target_batch = prep_input_2_chan(target_full, args.network_input, args, disc=True).to(args.device)
