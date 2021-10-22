@@ -71,7 +71,7 @@ def main(args):
             'snr': [],
             'time': []
         }
-        
+
         for i, data in enumerate(dev_loader):
             input, target_full, mean, std, nnz_index_mask = data
 
@@ -84,6 +84,8 @@ def main(args):
                 start = time.perf_counter()
                 refined_out = unet(input_w_z, z)
                 finish = time.perf_counter() - start
+
+                refined_out = readd_measures_im(refined_out, input, args)
 
                 target_batch = prep_input_2_chan(target_full, args.network_input, args, disc=True).to(args.device)
                 output_batch = prep_input_2_chan(refined_out, args.network_input, args, disc=True).to(args.device)
