@@ -37,7 +37,7 @@ from torch.nn import functional as F
 
 from data import transforms
 from utils.math import complex_abs
-from models.generator.generator_experimental import GeneratorModel
+from models.generator.generator import GeneratorModel
 from utils.general.helper import prep_input_2_chan, readd_measures_im
 from utils.training.prepare_data import create_data_loaders
 from utils.training.parse_args import create_arg_parser
