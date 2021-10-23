@@ -231,6 +231,7 @@ def main(args):
     train_loader, dev_loader = create_data_loaders(args)
 
     first = True
+    best_loss_val = 0
 
     with open(f'trained_models/{args.network_input}/loss_{args.z_location}.txt', 'w') as loss_file:
         for epoch in range(start_epoch, args.num_epochs):
@@ -370,9 +371,9 @@ def main(args):
                     if i == 10:
                         break
 
-            best_model = True  # val_data()
-            best_loss_val = 1e9  # val_data()
-            ssim_loss = 0
+            psnr_loss = np.mean(losses['psnr'])
+            best_model = psnr_loss > best_loss_val
+            best_loss_val = psnr_loss if psnr_loss > best_loss_val else best_loss_val
 
             GLOBAL_LOSS_DICT['g_loss'].append(np.mean(batch_loss['g_loss']))
             GLOBAL_LOSS_DICT['d_loss'].append(np.mean(batch_loss['d_loss']))
