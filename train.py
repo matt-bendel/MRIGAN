@@ -357,7 +357,7 @@ def main(args):
                     target_im = prep_input_2_chan(target_full, args.network_input, args, disc=True).to(args.device).permute(
                         0, 2, 3, 1)
 
-                    for k in range(output_im.shape[0]):
+                    for k in range(ims.shape[0]):
                         output = complex_abs(ims[k])
                         target = complex_abs(target_im[k])
 
