@@ -53,10 +53,12 @@ CONSTANT_PLOTS = {
     'gt': None
 }
 
+
 def mssim_tensor(gt, pred):
     """ Compute Normalized Mean Squared Error (NMSE) """
     ssim_loss = pytorch_ssim.SSIM()
     return ssim_loss(gt, pred)
+
 
 def save_model(args, epoch, model, optimizer, best_dev_loss, is_new_best, m_type):
     torch.save(
@@ -68,12 +70,12 @@ def save_model(args, epoch, model, optimizer, best_dev_loss, is_new_best, m_type
             'best_dev_loss': best_dev_loss,
             'exp_dir': args.exp_dir
         },
-        f=args.exp_dir / args.network_input / str(args.z_location) / f'{m_type}_model.pt'
+        f=args.exp_dir / args.network_input / f'{args.z_location}_mse' / f'{m_type}_model.pt'
     )
 
     if is_new_best:
-        shutil.copyfile(args.exp_dir / args.network_input / str(args.z_location) / f'{m_type}_model.pt',
-                        args.exp_dir / args.network_input / str(args.z_location) / f'{m_type}_best_model.pt'
+        shutil.copyfile(args.exp_dir / args.network_input / f'{args.z_location}_mse' / f'{m_type}_model.pt',
+                        args.exp_dir / args.network_input / f'{args.z_location}_mse' / f'{m_type}_best_model.pt'
                         )
 
 
@@ -166,7 +168,7 @@ def plot_epoch(args, generator, epoch):
     generate_error_map(fig, target_im, z_1_im, 6, 1, max_val)
 
     plt.savefig(
-        f'/home/bendel.8/Git_Repos/MRIGAN/training_images/2_chan_z_mid/gen_{args.network_input}_{args.z_location}_{epoch + 1}.png')
+        f'/home/bendel.8/Git_Repos/MRIGAN/training_images_mse/gen_{args.network_input}_{args.z_location}_{epoch + 1}.png')
 
 
 def save_metrics(args):
@@ -180,6 +182,8 @@ def main(args):
 
     args.in_chans = 17 if args.z_location == 3 else 2
     args.out_chans = 2
+
+    mse = torch.nn.MSELoss()
 
     if args.resume:
         generator, optimizer_G, discriminator, optimizer_D, args, best_dev_loss, start_epoch = resume_train(args)
@@ -281,7 +285,8 @@ def main(args):
                 # Loss measures generator's ability to fool the discriminator
                 # Train on fake images
                 fake_validity = discriminator(disc_inp)
-                g_loss = -0.1*torch.mean(fake_validity) + 10*F.l1_loss(disc_target_batch, disc_inp) -  mssim_tensor(disc_target_batch, disc_inp)
+                g_loss = -0.1 * torch.mean(fake_validity) + mse(disc_inp, disc_target_batch) - 5 * mssim_tensor(
+                    disc_target_batch, disc_inp)
 
                 g_loss.backward()
                 optimizer_G.step()
