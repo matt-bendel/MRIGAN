@@ -350,11 +350,11 @@ def main(args):
 
                     output_gen = generator(input, z)
 
-                    refined_out = readd_measures_im(output_gen, old_input.to(args.device), args)
+                    refined_out = readd_measures_im(output_gen, input, args)
 
                     ims = prep_input_2_chan(refined_out, args.network_input, args, disc=True,
                                             disc_image=not args.disc_kspace).permute(0, 2, 3, 1)
-                    target_im = prep_input_2_chan(target, args.network_input, args, disc=True).to(args.device).permute(
+                    target_im = prep_input_2_chan(target_full, args.network_input, args, disc=True).to(args.device).permute(
                         0, 2, 3, 1)
 
                     for k in range(output_im.shape[0]):
