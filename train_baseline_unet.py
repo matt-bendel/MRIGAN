@@ -93,7 +93,7 @@ def train_epoch(args, epoch, model, data_loader, optimizer, writer):
         target_im = prep_input_2_chan(target, args.network_input, args, disc=True).to(args.device).permute(0, 2, 3, 1)
         output_im = prep_input_2_chan(output, args.network_input, args, disc=True).to(args.device).permute(0, 2, 3, 1)
 
-        loss = 0.001 * F.l1_loss(output_im, target_im) - mssim_tensor(target_im, output_im)
+        loss = 0.1 * mse(output_im, target_im) - mssim_tensor(target_im, output_im)
         optimizer.zero_grad()
         loss.backward()
         optimizer.step()
@@ -241,6 +241,7 @@ def main(args):
 
 
 if __name__ == '__main__':
+    mse = torch.nn.MSELoss()
     args = create_arg_parser().parse_args()
     args.num_epochs = 50
     # restrict visible cuda devices
