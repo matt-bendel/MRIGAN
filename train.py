@@ -35,6 +35,7 @@ from utils.training.parse_args import create_arg_parser
 from utils.training.prepare_model import resume_train, fresh_start
 from utils.general.helper import get_inverse_mask, readd_measures_im, prep_input_2_chan
 from torch.nn import functional as F
+from skimage.metrics import peak_signal_noise_ratio, structural_similarity
 
 # Tunable weight for gradient penalty
 lambda_gp = 10
@@ -52,6 +53,35 @@ CONSTANT_PLOTS = {
     'std': None,
     'gt': None
 }
+
+
+def psnr(
+        gt: np.ndarray, pred: np.ndarray, maxval: Optional[float] = None
+) -> np.ndarray:
+    """Compute Peak Signal to Noise Ratio metric (PSNR)"""
+    if maxval is None:
+        maxval = gt.max()
+    psnr_val = peak_signal_noise_ratio(gt, pred, data_range=maxval)
+
+    return psnr_val
+
+
+def ssim(
+        gt: np.ndarray, pred: np.ndarray, maxval: Optional[float] = None
+) -> np.ndarray:
+    """Compute Structural Similarity Index Metric (SSIM)"""
+    # if not gt.ndim == 3:
+    #   raise ValueError("Unexpected number of dimensions in ground truth.")
+    if not gt.ndim == pred.ndim:
+        raise ValueError("Ground truth dimensions does not match pred.")
+
+    maxval = gt.max() if maxval is None else maxval
+
+    ssim = structural_similarity(
+        gt, pred, data_range=maxval
+    )
+
+    return ssim
 
 
 def mssim_tensor(gt, pred):
@@ -217,10 +247,11 @@ def main(args):
 
                 old_input = input.to(args.device)
 
+                input_w_z = input  # add_z_to_input(args, input)
+
                 for j in range(args.num_iters_discriminator):
                     z = torch.FloatTensor(
                         np.random.normal(size=(input.shape[0], args.latent_size), scale=np.sqrt(0.001))).to(args.device)
-                    input_w_z = input  # add_z_to_input(args, input)
                     # ---------------------
                     #  Train Discriminator
                     # ---------------------
@@ -300,16 +331,43 @@ def main(args):
                        g_loss.item())
                 )
 
-            # TODO: ADD VALIDATION HERE - ONLY A SMALL SUBSET OF VAL DATA, LIKE 1500 IMAGES (~10 BATCHES)
-            # for i, data in enumerate(train_loader):
-            #     input, target_full, mean, std, nnz_index_mask = data
-            #
-            #     input = prep_input_2_chan(input, args.network_input, args)
-            #     target_full = prep_input_2_chan(target_full, args.network_input, args)
-            #
-            #     old_input = input.to(args.device)
-            #     if i == 10:
-            #         break
+            losses = {
+                'psnr': [],
+                'ssim': []
+            }
+
+            for i, data in enumerate(train_loader):
+                generator.eval()
+                with torch.no_grad():
+                    input, target_full, mean, std, nnz_index_mask = data
+
+                    input = prep_input_2_chan(input, args.network_input, args).to(args.device)
+                    target_full = prep_input_2_chan(target_full, args.network_input, args).to(args.device)
+
+                    z = torch.FloatTensor(
+                        np.random.normal(size=(input.shape[0], args.latent_size), scale=np.sqrt(1))).to(args.device)
+
+                    output_gen = generator(input, z)
+
+                    refined_out = readd_measures_im(output_gen, old_input.to(args.device), args)
+
+                    ims = prep_input_2_chan(refined_out, args.network_input, args, disc=True,
+                                            disc_image=not args.disc_kspace).permute(0, 2, 3, 1)
+                    target_im = prep_input_2_chan(target, args.network_input, args, disc=True).to(args.device).permute(
+                        0, 2, 3, 1)
+
+                    for k in range(output_im.shape[0]):
+                        output = complex_abs(ims[k])
+                        target = complex_abs(target_im[k])
+
+                        output = output.cpu().numpy() * std[k].numpy() + mean[k].numpy()
+                        target = target.cpu().numpy() * std[k].numpy() + mean[k].numpy()
+
+                        losses['ssim'].append(ssim(target, output))
+                        losses['psnr'].append(psnr(target, output))
+
+                    if i == 10:
+                        break
 
             best_model = True  # val_data()
             best_loss_val = 1e9  # val_data()
@@ -318,11 +376,13 @@ def main(args):
             GLOBAL_LOSS_DICT['g_loss'].append(np.mean(batch_loss['g_loss']))
             GLOBAL_LOSS_DICT['d_loss'].append(np.mean(batch_loss['d_loss']))
             GLOBAL_LOSS_DICT['d_acc'].append(np.mean(batch_loss['d_acc']))
-            GLOBAL_LOSS_DICT['mSSIM'].append(ssim_loss)
 
             save_str = f"END OF EPOCH {epoch + 1}: [Average D loss: {GLOBAL_LOSS_DICT['d_loss'][epoch]:.4f}] [Average D Acc: {GLOBAL_LOSS_DICT['d_acc'][epoch]:.4f}] [Average G loss: {GLOBAL_LOSS_DICT['g_loss'][epoch]:.4f}]\n"
             print(save_str)
             loss_file.write(save_str)
+
+            save_str_2 = f"[Avg PSNR: {np.mean(losses['psnr']):.2f}] [Avg SSIM: {np.mean(losses['ssim']):.4f}]"
+            print(save_str_2)
 
             save_model(args, epoch, generator, optimizer_G, best_loss_val, best_model, 'generator')
             save_model(args, epoch, discriminator, optimizer_D, best_loss_val, best_model, 'discriminator')
