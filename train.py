@@ -101,7 +101,7 @@ def save_model(args, epoch, model, optimizer, best_dev_loss, is_new_best, m_type
             'best_dev_loss': best_dev_loss,
             'exp_dir': args.exp_dir
         },
-        f=args.exp_dir / args.network_input / f'{args.z_location}_mse' / f'{m_type}_model.pt'
+        f=args.exp_dir / args.network_input / f'{args.z_location}_mse_2' / f'{m_type}_model.pt'
     )
 
     if is_new_best:
@@ -318,7 +318,7 @@ def main(args):
                 # Loss measures generator's ability to fool the discriminator
                 # Train on fake images
                 fake_validity = discriminator(disc_inp)
-                g_loss = -0.1 * torch.mean(fake_validity) + 10 * mse(disc_inp, disc_target_batch) - mssim_tensor(
+                g_loss = -0.1 * torch.mean(fake_validity) + 20 * mse(disc_inp, disc_target_batch) - 5 * mssim_tensor(
                     disc_target_batch, disc_inp)
 
                 g_loss.backward()
