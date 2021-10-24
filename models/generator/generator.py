@@ -40,12 +40,12 @@ class ResidualBlock(nn.Module):
         if self.in_chans != self.out_chans:
             self.out_chans = self.in_chans
 
-        self.norm = nn.InstanceNorm2d(self.out_chans)
+        self.norm = nn.BatchNorm2d(self.out_chans)
         self.conv_1_x_1 = nn.Conv2d(self.in_chans, self.out_chans, kernel_size=(1, 1))
         self.layers = nn.Sequential(
             nn.LeakyReLU(negative_slope=0.2),
             nn.Conv2d(self.in_chans, self.out_chans, kernel_size=(3, 3), padding=1),
-            nn.InstanceNorm2d(self.out_chans),
+            nn.BatchNorm2d(self.out_chans),
             nn.LeakyReLU(negative_slope=0.2),
             nn.Conv2d(self.in_chans, self.out_chans, kernel_size=(3, 3), padding=1),
         )
@@ -161,17 +161,15 @@ class GeneratorModel(nn.Module):
         if z_location == 2:
             self.middle_z_grow_conv = nn.Sequential(
                 nn.Conv2d(latent_size // 4, latent_size // 2, kernel_size=(3, 3), padding=1),
-                nn.InstanceNorm2d(latent_size // 2),
+                nn.BatchNorm2d(latent_size // 2),
                 nn.LeakyReLU(negative_slope=0.2),
                 nn.Conv2d(latent_size // 2, latent_size, kernel_size=(3, 3), padding=1),
-                nn.InstanceNorm2d(latent_size),
+                nn.BatchNorm2d(latent_size),
                 nn.LeakyReLU(negative_slope=0.2),
             )
             self.middle_z_grow_linear = nn.Sequential(
                 nn.Linear(latent_size, latent_size // 4 * 3 * 3),
                 nn.LeakyReLU(negative_slope=0.2),
-                # nn.Linear(latent_size * 3, latent_size * 3 * 3),
-                # nn.LeakyReLU(negative_slope=0.2)
             )
             self.middle = nn.Sequential(
                 nn.LeakyReLU(negative_slope=0.2),
