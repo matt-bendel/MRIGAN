@@ -58,7 +58,7 @@ def average_gen(generator, input_w_z, z, old_input):
     average_gen = torch.zeros(input_w_z.shape).to(args.device)
     gen_list = []
     for j in range(8):
-        z = torch.FloatTensor(np.random.normal(size=(input_w_z.shape[0], args.latent_size), scale=np.sqrt(100000))).to(
+        z = torch.FloatTensor(np.random.normal(size=(input_w_z.shape[0], args.latent_size), scale=np.sqrt(1))).to(
             args.device)
         output_gen = generator(input=input_w_z, z=z, device=args.device)
 
@@ -194,9 +194,11 @@ def main(args):
 
                     fig = plt.figure()
 
-                    generate_image(fig, true_im_np, true_im_np, 'GT', 1, 1, 3)
-                    generate_image(fig, true_im_np, gen_mean_im_np, 'Mean', 2, 1, 3)
-                    im, ax = generate_image(fig, true_im_np, std_dev, 'Std. Dev', 3, 1, 3)
+                    generate_image(fig, true_im_np, true_im_np, 'GT', 1, 2, 3)
+                    generate_image(fig, true_im_np, gen_mean_im_np, 'Mean', 2, 2, 3)
+                    im, ax = generate_image(fig, true_im_np, std_dev, 'Std. Dev', 3, 2, 3)
+                    get_colorbar(fig, im, ax)
+                    im, ax = generate_error_map(fig, true_im_np, val, f'z {place}', 5, 2, 3)
                     get_colorbar(fig, im, ax)
 
                     plt.savefig(f'/home/bendel.8/Git_Repos/MRIGAN/mean_and_std_{args.network_input}.png')
