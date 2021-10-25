@@ -59,7 +59,7 @@ def main(args):
 
     args.in_chans = 2
     args.out_chans = 2
-    args.checkpoint = pathlib.Path(f'/home/bendel.8/Git_Repos/MRIGAN/trained_models/baseline/{args.network_input}_old_gen/best_model.pt')
+    args.checkpoint = pathlib.Path(f'/home/bendel.8/Git_Repos/MRIGAN/trained_models/baseline/{args.network_input}_old_gen_super/best_model.pt')
     unet, opt, args, best_dev_loss, start_epoch = resume_train_unet(args)
     unet.eval()
     train_loader, dev_loader = create_data_loaders(args, val_only=True)
