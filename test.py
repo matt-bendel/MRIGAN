@@ -150,9 +150,11 @@ def main(args):
                     "[Avg. Batch PSNR %.2f] [Avg. Batch SNR %.2f]  [Avg. Batch SSIM %.4f]"
                     % (np.mean(batch_metrics['psnr']), np.mean(batch_metrics['snr']), np.mean(batch_metrics['ssim']))
                 )
+                print('[Median PSNR {np.median().2f}')
 
         save_str = f"[Avg. PSNR: {np.mean(metrics['psnr'])}] [Avg. SNR: {np.mean(metrics['snr'])}] [Avg. SSIM: {np.mean(metrics['ssim'])}], [Avg. Time: {np.mean(metrics['time'])}]"
         metric_file.write(save_str)
+        print(f"[Median PSNR {np.median(metrics['psnr']):.2f}")
         print(save_str)
 
 
