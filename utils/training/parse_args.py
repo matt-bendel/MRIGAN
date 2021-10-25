@@ -10,6 +10,7 @@ def create_arg_parser():
     # GAN ARGS
     parser.add_argument('--network-input', type=str, required=True, help='Image or K-Space U-Net')
     parser.add_argument('--disc-kspace', action='store_true', help='Image or K-Space Discriminator')
+    parser.add_argument('--mbsd', action='store_true', help='Whether or not to use mbsd')
     parser.add_argument('--num-iters-discriminator', type=int, default=5,
                         help='Number of iterations of the discriminator')
     parser.add_argument('--latent-size', type=int, default=512, help='Size of latent vector for z location 2')
