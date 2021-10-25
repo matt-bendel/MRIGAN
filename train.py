@@ -318,7 +318,7 @@ def main(args):
                 # Loss measures generator's ability to fool the discriminator
                 # Train on fake images
                 fake_validity = discriminator(disc_inp)
-                g_loss = -0.1 * torch.mean(fake_validity) + 20 * mse(disc_inp, disc_target_batch)
+                g_loss = -0.01 * torch.mean(fake_validity) + 10 * mse(disc_inp, disc_target_batch) - mssim_tensor(disc_target_batch, disc_inp)
 
                 g_loss.backward()
                 optimizer_G.step()
@@ -390,10 +390,6 @@ def main(args):
 
             plot_epoch(args, generator, epoch)
             generator.train()
-
-            if (epoch + 1) == 50:
-                save_metrics(args)
-                exit()
 
 
 if __name__ == '__main__':
