@@ -35,6 +35,7 @@ import torch
 from tensorboardX import SummaryWriter
 from torch.nn import functional as F
 
+from typing import Optional
 from data import transforms
 from utils.math import complex_abs
 from models.generator.generator_experimental import GeneratorModel
