@@ -198,7 +198,7 @@ def main(args):
                     generate_image(fig, true_im_np, gen_mean_im_np, 'Mean', 2, 2, 3)
                     im, ax = generate_image(fig, true_im_np, std_dev, 'Std. Dev', 3, 2, 3)
                     get_colorbar(fig, im, ax)
-                    im, ax = generate_error_map(fig, true_im_np, val, f'z {place}', 5, 2, 3)
+                    im, ax = generate_error_map(fig, true_im_np, val, f'Error', 5, 2, 3)
                     get_colorbar(fig, im, ax)
 
                     plt.savefig(f'/home/bendel.8/Git_Repos/MRIGAN/mean_and_std_{args.network_input}.png')
