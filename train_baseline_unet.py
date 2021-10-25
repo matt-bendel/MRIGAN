@@ -52,6 +52,15 @@ def mssim_tensor(gt, pred):
     ssim_loss = pytorch_ssim.SSIM()
     return ssim_loss(gt, pred)
 
+def psnr_val(
+        gt: np.ndarray, pred: np.ndarray, maxval: Optional[float] = None
+) -> np.ndarray:
+    """Compute Peak Signal to Noise Ratio metric (PSNR)"""
+    if maxval is None:
+        maxval = gt.max()
+    psnr_val = peak_signal_noise_ratio(gt, pred, data_range=maxval)
+
+    return psnr_val
 
 def ssim_numpy(gt, pred):
     if not gt.ndim == pred.ndim:
@@ -118,6 +127,7 @@ def train_epoch(args, epoch, model, data_loader, optimizer, writer):
 def evaluate(args, epoch, model, data_loader, writer):
     model.eval()
     losses = []
+    psnr = []
     start = time.perf_counter()
 
     with torch.no_grad():
@@ -147,11 +157,13 @@ def evaluate(args, epoch, model, data_loader, writer):
 
                 SSIM = ssim_numpy(target, output)
                 losses.append(SSIM)
+                psnr.append(psnr_val(target, output))
 
             if iter + 1 == 20:
                 break
 
         writer.add_scalar('DevSSIM:', np.mean(losses), epoch)
+        print(f'PSNR: {np.mean(psnr):.2f}')
 
     return np.mean(losses), time.perf_counter() - start
 
