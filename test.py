@@ -116,8 +116,8 @@ def main(args):
 
             with torch.no_grad():
                 input_w_z = input.to(args.device)
-                # refined_out, finish = non_average_gen(generator, input_w_z, z, old_input)
-                refined_out, finish = average_gen(generator, input_w_z, z, old_input)
+                refined_out, finish = non_average_gen(generator, input_w_z, z, old_input)
+                # refined_out, finish = average_gen(generator, input_w_z, z, old_input)
 
                 target_batch = prep_input_2_chan(target_full, args.network_input, args, disc=True).to(args.device)
                 output_batch = prep_input_2_chan(refined_out, args.network_input, args, disc=True).to(args.device)
