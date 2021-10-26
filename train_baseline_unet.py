@@ -42,7 +42,7 @@ from models.generator.generator_experimental import GeneratorModel
 from utils.general.helper import prep_input_2_chan, readd_measures_im
 from utils.training.prepare_data import create_data_loaders
 from utils.training.parse_args import create_arg_parser
-from skimage.metrics import structural_similarity
+from skimage.metrics import structural_similarity, peak_signal_noise_ratio
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
