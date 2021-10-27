@@ -61,10 +61,10 @@ def load_model(checkpoint_file_gen, checkpoint_file_dis):
     opt_gen = build_optim(args, generator.parameters())
     opt_gen.load_state_dict(checkpoint_gen['optimizer'])
 
-    opt_dis = build_optim(args, discriminator.parameters())
-    opt_dis.load_state_dict(checkpoint_dis['optimizer'])
+    # opt_dis = build_optim(args, discriminator.parameters())
+    # opt_dis.load_state_dict(checkpoint_dis['optimizer'])
 
-    return checkpoint_gen, generator, opt_gen, checkpoint_dis, None, opt_dis
+    return checkpoint_gen, generator, opt_gen, checkpoint_dis, None, None
 
 
 def load_model_unet(checkpoint_file):
