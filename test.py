@@ -155,7 +155,7 @@ def main(args):
         metric_file.write(save_str)
         print(f"[Median PSNR {np.median(metrics['psnr']):.2f}")
         print(f"[Median SNR {np.median(metrics['snr']):.2f}")
-        print(f"[Median SSIM {np.median(metrics['ssim']):.2f}")
+        print(f"[Median SSIM {np.median(metrics['ssim']):.4f}")
         print(save_str)
 
 
