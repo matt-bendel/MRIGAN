@@ -323,7 +323,6 @@ def main(args):
                 g_loss.backward()
                 optimizer_G.step()
                 print(temp.item())
-                exit()
 
                 batch_loss['g_loss'].append(g_loss.item())
                 batch_loss['d_loss'].append(d_loss.item())
