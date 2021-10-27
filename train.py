@@ -101,12 +101,12 @@ def save_model(args, epoch, model, optimizer, best_dev_loss, is_new_best, m_type
             'best_dev_loss': best_dev_loss,
             'exp_dir': args.exp_dir
         },
-        f=args.exp_dir / args.network_input / 'l1' / f'{m_type}_model.pt'
+        f=args.exp_dir / args.network_input / str(args.z_location) / f'{m_type}_model.pt'
     )
 
     if is_new_best:
-        shutil.copyfile(args.exp_dir / args.network_input / 'l1' / f'{m_type}_model.pt',
-                        args.exp_dir / args.network_input / 'l1' / f'{m_type}_best_model.pt'
+        shutil.copyfile(args.exp_dir / args.network_input / str(args.z_location) / f'{m_type}_model.pt',
+                        args.exp_dir / args.network_input / str(args.z_location) / f'{m_type}_best_model.pt'
                         )
 
 
@@ -318,10 +318,13 @@ def main(args):
                 # Loss measures generator's ability to fool the discriminator
                 # Train on fake images
                 fake_validity = discriminator(disc_inp)
-                g_loss = -0.01 * torch.mean(fake_validity) + 0.001 * F.l1_loss(disc_inp, disc_target_batch) - mssim_tensor(disc_target_batch, disc_inp)
+                temp = 0.001 * mse(disc_target_batch, disc_inp)
+                g_loss = -0.01 * torch.mean(fake_validity) + temp - mssim_tensor(disc_target_batch, disc_inp)
 
                 g_loss.backward()
                 optimizer_G.step()
+                print(temp.item())
+                exit()
 
                 batch_loss['g_loss'].append(g_loss.item())
                 batch_loss['d_loss'].append(d_loss.item())
