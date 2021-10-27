@@ -9,7 +9,7 @@ def build_model(args):
     model = GeneratorModel(
         in_chans=2,
         out_chans=2,
-        z_location=2,
+        z_location=args.z_location,
         latent_size=512
     ).to(torch.device('cuda'))
     return model
