@@ -49,14 +49,14 @@ def load_model(checkpoint_file_gen, checkpoint_file_dis):
 
     args = checkpoint_gen['args']
     generator = build_model(checkpoint_gen['args'])
-    discriminator = build_discriminator(checkpoint_dis['args'])
+    # discriminator = build_discriminator(checkpoint_dis['args'])
 
     if args.data_parallel:
         generator = torch.nn.DataParallel(generator)
-        discriminator = torch.nn.DataParallel(discriminator)
+        # discriminator = torch.nn.DataParallel(discriminator)
 
     generator.load_state_dict(checkpoint_gen['model'])
-    discriminator.load_state_dict(checkpoint_dis['model'])
+    # discriminator.load_state_dict(checkpoint_dis['model'])
 
     opt_gen = build_optim(args, generator.parameters())
     opt_gen.load_state_dict(checkpoint_gen['optimizer'])
@@ -64,7 +64,7 @@ def load_model(checkpoint_file_gen, checkpoint_file_dis):
     opt_dis = build_optim(args, discriminator.parameters())
     opt_dis.load_state_dict(checkpoint_dis['optimizer'])
 
-    return checkpoint_gen, generator, opt_gen, checkpoint_dis, discriminator, opt_dis
+    return checkpoint_gen, generator, opt_gen, checkpoint_dis, None, opt_dis
 
 
 def load_model_unet(checkpoint_file):
@@ -90,8 +90,6 @@ def resume_train(args):
     args = checkpoint_gen['args']
     best_dev_loss = checkpoint_gen['best_dev_loss']
     start_epoch = checkpoint_gen['epoch']
-    del checkpoint_gen
-    del checkpoint_dis
     return generator, opt_gen, discriminator, opt_dis, args, best_dev_loss, start_epoch
 
 
