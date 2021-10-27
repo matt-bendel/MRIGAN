@@ -101,12 +101,12 @@ def save_model(args, epoch, model, optimizer, best_dev_loss, is_new_best, m_type
             'best_dev_loss': best_dev_loss,
             'exp_dir': args.exp_dir
         },
-        f=args.exp_dir / args.network_input / f'{args.z_location}_mse_2' / f'{m_type}_model.pt'
+        f=args.exp_dir / args.network_input / 'l1' / f'{m_type}_model.pt'
     )
 
     if is_new_best:
-        shutil.copyfile(args.exp_dir / args.network_input / f'{args.z_location}_mse_2' / f'{m_type}_model.pt',
-                        args.exp_dir / args.network_input / f'{args.z_location}_mse_2' / f'{m_type}_best_model.pt'
+        shutil.copyfile(args.exp_dir / args.network_input / 'l1' / f'{m_type}_model.pt',
+                        args.exp_dir / args.network_input / 'l1' / f'{m_type}_best_model.pt'
                         )
 
 
@@ -199,7 +199,7 @@ def plot_epoch(args, generator, epoch):
     generate_error_map(fig, target_im, z_1_im, 6, 1, max_val)
 
     plt.savefig(
-        f'/home/bendel.8/Git_Repos/MRIGAN/training_images_mse_2/gen_{args.network_input}_{args.z_location}_{epoch + 1}.png')
+        f'/home/bendel.8/Git_Repos/MRIGAN/training_images/2_chan_z_mid/gen_{args.network_input}_{args.z_location}_{epoch + 1}.png')
 
 
 def save_metrics(args):
@@ -318,7 +318,7 @@ def main(args):
                 # Loss measures generator's ability to fool the discriminator
                 # Train on fake images
                 fake_validity = discriminator(disc_inp)
-                g_loss = -0.01 * torch.mean(fake_validity) + 20 * mse(disc_inp, disc_target_batch) - 2*mssim_tensor(disc_target_batch, disc_inp)
+                g_loss = -0.01 * torch.mean(fake_validity) + 0.001 * F.l1_loss(output_im, target_im) - mssim_tensor(disc_target_batch, disc_inp)
 
                 g_loss.backward()
                 optimizer_G.step()
