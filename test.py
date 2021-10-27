@@ -154,6 +154,8 @@ def main(args):
         save_str = f"[Avg. PSNR: {np.mean(metrics['psnr'])}] [Avg. SNR: {np.mean(metrics['snr'])}] [Avg. SSIM: {np.mean(metrics['ssim'])}], [Avg. Time: {np.mean(metrics['time'])}]"
         metric_file.write(save_str)
         print(f"[Median PSNR {np.median(metrics['psnr']):.2f}")
+        print(f"[Median SNR {np.median(metrics['snr']):.2f}")
+        print(f"[Median SSIM {np.median(metrics['ssim']):.2f}")
         print(save_str)
 
 
