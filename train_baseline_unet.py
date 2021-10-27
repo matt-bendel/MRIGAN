@@ -103,7 +103,7 @@ def train_epoch(args, epoch, model, data_loader, optimizer, writer):
         target_im = prep_input_2_chan(target, args.network_input, args, disc=True).to(args.device).permute(0, 2, 3, 1)
         output_im = prep_input_2_chan(output, args.network_input, args, disc=True).to(args.device).permute(0, 2, 3, 1)
 
-        loss = 10 * mse(output_im, target_im) - mssim_tensor(target_im, output_im)
+        loss = 0.001 * F.l1_loss(output_im, target_im) - mssim_tensor(target_im, output_im)
         optimizer.zero_grad()
         loss.backward()
         optimizer.step()
@@ -209,8 +209,8 @@ def load_model(checkpoint_file):
 
 
 def build_optim(args, params):
-    # optimizer = torch.optim.RMSprop(params, 0.0003)
-    optimizer = torch.optim.Adam(params, lr=args.lr, betas=(args.beta_1, args.beta_2))
+    optimizer = torch.optim.RMSprop(params, 0.0003)
+    # optimizer = torch.optim.Adam(params, lr=args.lr, betas=(args.beta_1, args.beta_2))
     return optimizer
 
 
