@@ -196,4 +196,4 @@ class GeneratorModel(nn.Module):
         for layer in self.up_sample_layers:
             output = layer(output, stack.pop())
 
-        return self.conv2(output) + input
+        return self.conv2(output)
