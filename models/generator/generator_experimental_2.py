@@ -128,6 +128,8 @@ class GeneratorModel(nn.Module):
         self.chans = 32
         self.num_pool_layers = 5
 
+        num_pool_layers = self.num_pool_layers
+
         chans = self.chans
 
         self.down_sample_layers = nn.ModuleList([ConvDownBlock(in_chans, chans, batch_norm=False)])
