@@ -77,7 +77,7 @@ class ConvUpBlock(nn.Module):
         self.in_chans = in_chans
         self.out_chans = out_chans
 
-        self.conv_1 = nn.Conv2dTranspose(in_chans // 2, in_chans // 2, kernel_size=3, padding=1, stride=2)
+        self.conv_1 = nn.ConvTranspose2d(in_chans // 2, in_chans // 2, kernel_size=3, padding=1, stride=2)
         self.bn = nn.BatchNorm2d(out_chans)
         self.activation = nn.PReLU()
 
