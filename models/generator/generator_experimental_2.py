@@ -184,6 +184,7 @@ class GeneratorModel(nn.Module):
         # Apply down-sampling layers
         for layer in self.down_sample_layers:
             output = layer(output)
+            print(output.shape)
             stack.append(output)
 
         z_out = self.middle_z_grow_linear(z)
