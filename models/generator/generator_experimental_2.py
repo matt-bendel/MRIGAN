@@ -101,8 +101,8 @@ class ConvUpBlock(nn.Module):
             (torch.Tensor): Output tensor of shape [batch_size, self.out_chans, height, width]
         """
 
-        upsampled = self.activation(self.bn(self.conv_1(input, output_size=skip_input.size())))
         residual_skip = self.res_skip(skip_input)
+        upsampled = self.activation(self.bn(self.conv_1(input, output_size=residual_skip.size())))
         concat_tensor = torch.cat([residual_skip, upsampled], dim=1)
 
         return self.layers(concat_tensor)
@@ -192,6 +192,7 @@ class GeneratorModel(nn.Module):
         output = torch.cat([z_out, output], dim=1)
         output = self.conv(output)
 
+        stack.pop()
         # Apply up-sampling layers
         for layer in self.up_sample_layers:
             output = layer(output, stack.pop())
