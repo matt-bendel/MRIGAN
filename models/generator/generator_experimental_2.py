@@ -153,7 +153,7 @@ class GeneratorModel(nn.Module):
             nn.LeakyReLU(negative_slope=0.2),
         )
         self.middle_z_grow_linear = nn.Sequential(
-            nn.Linear(latent_size, latent_size // 4 * 12 * 12),
+            nn.Linear(latent_size, latent_size // 4 * 3 * 3),
             nn.LeakyReLU(negative_slope=0.2),
         )
 
@@ -187,7 +187,7 @@ class GeneratorModel(nn.Module):
             stack.append(output)
 
         z_out = self.middle_z_grow_linear(z)
-        z_out = torch.reshape(z_out, (output.shape[0], self.latent_size // 4, 12, 12))
+        z_out = torch.reshape(z_out, (output.shape[0], self.latent_size // 4, 3, 3))
         z_out = self.middle_z_grow_conv(z_out)
         output = torch.cat([output, z_out], dim=1)
         output = self.middle(output)
