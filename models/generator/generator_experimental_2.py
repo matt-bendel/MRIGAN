@@ -163,11 +163,9 @@ class GeneratorModel(nn.Module):
             ch //= 2
         self.up_sample_layers += [ConvUpBlock(ch * 2, ch)]
         self.conv2 = nn.Sequential(
-            nn.Conv2d(ch, ch, kernel_size=1),
-            nn.BatchNorm2d(ch),
+            nn.Conv2d(ch, ch // 2, kernel_size=1),
             nn.PReLU(),
-            nn.Conv2d(ch, out_chans, kernel_size=1),
-            nn.BatchNorm2d(out_chans),
+            nn.Conv2d(ch // 2, out_chans, kernel_size=1),
             nn.Tanh(),
         )
 
