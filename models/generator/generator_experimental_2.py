@@ -77,8 +77,6 @@ class ConvUpBlock(nn.Module):
         self.in_chans = in_chans
         self.out_chans = out_chans
 
-        self.layers()
-
         self.conv_1 = nn.Conv2dTranspose(in_chans // 2, in_chans // 2, kernel_size=3, padding=1, stride=2)
         self.bn = nn.BatchNorm2d(out_chans)
         self.activation = nn.PReLU()
@@ -93,7 +91,6 @@ class ConvUpBlock(nn.Module):
             nn.BatchNorm2d(out_chans),
             nn.PReLU(),
         )
-        self.weight_init()
 
     def forward(self, input, skip_input):
         """
