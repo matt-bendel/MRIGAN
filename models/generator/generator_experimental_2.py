@@ -167,7 +167,7 @@ class GeneratorModel(nn.Module):
             nn.BatchNorm2d(ch),
             nn.PReLU(),
             nn.Conv2d(ch, out_chans, kernel_size=1),
-            nn.BatchNorm2d(ch),
+            nn.BatchNorm2d(out_chans),
             nn.Tanh(),
         )
 
