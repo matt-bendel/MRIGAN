@@ -170,7 +170,7 @@ class GeneratorModel(nn.Module):
             nn.Tanh(),
         )
 
-    def forward(self, input):
+    def forward(self, input, z):
         """
         Args:
             input (torch.Tensor): Input tensor of shape [batch_size, self.in_chans, height, width]
