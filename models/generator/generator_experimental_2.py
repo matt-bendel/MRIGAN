@@ -54,9 +54,9 @@ class ConvDownBlock(nn.Module):
         """
 
         if self.batch_norm:
-            out = self.activation(self.batch_norm(self.conv_1(input)))
-            out = self.activation(self.batch_norm(self.conv_2(out)))
-            out = self.activation(self.batch_norm(self.conv_3(out)))
+            out = self.activation(self.bn(self.conv_1(input)))
+            out = self.activation(self.bn(self.conv_2(out)))
+            out = self.activation(self.bn(self.conv_3(out)))
         else:
             out = self.activation(self.conv_1(input))
             out = self.activation(self.conv_2(out))
