@@ -55,14 +55,14 @@ class ConvDownBlock(nn.Module):
 
         if self.batch_norm:
             out = self.activation(self.bn(self.conv_1(input)))
-            out = self.activation(self.bn(self.conv_2(out)))
-            out = self.activation(self.bn(self.conv_3(out)))
+            skip_out = self.activation(self.bn(self.conv_2(out)))
+            out = self.activation(self.bn(self.conv_3(skip_out)))
         else:
             out = self.activation(self.conv_1(input))
-            out = self.activation(self.conv_2(out))
-            out = self.activation(self.conv_3(out))
+            skip_out = self.activation(self.conv_2(out))
+            out = self.activation(self.conv_3(skip_out))
 
-        return out
+        return out, skip_out
 
 
 class ConvUpBlock(nn.Module):
@@ -183,8 +183,8 @@ class GeneratorModel(nn.Module):
         output = input
         # Apply down-sampling layers
         for layer in self.down_sample_layers:
-            output = layer(output)
-            stack.append(output)
+            output, skip_out = layer(output)
+            stack.append(skip_out)
 
         z_out = self.middle_z_grow_linear(z)
         z_out = torch.reshape(z_out, (output.shape[0], self.latent_size // 4, 3, 3))
