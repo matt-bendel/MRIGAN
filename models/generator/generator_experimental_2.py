@@ -102,6 +102,7 @@ class ConvUpBlock(nn.Module):
         """
 
         upsampled = self.activation(self.bn(self.conv_1(input)))
+        print(upsampled.shape)
         residual_skip = self.res_skip(skip_input)
         concat_tensor = torch.cat([upsampled, residual_skip], dim=1)
 
@@ -184,7 +185,6 @@ class GeneratorModel(nn.Module):
         # Apply down-sampling layers
         for layer in self.down_sample_layers:
             output = layer(output)
-            print(output.shape)
             stack.append(output)
 
         z_out = self.middle_z_grow_linear(z)
