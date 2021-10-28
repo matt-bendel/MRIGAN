@@ -39,7 +39,7 @@ class ConvDownBlock(nn.Module):
         self.batch_norm = batch_norm
 
         self.conv_1 = nn.Conv2d(in_chans, out_chans, kernel_size=3, padding=1)
-        self.conv_2 = nn.Conv2d(out_chans, out_chans, kernel_size=3, padding=1),
+        self.conv_2 = nn.Conv2d(out_chans, out_chans, kernel_size=3, padding=1)
         self.conv_3 = nn.Conv2d(out_chans, out_chans, kernel_size=3, padding=1, stride=2)
         self.bn = nn.BatchNorm2d(out_chans)
         self.activation = nn.PReLU()
