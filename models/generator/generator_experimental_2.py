@@ -101,7 +101,7 @@ class ConvUpBlock(nn.Module):
             (torch.Tensor): Output tensor of shape [batch_size, self.out_chans, height, width]
         """
 
-        residual_skip = self.res_skip(skip_input)
+        residual_skip = skip_input #self.res_skip(skip_input)
         upsampled = self.activation(self.bn(self.conv_1(input, output_size=residual_skip.size())))
         concat_tensor = torch.cat([residual_skip, upsampled], dim=1)
 
