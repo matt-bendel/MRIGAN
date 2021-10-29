@@ -1,6 +1,6 @@
 import torch
 
-from models.generator.generator_experimental_2 import GeneratorModel
+from models.generator.generator import GeneratorModel
 from models.discriminator.discriminator import DiscriminatorModel
 from models.baseline_unet.unet_residual import UnetModelRes
 
