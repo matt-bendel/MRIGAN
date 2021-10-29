@@ -261,11 +261,12 @@ def main(args):
 
                     input_w_z = input_w_z.to(args.device)
                     output_gen = generator(input_w_z, z)
-                    if args.network_input == 'kspace':
-                        # refined_out = output_gen + old_input[:, 0:16]
-                        refined_out = output_gen + old_input[:]
-                    else:
-                        refined_out = readd_measures_im(output_gen, old_input, args)
+                    refined_out = output_gen
+                    # if args.network_input == 'kspace':
+                    #     # refined_out = output_gen + old_input[:, 0:16]
+                    #     refined_out = output_gen + old_input[:]
+                    # else:
+                    #     refined_out = readd_measures_im(output_gen, old_input, args)
 
                     # TURN OUTPUT INTO IMAGE FOR DISCRIMINATION AND GET REAL IMAGES FOR DISCRIMINATION
                     disc_target_batch = prep_input_2_chan(target_full, args.network_input, args, disc=True,
@@ -305,11 +306,11 @@ def main(args):
                 z = torch.FloatTensor(
                     np.random.normal(size=(input.shape[0], args.latent_size), scale=np.sqrt(0.001))).to(args.device)
                 output_gen = generator(input_w_z.to(args.device), z)
-
-                if args.network_input == 'kspace':
-                    refined_out = output_gen + old_input[:]
-                else:
-                    refined_out = readd_measures_im(output_gen, old_input.to(args.device), args)
+                refined_out = output_gen
+                # if args.network_input == 'kspace':
+                #     refined_out = output_gen + old_input[:]
+                # else:
+                #     refined_out = readd_measures_im(output_gen, old_input.to(args.device), args)
 
                 disc_inp = prep_input_2_chan(refined_out, args.network_input, args, disc=True,
                                              disc_image=not args.disc_kspace)
