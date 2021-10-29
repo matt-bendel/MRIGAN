@@ -38,7 +38,7 @@ from torch.nn import functional as F
 from typing import Optional
 from data import transforms
 from utils.math import complex_abs
-from models.generator.generator import GeneratorModel
+from models.generator.generator_experimental_2 import GeneratorModel
 from utils.general.helper import prep_input_2_chan, readd_measures_im
 from utils.training.prepare_data import create_data_loaders
 from utils.training.parse_args import create_arg_parser
@@ -103,7 +103,7 @@ def train_epoch(args, epoch, model, data_loader, optimizer, writer):
         target_im = prep_input_2_chan(target, args.network_input, args, disc=True).to(args.device).permute(0, 2, 3, 1)
         output_im = prep_input_2_chan(output, args.network_input, args, disc=True).to(args.device).permute(0, 2, 3, 1)
 
-        loss = 20 * mse(target_im, output_im) - 5 * mssim_tensor(target_im, output_im)
+        loss = 10 * mse(target_im, output_im) - mssim_tensor(target_im, output_im)
         optimizer.zero_grad()
         loss.backward()
         optimizer.step()
