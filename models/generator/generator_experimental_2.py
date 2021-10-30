@@ -19,10 +19,12 @@ class ResidualBlock(nn.Module):
             nn.PReLU(),
             nn.Conv2d(in_features, in_features, kernel_size=3, stride=1, padding=1),
             nn.BatchNorm2d(in_features),
+            nn.PReLU()
         )
+        self.conv_1x1 = nn.Conv2d(in_features, in_features, kernel_size=1)
 
     def forward(self, x):
-        return x + self.conv_block(x)
+        return self.conv_1x1(x) + self.conv_block(x)
 
 
 class ConvDownBlock(nn.Module):
@@ -39,7 +41,8 @@ class ConvDownBlock(nn.Module):
         self.batch_norm = batch_norm
 
         self.conv_1 = nn.Conv2d(in_chans, out_chans, kernel_size=3, padding=1)
-        self.conv_2 = nn.Conv2d(out_chans, out_chans, kernel_size=3, padding=1)
+        # self.conv_2 = nn.Conv2d(out_chans, out_chans, kernel_size=3, padding=1)
+        self.res = ResidualBlock(out_chans)
         self.conv_3 = nn.Conv2d(out_chans, out_chans, kernel_size=3, padding=1, stride=2)
         self.bn = nn.BatchNorm2d(out_chans)
         self.activation = nn.PReLU()
@@ -55,12 +58,12 @@ class ConvDownBlock(nn.Module):
 
         if self.batch_norm:
             out = self.activation(self.bn(self.conv_1(input)))
-            skip_out = self.activation(self.bn(self.conv_2(out)))
-            out = self.activation(self.bn(self.conv_3(skip_out)))
+            skip_out = self.res(out)  # self.activation(self.bn(self.conv_2(out)))
+            out = self.conv_3(skip_out)
         else:
             out = self.activation(self.conv_1(input))
-            skip_out = self.activation(self.conv_2(out))
-            out = self.activation(self.conv_3(skip_out))
+            skip_out = self.res(out)  # self.activation(self.conv_2(out))
+            out = self.conv_3(skip_out)
 
         return out, skip_out
 
@@ -81,15 +84,11 @@ class ConvUpBlock(nn.Module):
         self.bn = nn.BatchNorm2d(in_chans // 2)
         self.activation = nn.PReLU()
 
-        self.res_skip = ResidualBlock(in_chans // 2)
-
         self.layers = nn.Sequential(
             nn.Conv2d(in_chans, out_chans, kernel_size=3, padding=1),
             nn.BatchNorm2d(out_chans),
             nn.PReLU(),
-            nn.Conv2d(out_chans, out_chans, kernel_size=3, padding=1),
-            nn.BatchNorm2d(out_chans),
-            nn.PReLU(),
+            ResidualBlock(out_chans)
         )
 
     def forward(self, input, skip_input):
@@ -101,7 +100,7 @@ class ConvUpBlock(nn.Module):
             (torch.Tensor): Output tensor of shape [batch_size, self.out_chans, height, width]
         """
 
-        residual_skip = skip_input #self.res_skip(skip_input)
+        residual_skip = skip_input  # self.res_skip(skip_input)
         upsampled = self.activation(self.bn(self.conv_1(input, output_size=residual_skip.size())))
         concat_tensor = torch.cat([residual_skip, upsampled], dim=1)
 
