@@ -317,6 +317,7 @@ def main(args):
                 # Loss measures generator's ability to fool the discriminator
                 # Train on fake images
                 fake_validity = discriminator(disc_inp)
+                # Old best -0.01adv + 10*mse - ssim
                 g_loss = -0.01 * torch.mean(fake_validity) + 20 * F.l1_loss() - mssim_tensor(disc_target_batch, disc_inp)
 
                 g_loss.backward()
