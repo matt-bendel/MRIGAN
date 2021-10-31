@@ -199,7 +199,7 @@ def plot_epoch(args, generator, epoch):
     generate_error_map(fig, target_im, z_1_im, 6, 1, max_val)
 
     plt.savefig(
-        f'/home/bendel.8/Git_Repos/MRIGAN/training_images/2_chan_z_mid/gen_{args.network_input}_{args.z_location}_{epoch + 1}.png')
+        f'/home/bendel.8/Git_Repos/MRIGAN/training_images/mae_ssim/gen_{args.network_input}_{args.z_location}_{epoch + 1}.png')
 
 
 def save_metrics(args):
