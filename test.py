@@ -3,6 +3,7 @@ import pickle
 import random
 import os
 import torch
+import pathlib
 
 import numpy as np
 import matplotlib.pyplot as plt
@@ -11,7 +12,7 @@ from typing import Optional
 from utils.math import complex_abs
 from utils.training.prepare_data import create_data_loaders
 from utils.training.parse_args import create_arg_parser
-from utils.training.prepare_model import resume_train, fresh_start
+from utils.training.prepare_model import resume_train, fresh_start, build_model
 from utils.general.helper import readd_measures_im, prep_input_2_chan
 from skimage.metrics import peak_signal_noise_ratio, structural_similarity
 
@@ -72,7 +73,8 @@ def average_gen(generator, input_w_z, z, old_input):
     average_gen = torch.zeros(input_w_z.shape).to(args.device)
 
     for j in range(8):
-        z = torch.FloatTensor(np.random.normal(size=(input_w_z.shape[0], args.latent_size), scale=np.sqrt(1))).to(args.device)
+        z = torch.FloatTensor(np.random.normal(size=(input_w_z.shape[0], args.latent_size), scale=np.sqrt(1))).to(
+            args.device)
         output_gen = generator(input=input_w_z, z=z)
 
         if args.network_input == 'kspace':
@@ -88,13 +90,28 @@ def average_gen(generator, input_w_z, z, old_input):
     return torch.div(average_gen, 8), finish
 
 
+def get_gen(args, type):
+    checkpoint_file_gen = pathlib.Path(
+        f'/home/bendel.8/Git_Repos/MRIGAN/trained_models/{type}/2/generator_best_model.pt')
+    checkpoint_gen = torch.load(checkpoint_file_gen, map_location=torch.device('cuda'))
+
+    generator = build_model(args)
+
+    if args.data_parallel:
+        generator = torch.nn.DataParallel(generator)
+
+    generator.load_state_dict(checkpoint_gen['model'])
+
+    return generator
+
+
 def main(args):
     args.exp_dir.mkdir(parents=True, exist_ok=True)
 
     args.in_chans = 17 if args.z_location == 3 else 2
     args.out_chans = 2
 
-    generator, optimizer_G, discriminator, optimizer_D, args, best_dev_loss, start_epoch = resume_train(args)
+    generator = get_gen(args)
     generator.eval()
     train_loader, dev_loader = create_data_loaders(args, val_only=True)
 
@@ -111,7 +128,8 @@ def main(args):
 
             input = prep_input_2_chan(input, args.network_input, args)
             target_full = prep_input_2_chan(target_full, args.network_input, args)
-            z = torch.FloatTensor(np.random.normal(size=(input.shape[0], args.latent_size), scale=np.sqrt(1))).to(args.device)
+            z = torch.FloatTensor(np.random.normal(size=(input.shape[0], args.latent_size), scale=np.sqrt(1))).to(
+                args.device)
             old_input = input.to(args.device)
 
             with torch.no_grad():
@@ -129,7 +147,6 @@ def main(args):
                     'ssim': [],
                     'snr': []
                 }
-
 
                 for j in range(output_batch.shape[0]):
                     generared_im = complex_abs(output_batch[j].permute(1, 2, 0))
@@ -157,7 +174,6 @@ def main(args):
         print(f"[Median SNR {np.median(metrics['snr']):.2f}")
         print(f"[Median SSIM {np.median(metrics['ssim']):.4f}")
         print(save_str)
-
 
 
 if __name__ == '__main__':
