@@ -158,7 +158,7 @@ class GeneratorModel(nn.Module):
         self.encoder_layers += [FullDownBlock(128, 256)]  # 6x6
         self.encoder_layers += [FullDownBlock(256, 512)]  # 3x3
 
-        if z_location == 2:
+        if z_location == 1:
             self.middle_z_grow_conv = nn.Sequential(
                 nn.Conv2d(latent_size // 4, latent_size // 2, kernel_size=(3, 3), padding=1),
                 nn.BatchNorm2d(latent_size // 2),
@@ -208,7 +208,7 @@ class GeneratorModel(nn.Module):
             stack.append(output)
 
         stack.pop()
-        if self.z_location == 2:
+        if self.z_location == 1:
             z_out = self.middle_z_grow_linear(z)
             z_out = torch.reshape(z_out, (output.shape[0], self.latent_size // 4, 3, 3))
             z_out = self.middle_z_grow_conv(z_out)
