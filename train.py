@@ -294,7 +294,9 @@ def main(args):
                     gradient_penalty = compute_gradient_penalty(discriminator, disc_target_batch.data,
                                                                 disc_output_batch.data, args)
                     # Adversarial loss
-                    d_loss = torch.mean(fake_pred) - torch.mean(real_pred) + lambda_gp * gradient_penalty
+                    d_loss = torch.mean(fake_pred) - torch.mean(
+                        real_pred) + lambda_gp * gradient_penalty + 0.001 * torch.mean(
+                        torch.cat((real_pred, fake_pred)))
 
                     d_loss.backward()
                     optimizer_D.step()
@@ -318,7 +320,8 @@ def main(args):
                 # Train on fake images
                 fake_validity = discriminator(disc_inp)
                 # Old best -0.01adv + 10*mse - ssim
-                g_loss = -0.01 * torch.mean(fake_validity) + 20 * F.l1_loss(disc_target_batch, disc_inp) - mssim_tensor(disc_target_batch, disc_inp)
+                g_loss = -0.01 * torch.mean(fake_validity) + 20 * F.l1_loss(disc_target_batch, disc_inp) - mssim_tensor(
+                    disc_target_batch, disc_inp)
 
                 g_loss.backward()
                 optimizer_G.step()
