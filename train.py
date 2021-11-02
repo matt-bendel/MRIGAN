@@ -296,7 +296,7 @@ def main(args):
                     # Adversarial loss
                     d_loss = torch.mean(fake_pred) - torch.mean(
                         real_pred) + lambda_gp * gradient_penalty + 0.001 * torch.mean(
-                        torch.cat((real_pred, fake_pred)))
+                        torch.cat((real_pred, fake_pred))**2)
 
                     d_loss.backward()
                     optimizer_D.step()
