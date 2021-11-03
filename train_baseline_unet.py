@@ -94,7 +94,7 @@ def train_epoch(args, epoch, model, data_loader, optimizer, writer):
         input = prep_input_2_chan(input, args.network_input, args)
         target = prep_input_2_chan(target, args.network_input, args)
 
-        z = None #torch.zeros((input.shape[0], 512))
+        z = torch.zeros((input.shape[0], 512, 3, 3))
 
         output = model(input, z)  # .squeeze(1)
 
@@ -140,7 +140,7 @@ def evaluate(args, epoch, model, data_loader, writer):
             input = prep_input_2_chan(input, args.network_input, args)
             target = prep_input_2_chan(target, args.network_input, args)
 
-            z = None #torch.zeros((input.shape[0], 512))
+            z = torch.zeros((input.shape[0], 512, 3, 3))
 
             output = model(input, z)
 
