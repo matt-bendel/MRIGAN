@@ -169,7 +169,7 @@ class GeneratorModel(nn.Module):
 
         self.up_sample_layers = nn.ModuleList()
         for i in range(self.static_layers):
-            self.up_sample_layers += [ConvUpBlock(ch, ch, static=True)]
+            self.up_sample_layers += [ConvUpBlock(ch * 2, ch, static=True)]
 
         for i in range(num_pool_layers - 1):
             self.up_sample_layers += [ConvUpBlock(ch * 2, ch // 2)]
