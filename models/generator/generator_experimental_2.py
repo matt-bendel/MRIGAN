@@ -28,7 +28,7 @@ class ResidualBlock(nn.Module):
 
 
 class ConvDownBlock(nn.Module):
-    def __init__(self, in_chans, out_chans, batch_norm=True):
+    def __init__(self, in_chans, out_chans, batch_norm=True, static=False):
         """
         Args:
             in_chans (int): Number of channels in the input.
@@ -39,6 +39,7 @@ class ConvDownBlock(nn.Module):
         self.in_chans = in_chans
         self.out_chans = out_chans
         self.batch_norm = batch_norm
+        self.static = static
 
         self.conv_1 = nn.Conv2d(in_chans, out_chans, kernel_size=3, padding=1)
         # self.conv_2 = nn.Conv2d(out_chans, out_chans, kernel_size=3, padding=1)
@@ -59,17 +60,17 @@ class ConvDownBlock(nn.Module):
         if self.batch_norm:
             out = self.activation(self.bn(self.conv_1(input)))
             skip_out = self.res(out)  # self.activation(self.bn(self.conv_2(out)))
-            out = self.conv_3(skip_out)
+            out = self.activation(self.bn(self.conv_3(skip_out))) if not self.static else skip_out
         else:
             out = self.activation(self.conv_1(input))
             skip_out = self.res(out)  # self.activation(self.conv_2(out))
-            out = self.conv_3(skip_out)
+            out = self.activation(self.conv_3(skip_out)) if not self.static else skip_out
 
         return out, skip_out
 
 
 class ConvUpBlock(nn.Module):
-    def __init__(self, in_chans, out_chans):
+    def __init__(self, in_chans, out_chans, static=False):
         """
         Args:
             in_chans (int): Number of channels in the input.
@@ -79,6 +80,7 @@ class ConvUpBlock(nn.Module):
 
         self.in_chans = in_chans
         self.out_chans = out_chans
+        self.static = static
 
         self.conv_1 = nn.ConvTranspose2d(in_chans // 2, in_chans // 2, kernel_size=3, padding=1, stride=2)
         self.bn = nn.BatchNorm2d(in_chans // 2)
@@ -91,6 +93,7 @@ class ConvUpBlock(nn.Module):
             ResidualBlock(out_chans)
         )
 
+
     def forward(self, input, skip_input):
         """
         Args:
@@ -101,7 +104,11 @@ class ConvUpBlock(nn.Module):
         """
 
         residual_skip = skip_input  # self.res_skip(skip_input)
-        upsampled = self.activation(self.bn(self.conv_1(input, output_size=residual_skip.size())))
+        if self.static:
+            upsampled = input
+        else:
+            upsampled = self.activation(self.bn(self.conv_1(input, output_size=residual_skip.size())))
+
         concat_tensor = torch.cat([residual_skip, upsampled], dim=1)
 
         return self.layers(concat_tensor)
@@ -123,6 +130,7 @@ class GeneratorModel(nn.Module):
         self.out_chans = out_chans
         self.chans = 32
         self.num_pool_layers = 5
+        self.static_layers = 2
         self.latent_size = latent_size
 
         num_pool_layers = self.num_pool_layers
@@ -134,6 +142,9 @@ class GeneratorModel(nn.Module):
         for i in range(num_pool_layers - 1):
             self.down_sample_layers += [ConvDownBlock(ch, ch * 2)]
             ch *= 2
+
+        for i in range(self.static_layers):
+            self.down_sample_layers += [ConvDownBlock(ch, ch, static=True)]
 
         self.conv = nn.Sequential(
             nn.Conv2d(ch * 2, ch, kernel_size=3, padding=1),
@@ -157,6 +168,9 @@ class GeneratorModel(nn.Module):
         )
 
         self.up_sample_layers = nn.ModuleList()
+        for i in range(self.static_layers):
+            self.up_sample_layers += [ConvUpBlock(ch, ch, static=True)]
+
         for i in range(num_pool_layers - 1):
             self.up_sample_layers += [ConvUpBlock(ch * 2, ch // 2)]
             ch //= 2
