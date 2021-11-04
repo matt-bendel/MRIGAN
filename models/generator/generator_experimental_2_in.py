@@ -136,7 +136,7 @@ class GeneratorModel(nn.Module):
             ch *= 2
 
         self.conv = nn.Sequential(
-            nn.Conv2d(ch * 2, ch, kernel_size=3, padding=1),
+            nn.Conv2d(ch, ch, kernel_size=3, padding=1),
             nn.InstanceNorm2d(ch),
             nn.PReLU(),
             nn.Conv2d(ch, ch, kernel_size=3, padding=1),
@@ -145,16 +145,16 @@ class GeneratorModel(nn.Module):
         )
 
         # Z LOCATION 2
-        self.middle_z_grow_conv = nn.Sequential(
-            nn.Conv2d(latent_size // 4, latent_size // 2, kernel_size=(3, 3), padding=1),
-            nn.LeakyReLU(negative_slope=0.2),
-            nn.Conv2d(latent_size // 2, latent_size, kernel_size=(3, 3), padding=1),
-            nn.LeakyReLU(negative_slope=0.2),
-        )
-        self.middle_z_grow_linear = nn.Sequential(
-            nn.Linear(latent_size, latent_size // 4 * 3 * 3),
-            nn.LeakyReLU(negative_slope=0.2),
-        )
+        # self.middle_z_grow_conv = nn.Sequential(
+        #     nn.Conv2d(latent_size // 4, latent_size // 2, kernel_size=(3, 3), padding=1),
+        #     nn.LeakyReLU(negative_slope=0.2),
+        #     nn.Conv2d(latent_size // 2, latent_size, kernel_size=(3, 3), padding=1),
+        #     nn.LeakyReLU(negative_slope=0.2),
+        # )
+        # self.middle_z_grow_linear = nn.Sequential(
+        #     nn.Linear(latent_size, latent_size // 4 * 3 * 3),
+        #     nn.LeakyReLU(negative_slope=0.2),
+        # )
 
         self.up_sample_layers = nn.ModuleList()
         for i in range(num_pool_layers - 1):
@@ -181,10 +181,11 @@ class GeneratorModel(nn.Module):
             output, skip_out = layer(output)
             stack.append(skip_out)
 
-        z_out = self.middle_z_grow_linear(z)
-        z_out = torch.reshape(z_out, (output.shape[0], self.latent_size // 4, 3, 3))
-        z_out = self.middle_z_grow_conv(z_out)
-        output = torch.cat([z_out, output], dim=1)
+        # z_out = self.middle_z_grow_linear(z)
+        # z_out = torch.reshape(z_out, (output.shape[0], self.latent_size // 4, 3, 3))
+        # z_out = self.middle_z_grow_conv(z_out)
+        # output = torch.cat([z_out, output], dim=1)
+        output = torch.add(output, z)
         output = self.conv(output)
 
         # Apply up-sampling layers
