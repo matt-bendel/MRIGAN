@@ -73,7 +73,7 @@ def average_gen(generator, input_w_z, z, old_input):
     average_gen = torch.zeros(input_w_z.shape).to(args.device)
 
     for j in range(8):
-        z = torch.FloatTensor(np.random.normal(size=(input_w_z.shape[0], args.latent_size), scale=np.sqrt(1))).to(
+        z = torch.FloatTensor(np.random.normal(size=(input_w_z.shape[0], args.latent_size, 3, 3), scale=np.sqrt(1))).to(
             args.device)
         output_gen = generator(input=input_w_z, z=z)
 
@@ -128,7 +128,7 @@ def main(args):
 
             input = prep_input_2_chan(input, args.network_input, args)
             target_full = prep_input_2_chan(target_full, args.network_input, args)
-            z = torch.FloatTensor(np.random.normal(size=(input.shape[0], args.latent_size), scale=np.sqrt(1))).to(
+            z = torch.FloatTensor(np.random.normal(size=(input.shape[0], args.latent_size, 3, 3), scale=np.sqrt(1))).to(
                 args.device)
             old_input = input.to(args.device)
 
