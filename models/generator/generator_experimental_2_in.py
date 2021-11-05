@@ -136,7 +136,7 @@ class GeneratorModel(nn.Module):
             ch *= 2
 
         self.conv = nn.Sequential(
-            nn.Conv2d(ch, ch, kernel_size=3, padding=1),
+            nn.Conv2d(ch * 2, ch, kernel_size=3, padding=1),
             nn.InstanceNorm2d(ch),
             nn.PReLU(),
             nn.Conv2d(ch, ch, kernel_size=3, padding=1),
