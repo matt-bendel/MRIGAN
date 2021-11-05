@@ -54,7 +54,7 @@ def ssim(
     return ssim
 
 
-def average_gen(generator, input_w_z, z, old_input):
+def average_gen(generator, input_w_z, z, old_input, args):
     average_gen = torch.zeros(input_w_z.shape).to(args.device)
     gen_list = []
     for j in range(8):
@@ -163,7 +163,7 @@ def main(args):
 
         with torch.no_grad():
             input_w_z = input.to(args.device)
-            mean, gens = average_gen(gen, input_w_z, None, old_input)
+            mean, gens = average_gen(gen, input_w_z, None, old_input, args)
 
             target_batch = prep_input_2_chan(target_full, args.network_input, args, disc=True).to(args.device)
             mean_batch = prep_input_2_chan(mean, args.network_input, args, disc=True).to(args.device)
