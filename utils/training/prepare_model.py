@@ -36,8 +36,8 @@ def build_unet(args):
 
 
 def build_optim(args, params):
-    # return torch.optim.Adam(params, lr=args.lr, betas=(args.beta_1, args.beta_2))
-    return torch.optim.RMSprop(params, 0.0003)
+    return torch.optim.Adam(params, lr=args.lr, betas=(args.beta_1, args.beta_2))
+    # return torch.optim.RMSprop(params, 0.0003)
 
 
 def build_optim_unet(args, params):
