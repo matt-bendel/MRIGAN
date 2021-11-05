@@ -60,7 +60,7 @@ def average_gen(generator, input_w_z, z, old_input, args):
     for j in range(8):
         z = torch.FloatTensor(np.random.normal(size=(input_w_z.shape[0], args.latent_size, 3, 3), scale=np.sqrt(1))).to(
             args.device)
-        output_gen = generator(input=input_w_z, z=z, device=args.device)
+        output_gen = generator(input=input_w_z, z=z)
 
         if args.network_input == 'kspace':
             # refined_out = output_gen + old_input[:, 0:16]
