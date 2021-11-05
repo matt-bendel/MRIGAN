@@ -164,7 +164,7 @@ def plot_epoch(args, generator, epoch):
     mean = CONSTANT_PLOTS['mean']
 
     z_1 = CONSTANT_PLOTS['measures'].unsqueeze(0).to(args.device)
-    z = torch.FloatTensor(np.random.normal(size=(z_1.shape[0], args.latent_size, 3, 3))).to(args.device)
+    z = torch.FloatTensor(np.random.normal(size=(z_1.shape[0], args.latent_size))).to(args.device)
 
     generator.eval()
     with torch.no_grad():
@@ -253,7 +253,7 @@ def main(args):
 
                 for j in range(args.num_iters_discriminator):
                     z = torch.FloatTensor(
-                        np.random.normal(size=(input.shape[0], args.latent_size, 3, 3), scale=np.sqrt(0.001))).to(args.device)
+                        np.random.normal(size=(input.shape[0], args.latent_size), scale=np.sqrt(0.001))).to(args.device)
                     # ---------------------
                     #  Train Discriminator
                     # ---------------------
@@ -305,7 +305,7 @@ def main(args):
 
                 # Generate a batch of images
                 z = torch.FloatTensor(
-                    np.random.normal(size=(input.shape[0], args.latent_size, 3, 3), scale=np.sqrt(0.001))).to(args.device)
+                    np.random.normal(size=(input.shape[0], args.latent_size), scale=np.sqrt(0.001))).to(args.device)
                 output_gen = generator(input_w_z.to(args.device), z)
 
                 if args.network_input == 'kspace':
@@ -320,7 +320,7 @@ def main(args):
                 # Train on fake images
                 fake_validity = discriminator(disc_inp)
                 # Old best -0.01adv + 10*mse - ssim
-                g_loss = -0.0001 * torch.mean(fake_validity) + 0.001 * F.l1_loss(disc_target_batch, disc_inp) - mssim_tensor(
+                g_loss = -0.01 * torch.mean(fake_validity) + 20 * F.l1_loss(disc_target_batch, disc_inp) - mssim_tensor(
                     disc_target_batch, disc_inp)
 
                 g_loss.backward()
@@ -349,7 +349,7 @@ def main(args):
                     target_full = prep_input_2_chan(target_full, args.network_input, args).to(args.device)
 
                     z = torch.FloatTensor(
-                        np.random.normal(size=(input.shape[0], args.latent_size, 3, 3), scale=np.sqrt(1))).to(args.device)
+                        np.random.normal(size=(input.shape[0], args.latent_size), scale=np.sqrt(1))).to(args.device)
 
                     output_gen = generator(input, z)
 
