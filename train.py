@@ -322,7 +322,7 @@ def main(args):
                 # Old best -0.01adv + 10*mse - ssim
                 # g_loss = -0.01 * torch.mean(fake_validity) + 20 * F.l1_loss(disc_target_batch, disc_inp) - mssim_tensor(
                 #     disc_target_batch, disc_inp)
-                g_loss = -0.0001 * torch.mean(fake_validity) + 0.001 * F.l1_loss(disc_target_batch, disc_inp) - mssim_tensor(
+                g_loss = -0.01 * torch.mean(fake_validity) + 0.001 * F.l1_loss(disc_target_batch, disc_inp) - mssim_tensor(
                     disc_target_batch, disc_inp)
 
                 g_loss.backward()
