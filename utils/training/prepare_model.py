@@ -72,7 +72,7 @@ def load_model_unet(checkpoint_file):
     checkpoint = torch.load(checkpoint_file, map_location=torch.device('cuda'))
 
     args = checkpoint['args']
-    unet = build_model(checkpoint['args'])
+    unet = build_unet(checkpoint['args'])
 
     if args.data_parallel:
         unet = torch.nn.DataParallel(unet)
