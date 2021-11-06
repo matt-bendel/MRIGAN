@@ -58,7 +58,7 @@ def average_gen(generator, input_w_z, z, old_input, args):
     average_gen = torch.zeros(input_w_z.shape).to(args.device)
     gen_list = []
     for j in range(8):
-        z = torch.FloatTensor(np.random.normal(size=(input_w_z.shape[0], args.latent_size, 3, 3), scale=np.sqrt(1))).to(
+        z = torch.FloatTensor(np.random.normal(size=(input_w_z.shape[0], args.latent_size), scale=np.sqrt(1))).to(
             args.device)
         output_gen = generator(input=input_w_z, z=z)
 
@@ -107,7 +107,7 @@ def generate_error_map(fig, target, recon, method, image_ind, rows, cols, relati
         im = ax.imshow(k * error, cmap='bwr', origin='lower', vmin=-0.0001, vmax=0.0001)  # Plot image
         plt.gca().invert_yaxis()
     else:
-        im = ax.imshow(k * error, cmap='jet')  # Plot image
+        im = ax.imshow(k * error, cmap='jet', vmax=0.0001)  # Plot image
 
     # Remove axis ticks
     ax.set_xticks([])
