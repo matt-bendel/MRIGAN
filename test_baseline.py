@@ -59,7 +59,7 @@ def main(args):
 
     args.in_chans = 2
     args.out_chans = 2
-    args.checkpoint = pathlib.Path(f'/home/bendel.8/Git_Repos/MRIGAN/trained_models/baseline/{args.network_input}/best_model.pt')
+    args.checkpoint = pathlib.Path(f'/home/bendel.8/Git_Repos/MRIGAN/trained_models/baseline/{args.network_input}_best/best_model.pt')
     unet, opt, args, best_dev_loss, start_epoch = resume_train_unet(args)
     unet.eval()
     train_loader, dev_loader = create_data_loaders(args, val_only=True)
@@ -119,7 +119,10 @@ def main(args):
                     % (np.mean(batch_metrics['psnr']), np.mean(batch_metrics['snr']), np.mean(batch_metrics['ssim']))
                 )
 
+        print(np.median(metrics['snr']))
         print(np.median(metrics['psnr']))
+        print(np.median(metrics['ssim']))
+
         save_str = f"[Avg. PSNR: {np.mean(metrics['psnr'])}] [Avg. SNR: {np.mean(metrics['snr'])}] [Avg. SSIM: {np.mean(metrics['ssim'])}], [Avg. Time: {np.mean(metrics['time'])}]"
         metric_file.write(save_str)
         print(save_str)
