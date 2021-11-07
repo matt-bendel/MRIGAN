@@ -138,7 +138,7 @@ def get_colorbar(fig, im, ax):
 
 
 def get_gen(args, type, loc):
-    checkpoint_file_gen = pathlib.Path(f'/home/bendel.8/Git_Repos/MRIGAN/trained_models/{type}/{loc}/generator_best_model.pt')
+    checkpoint_file_gen = pathlib.Path(f'/home/bendel.8/Git_Repos/MRIGAN/trained_models/{type}/{loc}_presentation_temp/generator_best_model.pt')
     checkpoint_gen = torch.load(checkpoint_file_gen, map_location=torch.device('cuda'))
 
     generator = build_model(args)
