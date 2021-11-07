@@ -56,7 +56,7 @@ def get_ssim(
 
 def non_average_gen(generator, input_w_z, z, old_input):
     start = time.perf_counter()
-    output_gen = generator(input=input_w_z, z=z, device=args.device)
+    output_gen = generator(input=input_w_z, z=z)
     finish = time.perf_counter() - start
 
     if args.network_input == 'kspace':
@@ -72,9 +72,9 @@ def average_gen(generator, input_w_z, z, old_input):
     average_gen = torch.zeros(input_w_z.shape).to(args.device)
 
     for j in range(8):
-        z = torch.FloatTensor(np.random.normal(size=(input_w_z.shape[0], args.latent_size), scale=np.sqrt(100000))).to(
+        z = torch.FloatTensor(np.random.normal(size=(input_w_z.shape[0], args.latent_size), scale=np.sqrt(1))).to(
             args.device)
-        output_gen = generator(input=input_w_z, z=z, device=args.device)
+        output_gen = generator(input=input_w_z, z=z)
 
         if args.network_input == 'kspace':
             # refined_out = output_gen + old_input[:, 0:16]
@@ -186,9 +186,11 @@ def main(args):
         target_full = prep_input_2_chan(target_full, args.network_input, args)
 
         with torch.no_grad():
-            image_gen_01 = non_average_gen(image_gen_01, input_im, None, input_im)
-            image_gen_001 = non_average_gen(image_gen_001, input_im, None, input_im)
-            image_gen_0001 = non_average_gen(image_gen_0001, input_im, None, input_im)
+            z = torch.FloatTensor(np.random.normal(size=(input.shape[0], args.latent_size), scale=np.sqrt(1))).to(
+                args.device)
+            image_gen_01 = non_average_gen(image_gen_01, input_im, z, input_im)
+            image_gen_001 = non_average_gen(image_gen_001, input_im, z, input_im)
+            image_gen_0001 = non_average_gen(image_gen_0001, input_im, z, input_im)
             image_unet_out = image_unet(input_im)
 
             target_batch = prep_input_2_chan(target_full, args.network_input, args, disc=True).to(args.device)
