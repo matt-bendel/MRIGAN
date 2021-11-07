@@ -113,7 +113,7 @@ def generate_error_map(fig, target, recon, method, image_ind, relative=False, k=
         im = ax.imshow(k * error, cmap='bwr', origin='lower', vmin=-0.0001, vmax=0.0001)  # Plot image
         plt.gca().invert_yaxis()
     else:
-        im = ax.imshow(k * error, cmap='jet')  # Plot image
+        im = ax.imshow(k * error, cmap='jet', vmin=0, vmax=0.0001)  # Plot image
 
     # Remove axis ticks
     ax.set_xticks([])
@@ -186,23 +186,31 @@ def main(args):
         target_full = prep_input_2_chan(target_full, args.network_input, args)
 
         with torch.no_grad():
-            image_gen_out = non_average_gen(image_gen, input_im, None, input_im)
+            image_gen_01 = non_average_gen(image_gen_01, input_im, None, input_im)
+            image_gen_001 = non_average_gen(image_gen_001, input_im, None, input_im)
+            image_gen_0001 = non_average_gen(image_gen_0001, input_im, None, input_im)
             image_unet_out = image_unet(input_im)
 
             target_batch = prep_input_2_chan(target_full, args.network_input, args, disc=True).to(args.device)
-            image_gen_batch = prep_input_2_chan(image_gen_out, 'image', args, disc=True).to(args.device)
+            image_gen_01_batch = prep_input_2_chan(image_gen_01, 'image', args, disc=True).to(args.device)
+            image_gen_001_batch = prep_input_2_chan(image_gen_001, 'image', args, disc=True).to(args.device)
+            image_gen_0001_batch = prep_input_2_chan(image_gen_0001, 'image', args, disc=True).to(args.device)
             image_unet_batch = prep_input_2_chan(image_unet_out, 'image', args, disc=True).to(args.device)
 
             for j in range(target_batch.shape[0]):
                 if j == 2:
                     true_im = complex_abs(target_batch[j].permute(1, 2, 0))
                     zfr_im = complex_abs(input_im[j].permute(1, 2, 0))
-                    gen_image_im = complex_abs(image_gen_batch[j].permute(1, 2, 0))
+                    gen_image_im_01 = complex_abs(image_gen_01_batch[j].permute(1, 2, 0))
+                    gen_image_im_001 = complex_abs(image_gen_001_batch[j].permute(1, 2, 0))
+                    gen_image_im_0001 = complex_abs(image_gen_0001_batch[j].permute(1, 2, 0))
                     unet_image_im = complex_abs(image_unet_batch[j].permute(1, 2, 0))
 
                     true_im_np = true_im.cpu().numpy() * std[j].numpy() + mean[j].numpy()
                     zfr_im_np = zfr_im.cpu().numpy() * std[j].numpy() + mean[j].numpy()
-                    gen_image_im_np = gen_image_im.cpu().numpy() * std[j].numpy() + mean[j].numpy()
+                    gen_image_im_01_np = gen_image_im_01.cpu().numpy() * std[j].numpy() + mean[j].numpy()
+                    gen_image_im_001_np = gen_image_im_001.cpu().numpy() * std[j].numpy() + mean[j].numpy()
+                    gen_image_im_0001_np = gen_image_im_0001.cpu().numpy() * std[j].numpy() + mean[j].numpy()
                     unet_image_im_np = unet_image_im.cpu().numpy() * std[j].numpy() + mean[j].numpy()
 
                     fig = plt.figure(figsize=(18, 9))
@@ -210,11 +218,15 @@ def main(args):
 
                     generate_image(fig, true_im_np, true_im_np, 'GT', 1)
                     generate_image(fig, true_im_np, zfr_im_np, 'ZFR', 2)
-                    generate_image(fig, true_im_np, gen_image_im_np, 'Image Generator', 4)
+                    generate_image(fig, true_im_np, gen_image_im_01_np, 'Image Generator (0.01)', 3)
+                    generate_image(fig, true_im_np, gen_image_im_001_np, 'Image Generator (0.001)', 4)
+                    generate_image(fig, true_im_np, gen_image_im_0001_np, 'Image Generator (0.0001)', 5)
                     generate_image(fig, true_im_np, unet_image_im_np, 'Image U-Net', 6)
 
                     generate_error_map(fig, true_im_np, zfr_im_np, 'ZFR', 8)
-                    generate_error_map(fig, true_im_np, gen_image_im_np, 'Image Generator', 10)
+                    generate_error_map(fig, true_im_np, gen_image_im_01_np, 'Image Generator ', 9)
+                    generate_error_map(fig, true_im_np, gen_image_im_001_np, 'Image Generator ', 10)
+                    generate_error_map(fig, true_im_np, gen_image_im_0001_np, 'Image Generator ', 11)
                     im, ax = generate_error_map(fig, true_im_np, unet_image_im_np, 'Image U-Net', 12)
 
                     get_colorbar(fig, im, ax)
