@@ -214,8 +214,6 @@ def main(args):
     args.in_chans = 17 if args.z_location == 3 else 2
     args.out_chans = 2
 
-    mse = torch.nn.MSELoss()
-
     if args.resume:
         generator, optimizer_G, discriminator, optimizer_D, args, best_dev_loss, start_epoch = resume_train(args)
     else:

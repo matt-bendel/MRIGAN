@@ -137,8 +137,8 @@ def get_colorbar(fig, im, ax):
     fig.colorbar(im, cax=cbar_ax)  # Generate colorbar
 
 
-def get_gen(args, type):
-    checkpoint_file_gen = pathlib.Path(f'/home/bendel.8/Git_Repos/MRIGAN/trained_models/{type}/2/generator_model.pt')
+def get_gen(args, type, loc):
+    checkpoint_file_gen = pathlib.Path(f'/home/bendel.8/Git_Repos/MRIGAN/trained_models/{type}/{loc}/generator_best_model.pt')
     checkpoint_gen = torch.load(checkpoint_file_gen, map_location=torch.device('cuda'))
 
     generator = build_model(args)
@@ -152,7 +152,7 @@ def get_gen(args, type):
 
 
 def get_unet(args, type):
-    checkpoint_file_unet = pathlib.Path(f'/home/bendel.8/Git_Repos/MRIGAN/trained_models/baseline/{type}/model.pt')
+    checkpoint_file_unet = pathlib.Path(f'/home/bendel.8/Git_Repos/MRIGAN/trained_models/baseline/{type}_best/best_model.pt')
     checkpoint_unet = torch.load(checkpoint_file_unet, map_location=torch.device('cuda'))
 
     unet = build_unet(args)
@@ -169,12 +169,12 @@ def main(args):
     args.in_chans = 2
     args.out_chans = 2
 
-    kspace_gen = get_gen(args, 'kspace')
-    kspace_gen.eval()
-    image_gen = get_gen(args, 'image')
-    image_gen.eval()
-    kspace_unet = get_unet(args, 'kspace')
-    kspace_unet.eval()
+    image_gen_0001 = get_gen(args, 'image', 2)
+    image_gen_0001.eval()
+    image_gen_001 = get_gen(args, 'image', 3)
+    image_gen_001.eval()
+    image_gen_01 = get_gen(args, 'image', 1)
+    image_gen_01.eval()
     image_unet = get_unet(args, 'image')
     image_unet.eval()
 
@@ -182,21 +182,14 @@ def main(args):
 
     for i, data in enumerate(dev_loader):
         input, target_full, mean, std, nnz_index_mask = data
-        args.network_input = 'kspace'
-        input_k = prep_input_2_chan(input, 'kspace', args).to(args.device)
-        input_im = prep_input_2_chan(input, 'image', args).to(args.device)
+        input_im = prep_input_2_chan(input, args.network_input, args).to(args.device)
         target_full = prep_input_2_chan(target_full, args.network_input, args)
 
         with torch.no_grad():
-            kspace_gen_out = average_gen(kspace_gen, input_k, None, input_k)
-            image_gen_out = average_gen(image_gen, input_im, None, input_im)
-            kspace_unet_out = kspace_unet(input_k)
+            image_gen_out = non_average_gen(image_gen, input_im, None, input_im)
             image_unet_out = image_unet(input_im)
 
             target_batch = prep_input_2_chan(target_full, args.network_input, args, disc=True).to(args.device)
-            kspace_gen_batch = prep_input_2_chan(kspace_gen_out, 'kspace', args, disc=True).to(args.device)
-            kspace_unet_batch = prep_input_2_chan(kspace_unet_out, 'kspace', args, disc=True).to(args.device)
-            args.network_input = 'image'
             image_gen_batch = prep_input_2_chan(image_gen_out, 'image', args, disc=True).to(args.device)
             image_unet_batch = prep_input_2_chan(image_unet_out, 'image', args, disc=True).to(args.device)
 
@@ -204,16 +197,12 @@ def main(args):
                 if j == 2:
                     true_im = complex_abs(target_batch[j].permute(1, 2, 0))
                     zfr_im = complex_abs(input_im[j].permute(1, 2, 0))
-                    gen_kspace_im = complex_abs(kspace_gen_batch[j].permute(1, 2, 0))
                     gen_image_im = complex_abs(image_gen_batch[j].permute(1, 2, 0))
-                    unet_kspace_im = complex_abs(kspace_unet_batch[j].permute(1, 2, 0))
                     unet_image_im = complex_abs(image_unet_batch[j].permute(1, 2, 0))
 
                     true_im_np = true_im.cpu().numpy() * std[j].numpy() + mean[j].numpy()
                     zfr_im_np = zfr_im.cpu().numpy() * std[j].numpy() + mean[j].numpy()
-                    gen_kspace_im_np = gen_kspace_im.cpu().numpy() * std[j].numpy() + mean[j].numpy()
                     gen_image_im_np = gen_image_im.cpu().numpy() * std[j].numpy() + mean[j].numpy()
-                    unet_kspace_im_np = unet_kspace_im.cpu().numpy() * std[j].numpy() + mean[j].numpy()
                     unet_image_im_np = unet_image_im.cpu().numpy() * std[j].numpy() + mean[j].numpy()
 
                     fig = plt.figure(figsize=(18, 9))
@@ -221,21 +210,17 @@ def main(args):
 
                     generate_image(fig, true_im_np, true_im_np, 'GT', 1)
                     generate_image(fig, true_im_np, zfr_im_np, 'ZFR', 2)
-                    generate_image(fig, true_im_np, gen_kspace_im_np, 'K-Space Generator', 3)
                     generate_image(fig, true_im_np, gen_image_im_np, 'Image Generator', 4)
-                    generate_image(fig, true_im_np, unet_kspace_im_np, 'K-Space U-Net', 5)
                     generate_image(fig, true_im_np, unet_image_im_np, 'Image U-Net', 6)
 
                     generate_error_map(fig, true_im_np, zfr_im_np, 'ZFR', 8)
-                    generate_error_map(fig, true_im_np, gen_kspace_im_np, 'K-Space Generator', 9)
                     generate_error_map(fig, true_im_np, gen_image_im_np, 'Image Generator', 10)
-                    generate_error_map(fig, true_im_np, unet_kspace_im_np, 'K-Space U-Net', 11)
                     im, ax = generate_error_map(fig, true_im_np, unet_image_im_np, 'Image U-Net', 12)
 
                     get_colorbar(fig, im, ax)
                     plt.savefig(f'/home/bendel.8/Git_Repos/MRIGAN/recons_{i}.png')
 
-        if i + 1 == 5:
+        if i + 1 == 1:
             exit()
 
 
