@@ -65,7 +65,7 @@ def non_average_gen(generator, input_w_z, z, old_input):
     else:
         refined_out = readd_measures_im(output_gen, old_input, args)
 
-    return refined_out, finish
+    return refined_out
 
 
 def average_gen(generator, input_w_z, z, old_input):
