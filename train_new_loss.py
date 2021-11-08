@@ -298,9 +298,9 @@ def main(args):
                             disc_inputs_gen[l, k, :, :, :] = disc_output_batch[k, l, :, :, :]
 
                     # MAKE PREDICTIONS
-                    print(disc_inputs_gen.shape)
                     real_pred = torch.zeros((args.batch_size, args.num_z))
                     for k in range(args.batch_size):
+                        print(disc_inputs_true[k].shape)
                         real_pred[k] = discriminator(disc_inputs_true[k])
 
                     fake_pred = torch.zeros((args.batch_size, args.num_z))
