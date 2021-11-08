@@ -359,7 +359,7 @@ def main(args):
                 )
                 for l in range(args.batch_size):
                     for k in range(args.num_z):
-                        disc_inputs_gen[l, k, , :, :, :] = disc_output_batch[k, l, :, :, :]
+                        disc_inputs_gen[l, k, :, :, :] = disc_output_batch[k, l, :, :, :]
 
                 # Loss measures generator's ability to fool the discriminator
                 # Train on fake images
