@@ -286,7 +286,7 @@ def main(args):
                     disc_inputs_true = torch.zeros(
                         size=(old_input.shape[0], args.num_z, disc_output_batch.shape[2], disc_output_batch.shape[3], disc_output_batch.shape[4])
                     ).to(args.device)
-                    for l in range(args.batch_size):
+                    for l in range(old_input.shape[0]):
                         for k in range(args.num_z):
                             disc_inputs_true[l, k, :, :, :] = disc_target_batch[k, l, :, :, :]
 
