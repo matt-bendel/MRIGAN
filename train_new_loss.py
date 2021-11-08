@@ -261,7 +261,7 @@ def main(args):
                     input_w_z = input_w_z.to(args.device)
                     output_gen = torch.zeros(size=(args.num_z, old_input.shape[0], old_input.shape[1], old_input.shape[2], old_input.shape[3])).to(args.device)
                     for k in range(args.num_z):
-                        output_gen[k] = generator(input_w_z, z[k])
+                        output_gen[k, :, :, :, :] = generator(input_w_z, z[k])
 
                     if args.network_input == 'kspace':
                         # refined_out = output_gen + old_input[:, 0:16]
@@ -269,17 +269,17 @@ def main(args):
                     else:
                         refined_out = torch.zeros(size=output_gen.shape).to(args.device)
                         for k in range(args.num_z):
-                            refined_out[k] = readd_measures_im(output_gen[k], old_input, args)
+                            refined_out[k, :, :, :, :] = readd_measures_im(output_gen[k, :, :, :, :], old_input, args)
 
                     disc_target_batch = torch.zeros(refined_out.shape)
                     for k in range(args.num_z):
-                        disc_target_batch[k] = prep_input_2_chan(target_full + (0.01**0.5)*torch.randn_like(target_full), args.network_input, args, disc=True,
+                        disc_target_batch[k, :, :, :, :] = prep_input_2_chan(target_full + (0.01**0.5)*torch.randn_like(target_full), args.network_input, args, disc=True,
                                                           disc_image=not args.disc_kspace).to(
                         args.device)
 
                     disc_output_batch = torch.zeros(size=refined_out.shape).to(args.device)
                     for k in range(args.num_z):
-                        disc_output_batch[k] = prep_input_2_chan(refined_out[k], args.network_input, args, disc=True,
+                        disc_output_batch[k, :, :, :, :] = prep_input_2_chan(refined_out[k, :, :, :, :], args.network_input, args, disc=True,
                                                           disc_image=not args.disc_kspace).to(args.device)
 
 
@@ -288,16 +288,17 @@ def main(args):
                     )
                     for l in range(args.batch_size):
                         for k in range(args.num_z):
-                            disc_inputs_true[l][k] = disc_target_batch[k][l]
+                            disc_inputs_true[l, k, :, :, :] = disc_target_batch[k, l, :, :, :]
 
                     disc_inputs_gen = torch.zeros(
                         size=(args.batch_size, args.num_z, disc_output_batch.shape[2], disc_output_batch.shape[3], disc_output_batch.shape[4])
                     )
                     for l in range(args.batch_size):
                         for k in range(args.num_z):
-                            disc_inputs_gen[l][k] = disc_output_batch[k][l]
+                            disc_inputs_gen[l, k, :, :, :] = disc_output_batch[k, l, :, :, :]
 
                     # MAKE PREDICTIONS
+                    print(disc_inputs_gen.shape)
                     real_pred = torch.zeros((args.batch_size, args.num_z))
                     for k in range(args.batch_size):
                         real_pred[k] = discriminator(disc_inputs_true[k])
@@ -338,18 +339,18 @@ def main(args):
                 args.num_z, old_input.shape[0], old_input.shape[1], old_input.shape[2], old.input.shape[3])).to(
                     args.device)
                 for k in range(args.num_z):
-                    output_gen[k] = generator(input_w_z, z[k])
+                    output_gen[k, :, :, :, :] = generator(input_w_z, z[k, :, :, :, :])
 
                 if args.network_input == 'kspace':
                     refined_out = output_gen + old_input[:]
                 else:
                     refined_out = torch.zeros(size=output_gen.shape).to(args.device)
                     for k in range(args.num_z):
-                        refined_out[k] = readd_measures_im(output_gen[k], old_input, args)
+                        refined_out[k, :, :, :, :] = readd_measures_im(output_gen[k], old_input, args)
 
                 disc_output_batch = torch.zeros(size=refined_out.shape).to(args.device)
                 for k in range(args.num_z):
-                    disc_output_batch[k] = prep_input_2_chan(refined_out[k], args.network_input, args, disc=True,
+                    disc_output_batch[k, :, :, :, :] = prep_input_2_chan(refined_out[k], args.network_input, args, disc=True,
                                                              disc_image=not args.disc_kspace).to(args.device)
 
                 disc_inputs_gen = torch.zeros(
@@ -358,7 +359,7 @@ def main(args):
                 )
                 for l in range(args.batch_size):
                     for k in range(args.num_z):
-                        disc_inputs_gen[l][k] = disc_output_batch[k][l]
+                        disc_inputs_gen[l, k, , :, :, :] = disc_output_batch[k, l, :, :, :]
 
                 # Loss measures generator's ability to fool the discriminator
                 # Train on fake images
