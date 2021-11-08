@@ -284,27 +284,27 @@ def main(args):
 
 
                     disc_inputs_true = torch.zeros(
-                        size=(args.batch_size, args.num_z, disc_output_batch.shape[2], disc_output_batch.shape[3], disc_output_batch.shape[4])
+                        size=(old_input.shape[0], args.num_z, disc_output_batch.shape[2], disc_output_batch.shape[3], disc_output_batch.shape[4])
                     ).to(args.device)
                     for l in range(args.batch_size):
                         for k in range(args.num_z):
                             disc_inputs_true[l, k, :, :, :] = disc_target_batch[k, l, :, :, :]
 
                     disc_inputs_gen = torch.zeros(
-                        size=(args.batch_size, args.num_z, disc_output_batch.shape[2], disc_output_batch.shape[3], disc_output_batch.shape[4])
+                        size=(old_input.shape[0], args.num_z, disc_output_batch.shape[2], disc_output_batch.shape[3], disc_output_batch.shape[4])
                     ).to(args.device)
-                    for l in range(args.batch_size):
+                    for l in range(old_input.shape[0]):
                         for k in range(args.num_z):
                             disc_inputs_gen[l, k, :, :, :] = disc_output_batch[k, l, :, :, :]
 
                     # MAKE PREDICTIONS
-                    real_pred = torch.zeros((args.batch_size, args.num_z)).to(args.device)
-                    for k in range(args.batch_size):
+                    real_pred = torch.zeros((old_input.shape[0], args.num_z)).to(args.device)
+                    for k in range(old_input.shape[0]):
                         temp = discriminator(disc_inputs_true[k])
                         real_pred[k, :] = temp[:, 0]
 
-                    fake_pred = torch.zeros((args.batch_size, args.num_z)).to(args.device)
-                    for k in range(args.batch_size):
+                    fake_pred = torch.zeros((old_input.shape[0], args.num_z)).to(args.device)
+                    for k in range(old_input.shape[0]):
                         temp = discriminator(disc_inputs_gen[k])
                         fake_pred[k, :] = temp[:, 0]
 
@@ -318,7 +318,7 @@ def main(args):
                                                                 disc_output_batch[0].data, args)
                     true_pred_loss = torch.mean(real_pred[0])
                     gen_pred_loss = torch.mean(fake_pred[0])
-                    for k in range(args.batch_size - 1):
+                    for k in range(old_input.shape[0] - 1):
                         true_pred_loss += torch.mean(real_pred[k+1])
                         gen_pred_loss += torch.mean(fake_pred[k+1])
 
@@ -355,22 +355,22 @@ def main(args):
                                                              disc_image=not args.disc_kspace).to(args.device)
 
                 disc_inputs_gen = torch.zeros(
-                    size=(args.batch_size, args.num_z, disc_output_batch.shape[2], disc_output_batch.shape[3],
+                    size=(old_input.shape[0], args.num_z, disc_output_batch.shape[2], disc_output_batch.shape[3],
                           disc_output_batch.shape[4])
                 ).to(args.device)
-                for l in range(args.batch_size):
+                for l in range(old_input.shape[0]):
                     for k in range(args.num_z):
                         disc_inputs_gen[l, k, :, :, :] = disc_output_batch[k, l, :, :, :]
 
                 # Loss measures generator's ability to fool the discriminator
                 # Train on fake images
-                fake_pred = torch.zeros((args.batch_size, args.num_z)).to(args.device)
-                for k in range(args.batch_size):
+                fake_pred = torch.zeros((old_input.shape[0], args.num_z)).to(args.device)
+                for k in range(old_input.shape[0]):
                     temp = discriminator(disc_inputs_gen[k])
                     fake_pred[k] = temp[:, 0]
 
                 gen_pred_loss = torch.mean(fake_pred[0])
-                for k in range(args.batch_size - 1):
+                for k in range(old_input.shape[0] - 1):
                     gen_pred_loss += torch.mean(fake_pred[k + 1])
 
                 # Old best -0.01adv + 10*mse - ssim
