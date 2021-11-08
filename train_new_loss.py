@@ -366,7 +366,8 @@ def main(args):
                 # Train on fake images
                 fake_pred = torch.zeros((args.batch_size, args.num_z)).to(args.device)
                 for k in range(args.batch_size):
-                    fake_pred[k] = discriminator(disc_inputs_gen[k])
+                    temp = discriminator(disc_inputs_gen[k])
+                    fake_pred[k] = temp[:, 0]
 
                 gen_pred_loss = torch.mean(fake_pred[0])
                 for k in range(args.batch_size - 1):
