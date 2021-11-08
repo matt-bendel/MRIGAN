@@ -340,7 +340,7 @@ def main(args):
                 args.num_z, old_input.shape[0], old_input.shape[1], old_input.shape[2], old_input.shape[3])).to(
                     args.device)
                 for k in range(args.num_z):
-                    output_gen[k, :, :, :, :] = generator(input_w_z, z[k, :, :, :, :])
+                    output_gen[k, :, :, :, :] = generator(input_w_z, z[k])
 
                 if args.network_input == 'kspace':
                     refined_out = output_gen + old_input[:]
