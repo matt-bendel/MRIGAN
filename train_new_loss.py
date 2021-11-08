@@ -337,7 +337,7 @@ def main(args):
                     np.random.normal(size=(args.num_z, input.shape[0], args.latent_size), scale=np.sqrt(0.001))).to(
                     args.device)
                 output_gen = torch.zeros(size=(
-                args.num_z, old_input.shape[0], old_input.shape[1], old_input.shape[2], old.input.shape[3])).to(
+                args.num_z, old_input.shape[0], old_input.shape[1], old_input.shape[2], old_input.shape[3])).to(
                     args.device)
                 for k in range(args.num_z):
                     output_gen[k, :, :, :, :] = generator(input_w_z, z[k, :, :, :, :])
