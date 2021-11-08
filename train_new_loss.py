@@ -301,7 +301,9 @@ def main(args):
                     real_pred = torch.zeros((args.batch_size, args.num_z))
                     for k in range(args.batch_size):
                         print(disc_inputs_true[k].shape)
-                        real_pred[k] = discriminator(disc_inputs_true[k])
+                        # real_pred[k]
+                        temp = discriminator(disc_inputs_true[k])
+                        print(temp.shape)
 
                     fake_pred = torch.zeros((args.batch_size, args.num_z))
                     for k in range(args.batch_size):
