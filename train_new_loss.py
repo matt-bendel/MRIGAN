@@ -272,7 +272,7 @@ def main(args):
                             refined_out[k] = readd_measures_im(output_gen[k], old_input, args)
 
                     disc_target_batch = torch.zeros(refined_out.shape)
-                    for k in args.num_z:
+                    for k in range(args.num_z):
                         disc_target_batch[k] = prep_input_2_chan(target_full + (0.01**0.5)*torch.randn_like(target_full), args.network_input, args, disc=True,
                                                           disc_image=not args.disc_kspace).to(
                         args.device)
