@@ -300,14 +300,13 @@ def main(args):
                     # MAKE PREDICTIONS
                     real_pred = torch.zeros((args.batch_size, args.num_z))
                     for k in range(args.batch_size):
-                        print(disc_inputs_true[k].shape)
-                        # real_pred[k]
                         temp = discriminator(disc_inputs_true[k])
-                        print(temp.shape)
+                        real_pred[k, :] = temp[:, 0]
 
                     fake_pred = torch.zeros((args.batch_size, args.num_z))
                     for k in range(args.batch_size):
-                        fake_pred[k] = discriminator(disc_inputs_gen[k])
+                        temp = discriminator(disc_inputs_gen[k])
+                        fake_pred[k, :] = temp[:, 0]
 
                     real_acc = real_pred[real_pred > 0].shape[0]
                     fake_acc = fake_pred[fake_pred <= 0].shape[0]
