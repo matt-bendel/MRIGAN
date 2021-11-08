@@ -259,7 +259,7 @@ def main(args):
                     optimizer_D.zero_grad()
 
                     input_w_z = input_w_z.to(args.device)
-                    output_gen = torch.zeros(size=(args.num_z, old_input.shape[0], old_input.shape[1], old_input.shape[2], old.input.shape[3])).to(args.device)
+                    output_gen = torch.zeros(size=(args.num_z, old_input.shape[0], old_input.shape[1], old_input.shape[2], old_input.shape[3])).to(args.device)
                     for k in range(args.num_z):
                         output_gen[k] = generator(input_w_z, z[k])
 
