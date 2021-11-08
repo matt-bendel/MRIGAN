@@ -318,7 +318,7 @@ def main(args):
                                                                 disc_output_batch[0].data, args)
                     true_pred_loss = torch.mean(real_pred[0])
                     gen_pred_loss = torch.mean(fake_pred[0])
-                    for k in range(args.batch_size) - 1:
+                    for k in range(args.batch_size - 1):
                         true_pred_loss += torch.mean(real_pred[k+1])
                         gen_pred_loss += torch.mean(fake_pred[k+1])
 
@@ -369,7 +369,7 @@ def main(args):
                     fake_pred[k] = discriminator(disc_inputs_gen[k])
 
                 gen_pred_loss = torch.mean(fake_pred[0])
-                for k in range(args.batch_size) - 1:
+                for k in range(args.batch_size - 1):
                     gen_pred_loss += torch.mean(fake_pred[k + 1])
 
                 # Old best -0.01adv + 10*mse - ssim
