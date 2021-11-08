@@ -14,6 +14,8 @@ def create_arg_parser():
     # TODO: BACK TO 5
     parser.add_argument('--num-iters-discriminator', type=int, default=1,
                         help='Number of iterations of the discriminator')
+    parser.add_argument('--num-z', type=int, default=4,
+                        help='Number of z values')
     parser.add_argument('--latent-size', type=int, default=512, help='Size of latent vector for z location 2')
     parser.add_argument('--z-location', type=int, required=True, help='Where to put code vector')
 
