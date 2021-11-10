@@ -323,8 +323,7 @@ def main(args):
                         gen_pred_loss += torch.mean(fake_pred[k+1])
 
                     # Adversarial loss
-                    d_loss = torch.mean(gen_pred_loss) - torch.mean(
-                        true_pred_loss) + lambda_gp * gradient_penalty + 0.001 * torch.mean(
+                    d_loss = gen_pred_loss - true_pred_loss + lambda_gp * gradient_penalty + 0.001 * torch.mean(
                         torch.cat((real_pred, fake_pred)) ** 2)
 
                     d_loss.backward()
@@ -374,7 +373,7 @@ def main(args):
                     gen_pred_loss += torch.mean(fake_pred[k + 1])
 
                 # Old best -0.01adv + 10*mse - ssim
-                g_loss = -torch.mean(gen_pred_loss) #+ 20 * F.l1_loss(disc_target_batch, disc_inp) - mssim_tensor(
+                g_loss = -gen_pred_loss #+ 20 * F.l1_loss(disc_target_batch, disc_inp) - mssim_tensor(
                     #disc_target_batch, disc_inp)
 
                 g_loss.backward()
