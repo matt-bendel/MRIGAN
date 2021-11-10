@@ -166,18 +166,18 @@ class DiscriminatorModel(nn.Module):
         self.encoder_layers += [FullDownBlock(512, 512)]  # 3x3
 
         self.post_mbsd_1 = nn.Sequential(
-            nn.Conv2d(512, 512, kernel_size=(2, 2), padding=1),
+            nn.Conv2d(513, 513, kernel_size=(3, 3), padding=1),
             nn.LeakyReLU(negative_slope=0.2)
         )
 
         self.post_mbsd_2 = nn.Sequential(
-            nn.Conv2d(512, 512, kernel_size=(3, 3), padding=0),
+            nn.Conv2d(513, 513, kernel_size=(2, 2), padding=1),
             nn.LeakyReLU(negative_slope=0.2)
         )
 
         self.dense = nn.Sequential(
             nn.Flatten(),
-            nn.Linear(512 * 3 * 3, 1),
+            nn.Linear(513 * 3 * 3, 1),
         )
 
     def forward(self, input):
@@ -191,7 +191,7 @@ class DiscriminatorModel(nn.Module):
         if self.mbsd:
             x = miniBatchStdDev(output)
             x = self.post_mbsd_1(x)
-            x = x.view(-1, num_flat_features(x))
+            # x = x.view(-1, num_flat_features(x))
             x = self.post_mbsd_2(x)
 
             output = x
