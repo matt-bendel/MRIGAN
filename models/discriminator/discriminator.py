@@ -171,7 +171,7 @@ class DiscriminatorModel(nn.Module):
         )
 
         self.post_mbsd_2 = nn.Sequential(
-            nn.Conv2d(513, 513, kernel_size=(2, 2), padding=1),
+            nn.Conv2d(513, 513, kernel_size=(3, 3), padding=0),
             nn.LeakyReLU(negative_slope=0.2)
         )
 
