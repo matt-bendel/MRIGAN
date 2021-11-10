@@ -40,7 +40,7 @@ def miniBatchStdDev(x, subGroupSize=4):
         y = torch.mean(y, 1).view(G, 1)
         y = y.expand(G, size[2] * size[3]).view((G, 1, 1, size[2], size[3]))
         y = y.expand(G, subGroupSize, -1, -1, -1)
-        y = y.contiguous().view((-1, 1, size[2], size[3]))
+        y = y.contiguous().view((-1, 1, size[2], size[3])).to(x.device)
     else:
         y = torch.zeros(x.size(0), 1, x.size(2), x.size(3), device=x.device)
 
