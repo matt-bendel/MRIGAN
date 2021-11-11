@@ -260,7 +260,7 @@ def main(args):
 
                 for j in range(args.num_iters_discriminator):
                     z = torch.FloatTensor(
-                        np.random.normal(size=(args.num_z, input.shape[0], args.latent_size), scale=np.sqrt(0.001))).to(
+                        np.random.normal(size=(args.num_z, input.shape[0], args.latent_size), scale=np.sqrt(1))).to(
                         args.device)
                     # ---------------------
                     #  Train Discriminator
@@ -342,7 +342,7 @@ def main(args):
 
                 # Generate a batch of images
                 z = torch.FloatTensor(
-                    np.random.normal(size=(args.num_z, input.shape[0], args.latent_size), scale=np.sqrt(0.001))).to(
+                    np.random.normal(size=(args.num_z, input.shape[0], args.latent_size), scale=np.sqrt(1))).to(
                     args.device)
                 output_gen = torch.zeros(size=(
                 args.num_z, old_input.shape[0], old_input.shape[1], old_input.shape[2], old_input.shape[3])).to(
