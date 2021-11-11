@@ -234,7 +234,7 @@ def average_gen(generator, input_w_z, old_input, args):
         gen_list.append(refined_out)
         average_gen = torch.add(average_gen, refined_out)
 
-    return torch.div(average_gen, 8), gen_list
+    return torch.div(average_gen, 8)
 
 def main(args):
     args.exp_dir.mkdir(parents=True, exist_ok=True)
