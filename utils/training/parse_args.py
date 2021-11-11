@@ -12,7 +12,7 @@ def create_arg_parser():
     parser.add_argument('--disc-kspace', action='store_true', help='Image or K-Space Discriminator')
     parser.add_argument('--mbsd', action='store_true', help='Whether or not to use mbsd')
     # TODO: BACK TO 5
-    parser.add_argument('--num-iters-discriminator', type=int, default=1,
+    parser.add_argument('--num-iters-discriminator', type=int, default=3,
                         help='Number of iterations of the discriminator')
     parser.add_argument('--num-z', type=int, default=8,
                         help='Number of z values')
