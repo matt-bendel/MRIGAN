@@ -402,7 +402,7 @@ def main(args):
                     gen_pred_loss += torch.mean(fake_pred[k + 1])
 
                 # Old best -0.01adv + 10*mse - ssim
-                g_loss = -0.01*torch.mean(gen_pred_loss) + 0.001 * F.l1_loss(target_full, avg_recon) - mssim_tensor(
+                g_loss = -0.1*torch.mean(gen_pred_loss) + 0.001 * F.l1_loss(target_full, avg_recon) - mssim_tensor(
                     target_full, avg_recon)
 
                 g_loss.backward()
