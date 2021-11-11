@@ -435,9 +435,7 @@ def main(args):
 
                     output_gen = average_gen(generator, input, input, args)
 
-                    refined_out = readd_measures_im(output_gen, input, args)
-
-                    ims = prep_input_2_chan(refined_out, args.network_input, args, disc=True,
+                    ims = prep_input_2_chan(output_gen, args.network_input, args, disc=True,
                                             disc_image=not args.disc_kspace).permute(0, 2, 3, 1)
                     target_im = prep_input_2_chan(target_full, args.network_input, args, disc=True).to(
                         args.device).permute(
