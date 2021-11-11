@@ -217,6 +217,25 @@ def average(gen_tensor):
     return torch.div(average_tensor, gen_tensor.shape[1])
 
 
+def average_gen(generator, input_w_z, old_input, args):
+    average_gen = torch.zeros(input_w_z.shape).to(args.device)
+    gen_list = []
+    for j in range(8):
+        z = torch.FloatTensor(np.random.normal(size=(input_w_z.shape[0], args.latent_size), scale=np.sqrt(1))).to(
+            args.device)
+        output_gen = generator(input=input_w_z, z=z)
+
+        if args.network_input == 'kspace':
+            # refined_out = output_gen + old_input[:, 0:16]
+            refined_out = output_gen + old_input[:]
+        else:
+            refined_out = readd_measures_im(output_gen, old_input, args)
+
+        gen_list.append(refined_out)
+        average_gen = torch.add(average_gen, refined_out)
+
+    return torch.div(average_gen, 8), gen_list
+
 def main(args):
     args.exp_dir.mkdir(parents=True, exist_ok=True)
 
@@ -414,7 +433,7 @@ def main(args):
                     z = torch.FloatTensor(
                         np.random.normal(size=(input.shape[0], args.latent_size), scale=np.sqrt(1))).to(args.device)
 
-                    output_gen = generator(input, z)
+                    output_gen = average_gen(generator, input, input, args)
 
                     refined_out = readd_measures_im(output_gen, input, args)
 
