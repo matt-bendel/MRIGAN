@@ -208,6 +208,15 @@ def save_metrics(args):
         pickle.dump(GLOBAL_LOSS_DICT, f, pickle.HIGHEST_PROTOCOL)
 
 
+def average(gen_tensor):
+    average_tensor = torch.zeros((gen_tensor.shape[0], gen_tensor.shape[2], gen_tensor.shape[3], gen_tensor.shape[4])).to(gen_tensor.device)
+    for j in range(gen_tensor.shape[0]):
+        for i in range(gen_tensor.shape[1]):
+            average_tensor[j, :, :, :] = torch.add(gen_tensor[j, i, :, :, :], average_tensor[j, :, :, :])
+
+    return torch.div(average_tensor, gen_tensor.shape[1])
+
+
 def main(args):
     args.exp_dir.mkdir(parents=True, exist_ok=True)
 
@@ -273,7 +282,7 @@ def main(args):
 
                     disc_target_batch = torch.zeros(refined_out.shape).to(args.device)
                     for k in range(args.num_z):
-                        disc_target_batch[k, :, :, :, :] = prep_input_2_chan(target_full + (0.01**0.5)*torch.randn_like(target_full), args.network_input, args, disc=True,
+                        disc_target_batch[k, :, :, :, :] = prep_input_2_chan(target_full + (0.001**0.5)*torch.randn_like(target_full), args.network_input, args, disc=True,
                                                           disc_image=not args.disc_kspace).to(
                         args.device)
 
@@ -323,7 +332,7 @@ def main(args):
                         gen_pred_loss += torch.mean(fake_pred[k+1])
 
                     # Adversarial loss
-                    d_loss = gen_pred_loss - true_pred_loss + lambda_gp * gradient_penalty + 0.001 * torch.mean(
+                    d_loss = torch.mean(gen_pred_loss) - torch.mean(true_pred_loss) + lambda_gp * gradient_penalty + 0.001 * torch.mean(
                         torch.cat((real_pred, fake_pred)) ** 2)
 
                     d_loss.backward()
@@ -361,6 +370,7 @@ def main(args):
                     for k in range(args.num_z):
                         disc_inputs_gen[l, k, :, :, :] = disc_output_batch[k, l, :, :, :]
 
+                avg_recon = average(disc_inputs_gen)
                 # Loss measures generator's ability to fool the discriminator
                 # Train on fake images
                 fake_pred = torch.zeros((old_input.shape[0], args.num_z)).to(args.device)
@@ -373,8 +383,8 @@ def main(args):
                     gen_pred_loss += torch.mean(fake_pred[k + 1])
 
                 # Old best -0.01adv + 10*mse - ssim
-                g_loss = -gen_pred_loss #+ 20 * F.l1_loss(disc_target_batch, disc_inp) - mssim_tensor(
-                    #disc_target_batch, disc_inp)
+                g_loss = -0.01*torch.mean(gen_pred_loss) + 0.001 * F.l1_loss(target_full, avg_recon) - mssim_tensor(
+                    target_full, avg_recon)
 
                 g_loss.backward()
                 optimizer_G.step()
