@@ -300,9 +300,8 @@ def main(args):
                             refined_out[k, :, :, :, :] = readd_measures_im(output_gen[k, :, :, :, :], old_input, args)
 
                     disc_target_batch = torch.zeros(refined_out.shape).to(args.device)
-                    print(torch.max(target_full))
                     for k in range(args.num_z):
-                        disc_target_batch[k, :, :, :, :] = prep_input_2_chan(target_full + (0.01**0.5)*torch.randn_like(target_full), args.network_input, args, disc=True,
+                        disc_target_batch[k, :, :, :, :] = prep_input_2_chan(target_full + (0.1**0.5)*torch.randn_like(target_full), args.network_input, args, disc=True,
                                                           disc_image=not args.disc_kspace).to(
                         args.device)
 
@@ -403,7 +402,7 @@ def main(args):
                     gen_pred_loss += torch.mean(fake_pred[k + 1])
 
                 # Old best -0.01adv + 10*mse - ssim
-                g_loss = -torch.mean(gen_pred_loss) + 0.001 * F.l1_loss(target_full, avg_recon) - mssim_tensor(
+                g_loss = -0.1*torch.mean(gen_pred_loss) + 0.001 * F.l1_loss(target_full, avg_recon) - mssim_tensor(
                     target_full, avg_recon)
 
                 g_loss.backward()
