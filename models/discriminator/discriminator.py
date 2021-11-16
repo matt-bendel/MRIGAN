@@ -177,7 +177,7 @@ class DiscriminatorModel(nn.Module):
 
         self.dense = nn.Sequential(
             nn.Flatten(),
-            nn.Linear(513, 1),
+            nn.Linear(513, 1) if self.mbsd else nn.Linear(512*3*3,1),
         )
 
     def forward(self, input):
