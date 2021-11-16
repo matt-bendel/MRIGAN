@@ -365,9 +365,9 @@ def main(args):
                     gen_pred_loss += torch.mean(fake_pred[k + 1])
 
                 var_loss = torch.mean(torch.var(disc_inputs_gen, (1, 2, 3, 4)))
-                var_weight = 0.05
+                var_weight = 0.01
 
-                g_loss = -0.01*torch.mean(gen_pred_loss) + 0.001 * F.l1_loss(target_full, avg_recon) - mssim_tensor(
+                g_loss = -0.001*torch.mean(gen_pred_loss) + 0.001 * F.l1_loss(target_full, avg_recon) - mssim_tensor(
                     target_full, avg_recon) - var_weight * var_loss
 
                 g_loss.backward()
@@ -416,7 +416,7 @@ def main(args):
                         losses['ssim'].append(ssim(target, output))
                         losses['psnr'].append(psnr(target, output))
 
-                    if i == 20:
+                    if i == 40:
                         break
 
             psnr_loss = np.mean(losses['psnr'])
