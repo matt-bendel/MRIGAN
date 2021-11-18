@@ -54,10 +54,10 @@ def ssim(
     return ssim
 
 
-def average_gen(generator, input_w_z, z, old_input, args):
+def average_gen(generator, input_w_z, z, old_input, args, num_z=8):
     average_gen = torch.zeros(input_w_z.shape).to(args.device)
     gen_list = []
-    for j in range(8):
+    for j in range(num_z):
         z = torch.FloatTensor(np.random.normal(size=(input_w_z.shape[0], args.latent_size), scale=np.sqrt(1))).to(
             args.device)
         output_gen = generator(input=input_w_z, z=z)
@@ -71,7 +71,7 @@ def average_gen(generator, input_w_z, z, old_input, args):
         gen_list.append(refined_out)
         average_gen = torch.add(average_gen, refined_out)
 
-    return torch.div(average_gen, 8), gen_list
+    return torch.div(average_gen, num_z), gen_list
 
 
 def generate_image(fig, target, image, method, image_ind, rows, cols):
@@ -132,7 +132,7 @@ def get_colorbar(fig, im, ax):
 
 
 def get_gen(args, type):
-    checkpoint_file_gen = pathlib.Path(f'/home/bendel.8/Git_Repos/MRIGAN/trained_models/{type}/{args.z_location}/generator_model.pt')
+    checkpoint_file_gen = pathlib.Path(f'/home/bendel.8/Git_Repos/MRIGAN/trained_models/{type}/{args.z_location}/generator_best_model.pt')
     checkpoint_gen = torch.load(checkpoint_file_gen, map_location=torch.device('cuda'))
 
     generator = build_model(args)
@@ -213,6 +213,8 @@ def main(args):
                             generate_image(fig, true_im_np, val, f'z {place}', place + 4, 4, 4)
                             im, ax = generate_error_map(fig, true_im_np, val, f'z {place}', place + 8, 4, 4)
                         place += 1
+                        if place > 8:
+                            break
 
                     get_colorbar(fig, im, ax)
                     plt.savefig(f'/home/bendel.8/Git_Repos/MRIGAN/comparison_{args.network_input}.png')
