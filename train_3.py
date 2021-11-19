@@ -365,7 +365,7 @@ def main(args):
                     gen_pred_loss += torch.mean(fake_pred[k + 1])
 
                 var_loss = torch.mean(torch.var(disc_inputs_gen, (1, 2, 3, 4)))
-                var_weight = 0.012
+                var_weight = 0.01
 
                 # TODO: BEST -0.001 adv and var_weight = 0.012
                 # TODO: Try -0.0001 and 0.012
