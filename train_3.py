@@ -417,7 +417,7 @@ def main(args):
                         losses['ssim'].append(ssim(target, output))
                         losses['psnr'].append(psnr(target, output))
 
-                    if i == 20:
+                    if i == 40:
                         break
 
             psnr_loss = np.mean(losses['psnr'])
