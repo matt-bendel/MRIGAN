@@ -54,6 +54,19 @@ def ssim(
     return ssim
 
 
+def z_gen(generator, input_w_z, z, old_input):
+    start = time.perf_counter()
+    output_gen = generator(input=input_w_z, z=z)
+
+    if args.network_input == 'kspace':
+        # refined_out = output_gen + old_input[:, 0:16]
+        refined_out = output_gen + old_input[:]
+    else:
+        refined_out = readd_measures_im(output_gen, old_input, args)
+
+    return refined_out
+
+
 def average_gen(generator, input_w_z, z, old_input, args, num_z=8):
     average_gen = torch.zeros(input_w_z.shape).to(args.device)
     gen_list = []
@@ -164,9 +177,11 @@ def main(args):
         with torch.no_grad():
             input_w_z = input.to(args.device)
             mean, gens = average_gen(gen, input_w_z, None, old_input, args)
+            zero = z_gen(gen, input_w_z, torch.zeros((input.shape[0], args.latent_size)), old_input)
 
             target_batch = prep_input_2_chan(target_full, args.network_input, args, disc=True).to(args.device)
             mean_batch = prep_input_2_chan(mean, args.network_input, args, disc=True).to(args.device)
+            zero_batch = prep_input_2_chan(zero, args.network_input, args, disc=True).to(args.device)
             gens_batch_list = []
             for val in gens:
                 gens_batch_list.append(prep_input_2_chan(val, args.network_input, args, disc=True).to(args.device))
@@ -175,12 +190,15 @@ def main(args):
                 if j == 5:
                     true_im = complex_abs(target_batch[j].permute(1, 2, 0))
                     gen_mean_im = complex_abs(mean_batch[j].permute(1, 2, 0))
+                    zero_im = complex_abs(zero_batch[j].permute(1, 2, 0))
                     gens_im_list = []
                     for val in gens_batch_list:
                         gens_im_list.append(complex_abs(val[j].permute(1, 2, 0)))
 
                     true_im_np = true_im.cpu().numpy() * std[j].cpu().numpy() + mean_val[j].cpu().numpy()
                     gen_mean_im_np = gen_mean_im.cpu().numpy() * std[j].cpu().numpy() + mean_val[j].cpu().numpy()
+                    zero_im_np = zero_im.cpu().numpy() * std[j].cpu().numpy() + mean_val[j].cpu().numpy()
+
                     gen_im_np_list = []
                     for val in gens_im_list:
                         gen_im_np_list.append(val.cpu().numpy() * std[j].cpu().numpy() + mean_val[j].cpu().numpy())
@@ -191,6 +209,13 @@ def main(args):
 
                     std_dev = std_dev / 8
                     std_dev = np.sqrt(std_dev)
+
+                    fig = plt.figure()
+                    generate_image(fig, true_im_np, true_im_np, 'GT', 1, 2, 2)
+                    generate_image(fig, true_im_np, gen_mean_im_np, 'Z=0', 2, 2, 2)
+                    im, ax = generate_error_map(fig, true_im_np, val, f'Error', 4, 2, 2)
+                    get_colorbar(fig, im, ax)
+                    plt.savefig(f'/home/bendel.8/Git_Repos/MRIGAN/z_0_{args.network_input}.png')
 
                     fig = plt.figure()
 
