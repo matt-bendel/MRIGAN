@@ -1,4 +1,10 @@
 import torch
 print('in')
-temp = torch.randn((16, 10000))
-print(torch.mean(torch.var(temp, 1)))
+temp1 = torch.randn((16, 8, 2, 96, 96))
+me = torch.mean(torch.var(temp1, (1, 2, 3, 4)))
+temp = torch.var(temp1, dim=1)
+temp = torch.mean(temp, dim=(1, 2, 3))
+temp2 = torch.mean(torch.mean(torch.var(temp1, dim=1), dim=(1, 2, 3)))
+print(torch.mean(temp).item())
+print(temp2.item())
+print(me.item())
