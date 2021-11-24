@@ -352,7 +352,7 @@ def main(args):
                     for k in range(args.num_z):
                         disc_inputs_gen[l, k, :, :, :] = disc_output_batch[k, l, :, :, :]
 
-                avg_recon = average(disc_inputs_gen)
+                avg_recon = torch.mean(disc_inputs_gen, dim=1) #average(disc_inputs_gen)
                 # Loss measures generator's ability to fool the discriminator
                 # Train on fake images
                 fake_pred = torch.zeros((old_input.shape[0], args.num_z)).to(args.device)
@@ -396,9 +396,6 @@ def main(args):
 
                     input = prep_input_2_chan(input, args.network_input, args).to(args.device)
                     target_full = prep_input_2_chan(target_full, args.network_input, args).to(args.device)
-
-                    z = torch.FloatTensor(
-                        np.random.normal(size=(input.shape[0], args.latent_size), scale=np.sqrt(1))).to(args.device)
 
                     output_gen = average_gen(generator, input, input, args)
 
