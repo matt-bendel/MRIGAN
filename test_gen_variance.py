@@ -213,7 +213,7 @@ def main(args):
                     fig = plt.figure()
                     generate_image(fig, true_im_np, true_im_np, 'GT', 1, 2, 2)
                     generate_image(fig, true_im_np, gen_mean_im_np, 'Z=0', 2, 2, 2)
-                    im, ax = generate_error_map(fig, true_im_np, val, f'Error', 4, 2, 2)
+                    im, ax = generate_error_map(fig, true_im_np, gen_mean_im_np, f'Error', 4, 2, 2)
                     get_colorbar(fig, im, ax)
                     plt.savefig(f'/home/bendel.8/Git_Repos/MRIGAN/z_0_{args.network_input}.png')
 
