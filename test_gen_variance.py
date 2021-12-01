@@ -177,7 +177,6 @@ def get_gen_supervised(args, type):
 
 def gif_im(true, gen_im, index):
     fig = plt.figure()
-    index = index - 4 if index > 4 else index
     generate_image(fig, true, gen_im, f'z {index}', 1, 2, 1)
     im, ax = generate_error_map(fig, true, gen_im, f'z {index}', 2, 2, 1)
     get_colorbar(fig, im, ax)
@@ -264,7 +263,7 @@ def main(args):
                     get_colorbar(fig, im, ax)
                     plt.savefig(f'/home/bendel.8/Git_Repos/MRIGAN/z_0_{args.network_input}.png')
 
-                    fig = plt.figure(figsize=(9, 18))
+                    fig = plt.figure(figsize=(18, 9))
 
                     generate_image(fig, true_im_np, true_im_np, 'GT', 1, 2, 4)
                     generate_image(fig, true_im_np, best_gen_mean_im_np, 'Supervised', 2, 2, 4)
@@ -294,6 +293,11 @@ def main(args):
 
                     get_colorbar(fig, im, ax)
                     plt.savefig(f'/home/bendel.8/Git_Repos/MRIGAN/comparison_{args.network_input}.png')
+
+                    place = 1
+                    for val in gen_im_np_list:
+                        gif_im(true_im_np, val, place)
+                        place += 1
 
                     generate_gif()
 
