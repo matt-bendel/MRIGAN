@@ -115,7 +115,7 @@ def generate_image(fig, target, image, method, image_ind, rows, cols):
     return im, ax
 
 
-def generate_error_map(fig, target, recon, method, image_ind, rows, cols, relative=False, k=1):
+def generate_error_map(fig, target, recon, method, image_ind, rows, cols, relative=False, k=1, kspace=False):
     # Assume rows and cols are available globally
     # rows and cols are both previously defined ints
     ax = fig.add_subplot(rows, cols, image_ind)  # Add to subplot
@@ -127,7 +127,7 @@ def generate_error_map(fig, target, recon, method, image_ind, rows, cols, relati
         im = ax.imshow(k * error, cmap='bwr', origin='lower', vmin=-0.0001, vmax=0.0001)  # Plot image
         plt.gca().invert_yaxis()
     else:
-        im = ax.imshow(k * error, cmap='jet')  # Plot image
+        im = ax.imshow(k * error, cmap='jet') if kspace else ax.imshow(k * error, cmap='jet', vmax=0.0001)
 
     # Remove axis ticks
     ax.set_xticks([])
@@ -290,8 +290,8 @@ def main(args):
                     generate_image(fig, kspace_true_mag_np, kspace_mean_mag_np, 'Mean', 3, 2, 3)
                     # im, ax = generate_image(fig, kspace_true_mag_np, std_dev, 'Std. Dev', 4, 2, 4)
                     # get_colorbar(fig, im, ax)
-                    generate_error_map(fig, kspace_true_mag_np, best_kspace_mean_mag, f'Error', 5, 2, 3)
-                    im, ax = generate_error_map(fig, kspace_true_mag_np, kspace_mean_mag_np, f'Error', 6, 2, 3)
+                    generate_error_map(fig, kspace_true_mag_np, best_kspace_mean_mag, f'Error', 5, 2, 3, kspace=True)
+                    im, ax = generate_error_map(fig, kspace_true_mag_np, kspace_mean_mag_np, f'Error', 6, 2, 3, kspace=True)
                     get_colorbar(fig, im, ax)
 
                     plt.savefig(f'/home/bendel.8/Git_Repos/MRIGAN/mean_and_std_kspace.png')
