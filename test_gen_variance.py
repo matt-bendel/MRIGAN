@@ -105,6 +105,7 @@ def generate_image(fig, target, image, method, image_ind, rows, cols):
         im = ax.imshow(np.abs(image), cmap='gray', vmin=0, vmax=np.max(target))
         ax.set_xticks([])
         ax.set_yticks([])
+        ax.set_xlabel(method)
 
     return im, ax
 
@@ -118,10 +119,10 @@ def generate_error_map(fig, target, recon, method, image_ind, rows, cols, relati
     error = (target - recon) if relative else np.abs(target - recon)
     # normalized_error = error / error.max() if not relative else error
     if relative:
-        im = ax.imshow(k * error, cmap='bwr', origin='lower', vmin=-0.0001, vmax=0.0001)  # Plot image
+        im = ax.imshow(k * error, cmap='bwr', origin='lower', vmin=-0.0001, vmax=1)  # Plot image
         plt.gca().invert_yaxis()
     else:
-        im = ax.imshow(k * error, cmap='jet', vmax=0.0001)  # Plot image
+        im = ax.imshow(k * error, cmap='jet', vmax=1)  # Plot image
 
     # Remove axis ticks
     ax.set_xticks([])
