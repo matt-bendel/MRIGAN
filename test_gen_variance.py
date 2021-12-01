@@ -127,7 +127,7 @@ def generate_error_map(fig, target, recon, method, image_ind, rows, cols, relati
         im = ax.imshow(k * error, cmap='bwr', origin='lower', vmin=-0.0001, vmax=0.0001)  # Plot image
         plt.gca().invert_yaxis()
     else:
-        im = ax.imshow(k * error, cmap='jet', vmax=0.0001)  # Plot image
+        im = ax.imshow(k * error, cmap='jet')  # Plot image
 
     # Remove axis ticks
     ax.set_xticks([])
@@ -285,8 +285,6 @@ def main(args):
                     fig = plt.figure(figsize=(18, 9))
 
                     #TODO: ADD KSPACE UNCERTAINTY MAP
-                    print(np.max(kspace_true_mag_np))
-                    print(np.min(kspace_true_mag_np))
                     generate_image(fig, kspace_true_mag_np, kspace_true_mag_np, 'GT', 1, 2, 3)
                     generate_image(fig, kspace_true_mag_np, best_kspace_mean_mag, 'Supervised', 2, 2, 3)
                     generate_image(fig, kspace_true_mag_np, kspace_mean_mag_np, 'Mean', 3, 2, 3)
