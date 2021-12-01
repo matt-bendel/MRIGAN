@@ -90,7 +90,7 @@ def average_gen(generator, input_w_z, z, old_input, args, num_z=8):
         average_gen = torch.add(average_gen, refined_out)
         average_gen_kspace = torch.add(average_gen_kspace, kspace_refined_out)
 
-    return torch.div(average_gen, num_z), gen_list, torch.div(average_gen_kspace, num_z)
+    return torch.div(average_gen, num_z), gen_list, kspace_refined_out #torch.div(average_gen_kspace, num_z)
 
 
 def generate_image(fig, target, image, method, image_ind, rows, cols):
