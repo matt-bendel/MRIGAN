@@ -184,10 +184,15 @@ def gif_im(true, gen_im, index):
 
 
 def generate_gif():
-    with iio.get_writer('variation_gif.gif', mode='I') as writer:
-        for i in range(8):
-            image = iio.imread(f'/home/bendel.8/Git_Repos/MRIGAN/gifs/gif_{i}.png')
-            writer.append_data(image)
+    images = []
+    for i in range(8):
+        images.append(iio.imread(f'/home/bendel.8/Git_Repos/MRIGAN/gifs/gif_{i}.png'))
+
+    iio.mimsave('variation_gif.gif', images, duration=0.5)
+    # with iio.get_writer('variation_gif.gif', mode='I') as writer:
+    #     for i in range(8):
+    #         image = iio.imread(f'/home/bendel.8/Git_Repos/MRIGAN/gifs/gif_{i}.png')
+    #         writer.append_data(image)
 
     for i in range(8):
         os.remove(f'/home/bendel.8/Git_Repos/MRIGAN/gifs/gif_{i}.png')
