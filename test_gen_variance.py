@@ -85,7 +85,7 @@ def average_gen(generator, input_w_z, z, old_input, args, num_z=8):
         gen_list.append(refined_out)
         average_gen = torch.add(average_gen, refined_out)
 
-    return torch.div(average_gen, num_z), gen_list
+    return torch.div(average_gen, num_z), gen_list, None
 
 
 def generate_image(fig, target, image, method, image_ind, rows, cols):
