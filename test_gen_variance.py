@@ -193,6 +193,10 @@ def generate_gif():
         os.remove(f'/home/bendel.8/Git_Repos/MRIGAN/gifs/gif_{i}.png')
 
 
+def plot_kspace_uncertainty():
+    return
+
+
 def main(args):
     args.in_chans = 2
     args.out_chans = 2
@@ -237,7 +241,8 @@ def main(args):
 
                     true_im_np = true_im.cpu().numpy() * std[j].cpu().numpy() + mean_val[j].cpu().numpy()
                     gen_mean_im_np = gen_mean_im.cpu().numpy() * std[j].cpu().numpy() + mean_val[j].cpu().numpy()
-                    best_gen_mean_im_np = best_gen_mean_im.cpu().numpy() * std[j].cpu().numpy() + mean_val[j].cpu().numpy()
+                    best_gen_mean_im_np = best_gen_mean_im.cpu().numpy() * std[j].cpu().numpy() + mean_val[
+                        j].cpu().numpy()
                     zero_im_np = zero_im.cpu().numpy() * std[j].cpu().numpy() + mean_val[j].cpu().numpy()
 
                     gen_im_np_list = []
@@ -258,7 +263,7 @@ def main(args):
                     get_colorbar(fig, im, ax)
                     plt.savefig(f'/home/bendel.8/Git_Repos/MRIGAN/z_0_{args.network_input}.png')
 
-                    fig = plt.figure()
+                    fig = plt.figure(figsize=(9, 18))
 
                     generate_image(fig, true_im_np, true_im_np, 'GT', 1, 2, 4)
                     generate_image(fig, true_im_np, best_gen_mean_im_np, 'Supervised', 2, 2, 4)
