@@ -70,7 +70,9 @@ def z_gen(generator, input_w_z, z, old_input):
 
 def average_gen(generator, input_w_z, z, old_input, args, num_z=8):
     average_gen = torch.zeros(input_w_z.shape).to(args.device)
+    average_gen_kspace = torch.zeros(input_w_z.shape).to(args.device)
     gen_list = []
+    gen_list_kspace = []
     for j in range(num_z):
         z = torch.FloatTensor(np.random.normal(size=(input_w_z.shape[0], args.latent_size), scale=np.sqrt(1))).to(
             args.device)
@@ -81,11 +83,14 @@ def average_gen(generator, input_w_z, z, old_input, args, num_z=8):
             refined_out = output_gen + old_input[:]
         else:
             refined_out = readd_measures_im(output_gen, old_input, args)
+            kspace_refined_out = readd_measures_im(output_gen, old_input, args, kspace=True)
 
         gen_list.append(refined_out)
+        gen_list_kspace.append(kspace_refined_out)
         average_gen = torch.add(average_gen, refined_out)
+        average_gen_kspace = torch.add(average_gen_kspace, kspace_refined_out)
 
-    return torch.div(average_gen, num_z), gen_list, None
+    return torch.div(average_gen, num_z), gen_list, torch.div(average_gen_kspace, num_z)
 
 
 def generate_image(fig, target, image, method, image_ind, rows, cols):
@@ -176,27 +181,23 @@ def get_gen_supervised(args, type):
     return generator
 
 
-def gif_im(true, gen_im, index):
+def gif_im(true, gen_im, index, type):
     fig = plt.figure()
     generate_image(fig, true, gen_im, f'z {index}', 1, 2, 1)
     im, ax = generate_error_map(fig, true, gen_im, f'z {index}', 2, 2, 1)
     get_colorbar(fig, im, ax)
-    plt.savefig(f'/home/bendel.8/Git_Repos/MRIGAN/gifs/gif_{index - 1}.png')
+    plt.savefig(f'/home/bendel.8/Git_Repos/MRIGAN/gifs/gif_{type}_{index - 1}.png')
 
 
-def generate_gif():
+def generate_gif(type):
     images = []
     for i in range(8):
-        images.append(iio.imread(f'/home/bendel.8/Git_Repos/MRIGAN/gifs/gif_{i}.png'))
+        images.append(iio.imread(f'/home/bendel.8/Git_Repos/MRIGAN/gifs/gif_{type}_{i}.png'))
 
-    iio.mimsave('variation_gif.gif', images, duration=0.25)
+    iio.mimsave(f'variation_{type}_gif.gif', images, duration=0.25)
 
     for i in range(8):
-        os.remove(f'/home/bendel.8/Git_Repos/MRIGAN/gifs/gif_{i}.png')
-
-
-def plot_kspace_uncertainty():
-    return
+        os.remove(f'/home/bendel.8/Git_Repos/MRIGAN/gifs/gif_{type}_{i}.png')
 
 
 def main(args):
@@ -212,15 +213,15 @@ def main(args):
 
     for i, data in enumerate(dev_loader):
         input, target_full, mean_val, std, nnz_index_mask = data
-
+        kspace_gt = prep_input_2_chan(input, 'kspace', args)
         input = prep_input_2_chan(input, args.network_input, args)
         target_full = prep_input_2_chan(target_full, args.network_input, args)
         old_input = input.to(args.device)
 
         with torch.no_grad():
             input_w_z = input.to(args.device)
-            mean, gens, kspace_mean = average_gen(gen, input_w_z, None, old_input, args)
-            best_mean, best_gens, best_kspace_mean = average_gen(best_gen, input_w_z, None, old_input, args)
+            mean, gens, kspace_mean_batch = average_gen(gen, input_w_z, None, old_input, args)
+            best_mean, best_gens, best_kspace_mean_batch = average_gen(best_gen, input_w_z, None, old_input, args)
             zero = z_gen(gen, input_w_z, torch.zeros((input.shape[0], args.latent_size)), old_input)
 
             target_batch = prep_input_2_chan(target_full, args.network_input, args, disc=True).to(args.device)
@@ -234,8 +235,11 @@ def main(args):
             for j in range(mean_batch.shape[0]):
                 if j == 7:
                     true_im = complex_abs(target_batch[j].permute(1, 2, 0))
+                    kspace_true_mag_np = complex_abs(kspace_gt[j].permute(1, 2, 0)).cpu().numpy()
                     gen_mean_im = complex_abs(mean_batch[j].permute(1, 2, 0))
+                    kspace_mean_mag_np = complex_abs(kspace_mean_batch[j].permute(1, 2, 0)).cpu().numpy()
                     best_gen_mean_im = complex_abs(best_mean_batch[j].permute(1, 2, 0))
+                    best_kspace_mean_mag = complex_abs(best_kspace_mean_batch[j].permute(1, 2, 0)).cpu().numpy()
                     zero_im = complex_abs(zero_batch[j].permute(1, 2, 0))
                     gens_im_list = []
                     for val in gens_batch_list:
@@ -278,6 +282,20 @@ def main(args):
 
                     plt.savefig(f'/home/bendel.8/Git_Repos/MRIGAN/mean_and_std_{args.network_input}.png')
 
+                    fig = plt.figure(figsize=(18, 9))
+
+                    #TODO: ADD KSPACE UNCERTAINTY MAP
+                    generate_image(fig, kspace_true_mag_np, kspace_true_mag_np, 'GT', 1, 2, 3)
+                    generate_image(fig, kspace_true_mag_np, best_kspace_mean_mag, 'Supervised', 2, 2, 3)
+                    generate_image(fig, kspace_true_mag_np, kspace_mean_mag_np, 'Mean', 3, 2, 3)
+                    # im, ax = generate_image(fig, kspace_true_mag_np, std_dev, 'Std. Dev', 4, 2, 4)
+                    # get_colorbar(fig, im, ax)
+                    generate_error_map(fig, kspace_true_mag_np, best_kspace_mean_mag, f'Error', 5, 2, 3)
+                    im, ax = generate_error_map(fig, kspace_true_mag_np, kspace_mean_mag_np, f'Error', 6, 2, 3)
+                    get_colorbar(fig, im, ax)
+
+                    plt.savefig(f'/home/bendel.8/Git_Repos/MRIGAN/mean_and_std_kspace.png')
+
                     fig = plt.figure(figsize=(14, 14))
                     place = 1
                     for val in gen_im_np_list:
@@ -294,12 +312,13 @@ def main(args):
                     get_colorbar(fig, im, ax)
                     plt.savefig(f'/home/bendel.8/Git_Repos/MRIGAN/comparison_{args.network_input}.png')
 
+                    #TODO: GENERATE KSPACE GIF
                     place = 1
                     for val in gen_im_np_list:
-                        gif_im(true_im_np, val, place)
+                        gif_im(true_im_np, val, place, 'image')
                         place += 1
 
-                    generate_gif()
+                    generate_gif('image')
 
         if i + 1 == 1:
             exit()

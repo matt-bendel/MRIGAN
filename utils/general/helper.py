@@ -44,7 +44,7 @@ def add_z_to_input(args, input):
     return input
 
 
-def readd_measures_im(data_tensor, old, args):
+def readd_measures_im(data_tensor, old, args, kspace=False):
     im_size = 96
     disc_inp = torch.zeros(data_tensor.shape[0], 2, im_size, im_size).to(args.device)
 
@@ -57,13 +57,15 @@ def readd_measures_im(data_tensor, old, args):
 
         disc_inp[k, :, :, :] = output_tensor.permute(2, 0, 1) + old_out.permute(2, 0, 1)
 
+    kspace_recons = disc_inp
+
     for k in range(data_tensor.shape[0]):
         output = torch.squeeze(disc_inp[k])
         output_tensor = ifft2c_new(output.permute(1, 2, 0))
 
         disc_inp[k, :, :, :] = output_tensor.permute(2, 0, 1)
 
-    return disc_inp
+    return disc_inp if not kspace else kspace_recons
 
 
 def prep_input_2_chan(data_tensor, unet_type, args, disc=False, disc_image=True):
