@@ -188,11 +188,7 @@ def generate_gif():
     for i in range(8):
         images.append(iio.imread(f'/home/bendel.8/Git_Repos/MRIGAN/gifs/gif_{i}.png'))
 
-    iio.mimsave('variation_gif.gif', images, duration=0.5)
-    # with iio.get_writer('variation_gif.gif', mode='I') as writer:
-    #     for i in range(8):
-    #         image = iio.imread(f'/home/bendel.8/Git_Repos/MRIGAN/gifs/gif_{i}.png')
-    #         writer.append_data(image)
+    iio.mimsave('variation_gif.gif', images, duration=0.25)
 
     for i in range(8):
         os.remove(f'/home/bendel.8/Git_Repos/MRIGAN/gifs/gif_{i}.png')
@@ -222,8 +218,8 @@ def main(args):
 
         with torch.no_grad():
             input_w_z = input.to(args.device)
-            mean, gens = average_gen(gen, input_w_z, None, old_input, args)
-            best_mean, best_gens = average_gen(best_gen, input_w_z, None, old_input, args)
+            mean, gens, kspace_mean = average_gen(gen, input_w_z, None, old_input, args)
+            best_mean, best_gens, best_kspace_mean = average_gen(best_gen, input_w_z, None, old_input, args)
             zero = z_gen(gen, input_w_z, torch.zeros((input.shape[0], args.latent_size)), old_input)
 
             target_batch = prep_input_2_chan(target_full, args.network_input, args, disc=True).to(args.device)
