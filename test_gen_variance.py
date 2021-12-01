@@ -230,7 +230,7 @@ def main(args):
                 gens_batch_list.append(prep_input_2_chan(val, args.network_input, args, disc=True).to(args.device))
 
             for j in range(mean_batch.shape[0]):
-                if j == 7:
+                if j == 5:
                     true_im = complex_abs(target_batch[j].permute(1, 2, 0))
                     gen_mean_im = complex_abs(mean_batch[j].permute(1, 2, 0))
                     best_gen_mean_im = complex_abs(best_mean_batch[j].permute(1, 2, 0))
