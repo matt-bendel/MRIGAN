@@ -282,11 +282,9 @@ def main(args):
                         if place <= 4:
                             generate_image(fig, true_im_np, val, f'z {place}', place, 4, 4)
                             im, ax = generate_error_map(fig, true_im_np, val, f'z {place}', place + 4, 4, 4)
-                            gif_im(true_im_np, val, place)
                         else:
                             generate_image(fig, true_im_np, val, f'z {place}', place + 4, 4, 4)
                             im, ax = generate_error_map(fig, true_im_np, val, f'z {place}', place + 8, 4, 4)
-                            gif_im(true_im_np, val, place + 4)
                         place += 1
                         if place > 8:
                             break
