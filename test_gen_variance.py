@@ -7,6 +7,7 @@ import pathlib
 
 import numpy as np
 import matplotlib.pyplot as plt
+import imageio as iio
 
 from typing import Optional
 from utils.math import complex_abs
@@ -145,7 +146,8 @@ def get_colorbar(fig, im, ax):
 
 
 def get_gen(args, type):
-    checkpoint_file_gen = pathlib.Path(f'/home/bendel.8/Git_Repos/MRIGAN/trained_models/{type}/{args.z_location}/generator_best_model.pt')
+    checkpoint_file_gen = pathlib.Path(
+        f'/home/bendel.8/Git_Repos/MRIGAN/trained_models/{type}/{args.z_location}/generator_best_model.pt')
     checkpoint_gen = torch.load(checkpoint_file_gen, map_location=torch.device('cuda'))
 
     generator = build_model(args)
@@ -158,12 +160,47 @@ def get_gen(args, type):
     return generator
 
 
+def get_gen_supervised(args, type):
+    checkpoint_file_gen = pathlib.Path(
+        f'/home/bendel.8/Git_Repos/MRIGAN/trained_models/{type}/2_presentation_temp/generator_best_model.pt')
+    checkpoint_gen = torch.load(checkpoint_file_gen, map_location=torch.device('cuda'))
+
+    generator = build_model(args)
+
+    if args.data_parallel:
+        generator = torch.nn.DataParallel(generator)
+
+    generator.load_state_dict(checkpoint_gen['model'])
+
+    return generator
+
+
+def gif_im(true, gen_im, index):
+    fig = plt.figure()
+    generate_image(fig, true, gen_im, f'z {index}', 1, 2, 1)
+    im, ax = generate_error_map(fig, true, gen_im, f'z {index}', 2, 2, 1)
+    get_colorbar(fig, im, ax)
+    plt.savefig(f'/home/bendel.8/Git_Repos/MRIGAN/gifs/gif_{index - 1}.png')
+
+
+def generate_gif():
+    with iio.get_writer('variation_gif.gif', mode='I') as writer:
+        for i in range(8):
+            image = iio.imread(f'/home/bendel.8/Git_Repos/MRIGAN/gifs/gif_{i}.png')
+            writer.append_data(image)
+
+    for i in range(8):
+        os.remove(f'/home/bendel.8/Git_Repos/MRIGAN/gifs/gif_{i}.png')
+
+
 def main(args):
     args.in_chans = 2
     args.out_chans = 2
 
     gen = get_gen(args, args.network_input)
+    best_gen = get_gen_supervised(args, args.network_input)
     gen.eval()
+    best_gen.eval()
 
     train_loader, dev_loader = create_data_loaders(args, val_only=True)
 
@@ -177,19 +214,22 @@ def main(args):
         with torch.no_grad():
             input_w_z = input.to(args.device)
             mean, gens = average_gen(gen, input_w_z, None, old_input, args)
+            best_mean, best_gens = average_gen(best_gen, input_w_z, None, old_input, args)
             zero = z_gen(gen, input_w_z, torch.zeros((input.shape[0], args.latent_size)), old_input)
 
             target_batch = prep_input_2_chan(target_full, args.network_input, args, disc=True).to(args.device)
             mean_batch = prep_input_2_chan(mean, args.network_input, args, disc=True).to(args.device)
+            best_mean_batch = prep_input_2_chan(best_mean, args.network_input, args, disc=True).to(args.device)
             zero_batch = prep_input_2_chan(zero, args.network_input, args, disc=True).to(args.device)
             gens_batch_list = []
             for val in gens:
                 gens_batch_list.append(prep_input_2_chan(val, args.network_input, args, disc=True).to(args.device))
 
             for j in range(mean_batch.shape[0]):
-                if j == 5:
+                if j == 7:
                     true_im = complex_abs(target_batch[j].permute(1, 2, 0))
                     gen_mean_im = complex_abs(mean_batch[j].permute(1, 2, 0))
+                    best_gen_mean_im = complex_abs(best_mean_batch[j].permute(1, 2, 0))
                     zero_im = complex_abs(zero_batch[j].permute(1, 2, 0))
                     gens_im_list = []
                     for val in gens_batch_list:
@@ -197,6 +237,7 @@ def main(args):
 
                     true_im_np = true_im.cpu().numpy() * std[j].cpu().numpy() + mean_val[j].cpu().numpy()
                     gen_mean_im_np = gen_mean_im.cpu().numpy() * std[j].cpu().numpy() + mean_val[j].cpu().numpy()
+                    best_gen_mean_im_np = best_gen_mean_im.cpu().numpy() * std[j].cpu().numpy() + mean_val[j].cpu().numpy()
                     zero_im_np = zero_im.cpu().numpy() * std[j].cpu().numpy() + mean_val[j].cpu().numpy()
 
                     gen_im_np_list = []
@@ -212,18 +253,20 @@ def main(args):
 
                     fig = plt.figure()
                     generate_image(fig, true_im_np, true_im_np, 'GT', 1, 2, 2)
-                    generate_image(fig, true_im_np, gen_mean_im_np, 'Z=0', 2, 2, 2)
-                    im, ax = generate_error_map(fig, true_im_np, val, f'Error', 4, 2, 2)
+                    generate_image(fig, true_im_np, zero_im_np, 'Z=0', 2, 2, 2)
+                    im, ax = generate_error_map(fig, true_im_np, zero_im_np, f'Error', 4, 2, 2)
                     get_colorbar(fig, im, ax)
                     plt.savefig(f'/home/bendel.8/Git_Repos/MRIGAN/z_0_{args.network_input}.png')
 
                     fig = plt.figure()
 
-                    generate_image(fig, true_im_np, true_im_np, 'GT', 1, 2, 3)
-                    generate_image(fig, true_im_np, gen_mean_im_np, 'Mean', 2, 2, 3)
-                    im, ax = generate_image(fig, true_im_np, std_dev, 'Std. Dev', 3, 2, 3)
+                    generate_image(fig, true_im_np, true_im_np, 'GT', 1, 2, 4)
+                    generate_image(fig, true_im_np, best_gen_mean_im_np, 'Supervised', 2, 2, 4)
+                    generate_image(fig, true_im_np, gen_mean_im_np, 'Mean', 3, 2, 4)
+                    im, ax = generate_image(fig, true_im_np, std_dev, 'Std. Dev', 4, 2, 4)
                     get_colorbar(fig, im, ax)
-                    im, ax = generate_error_map(fig, true_im_np, val, f'Error', 5, 2, 3)
+                    generate_error_map(fig, true_im_np, best_gen_mean_im_np, f'Error', 6, 2, 4)
+                    im, ax = generate_error_map(fig, true_im_np, gen_mean_im_np, f'Error', 7, 2, 4)
                     get_colorbar(fig, im, ax)
 
                     plt.savefig(f'/home/bendel.8/Git_Repos/MRIGAN/mean_and_std_{args.network_input}.png')
@@ -234,9 +277,11 @@ def main(args):
                         if place <= 4:
                             generate_image(fig, true_im_np, val, f'z {place}', place, 4, 4)
                             im, ax = generate_error_map(fig, true_im_np, val, f'z {place}', place + 4, 4, 4)
+                            gif_im(true_im_np, val, place)
                         else:
                             generate_image(fig, true_im_np, val, f'z {place}', place + 4, 4, 4)
                             im, ax = generate_error_map(fig, true_im_np, val, f'z {place}', place + 8, 4, 4)
+                            gif_im(true_im_np, val, place + 4)
                         place += 1
                         if place > 8:
                             break
