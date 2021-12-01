@@ -285,6 +285,8 @@ def main(args):
                     fig = plt.figure(figsize=(18, 9))
 
                     #TODO: ADD KSPACE UNCERTAINTY MAP
+                    print(np.max(kspace_true_mag_np))
+                    print(np.min(kspace_true_mag_np))
                     generate_image(fig, kspace_true_mag_np, kspace_true_mag_np, 'GT', 1, 2, 3)
                     generate_image(fig, kspace_true_mag_np, best_kspace_mean_mag, 'Supervised', 2, 2, 3)
                     generate_image(fig, kspace_true_mag_np, kspace_mean_mag_np, 'Mean', 3, 2, 3)
