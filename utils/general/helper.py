@@ -50,9 +50,7 @@ def readd_measures_im(data_tensor, old, args, kspace=False):
 
     for k in range(data_tensor.shape[0]):
         output = torch.squeeze(data_tensor[k])
-        print(torch.max(output))
         output_tensor = fft2c_new(output.permute(1, 2, 0))
-        print(torch.max(output_tensor))
 
         old_out = torch.squeeze(old[k])
         old_out = fft2c_new(old_out.permute(1, 2, 0))
