@@ -316,7 +316,7 @@ def main(args):
                     generate_image(fig, kspace_true_mag_np, kspace_us_mag_np, 'Undersampled', 2, 2, 5, kspace=True)
                     generate_image(fig, kspace_true_mag_np, best_kspace_mean_mag, 'Supervised', 3, 2, 5, kspace=True)
                     generate_image(fig, kspace_true_mag_np, kspace_mean_mag_np, 'Mean', 4, 2, 5, kspace=True)
-                    im, ax = generate_image(fig, kspace_true_mag_np, std_dev, 'Std. Dev', 5, 2, 5)
+                    im, ax = generate_image(fig, kspace_true_mag_np, std_dev_kspace, 'Std. Dev', 5, 2, 5)
                     get_colorbar(fig, im, ax)
 
                     generate_error_map(fig, kspace_true_mag_np, kspace_us_mag_np, f'Error', 7, 2, 5, kspace=True)
