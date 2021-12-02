@@ -20,7 +20,7 @@ def get_mask():
     samp = m
     mask = np.tile(samp, (1, 1, 1)).transpose((1, 2, 0)).astype(np.float32)
     print(mask.shape)
-    mask = cv2.resize(mask[:, :, 0].numpy(), dsize=(96, 96), interpolation=cv2.INTER_LINEAR)
+    mask = cv2.resize(mask[:, :, 0], dsize=(96, 96), interpolation=cv2.INTER_LINEAR)
     print(mask.shape)
     mask = np.repeat(mask, 2, axis=2)
     print(mask.shape)
