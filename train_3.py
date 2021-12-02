@@ -258,7 +258,7 @@ def get_gen_supervised(args):
 
     optimizer_D = torch.optim.Adam(discriminator.parameters(), lr=args.lr, betas=(args.beta_1, args.beta_2))
 
-    return generator, opt_gen, discriminator, optimizer_D, args, 35.48, 0
+    return generator, opt_gen, discriminator, optimizer_D, args, 35, 0
 
 
 def main(args):
