@@ -18,8 +18,12 @@ def get_mask():
     m[:, a] = 0
     m[:, 176:208] = 0
     samp = m
-    numcoil = 2
-    mask = np.tile(samp, (numcoil, 1, 1)).transpose((1, 2, 0)).astype(np.float32)
+    mask = np.tile(samp, (1, 1, 1)).transpose((1, 2, 0)).astype(np.float32)
+    print(mask.shape)
+    mask = cv2.resize(mask[:, :, 0].numpy(), dsize=(96, 96), interpolation=cv2.INTER_LINEAR)
+    print(mask.shape)
+    mask = np.repeat(mask, 2, axis=2)
+    print(mask.shape)
     mask = np.repeat(np.expand_dims(mask, 0).transpose(0, 3, 1, 2), 16, axis=0)
     print(mask.shape)
 
