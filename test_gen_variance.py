@@ -90,7 +90,7 @@ def average_gen(generator, input_w_z, z, old_input, args, num_z=8):
         average_gen = torch.add(average_gen, refined_out)
         average_gen_kspace = torch.add(average_gen_kspace, kspace_refined_out)
 
-    return torch.div(average_gen, num_z), gen_list, kspace_refined_out #torch.div(average_gen_kspace, num_z)
+    return torch.div(average_gen, num_z), gen_list, torch.div(average_gen_kspace, num_z), gen_list_kspace
 
 
 def generate_image(fig, target, image, method, image_ind, rows, cols, kspace=False):
@@ -229,8 +229,8 @@ def main(args):
 
         with torch.no_grad():
             input_w_z = input.to(args.device)
-            mean, gens, kspace_mean_batch = average_gen(gen, input_w_z, None, old_input, args)
-            best_mean, best_gens, best_kspace_mean_batch = average_gen(best_gen, input_w_z, None, old_input, args)
+            mean, gens, kspace_mean_batch, kspace_gens = average_gen(gen, input_w_z, None, old_input, args)
+            best_mean, best_gens, best_kspace_mean_batch , best_kspace_gens = average_gen(best_gen, input_w_z, None, old_input, args)
             zero = z_gen(gen, input_w_z, torch.zeros((input.shape[0], args.latent_size)), old_input)
 
             target_batch = prep_input_2_chan(target_full, args.network_input, args, disc=True).to(args.device)
@@ -265,12 +265,23 @@ def main(args):
                     for val in gens_im_list:
                         gen_im_np_list.append(val.cpu().numpy() * std[j].cpu().numpy() + mean_val[j].cpu().numpy())
 
+                    gen_kspace_np_list = []
+                    for val in kspace_gens:
+                        gen_kspace_np_list.append(complex_abs(val[j].permute(1, 2, 0)).cpu().numpy())
+
                     std_dev = np.zeros(gen_mean_im_np.shape)
                     for val in gen_im_np_list:
                         std_dev = std_dev + np.power((val - gen_mean_im_np), 2)
 
                     std_dev = std_dev / 8
                     std_dev = np.sqrt(std_dev)
+
+                    std_dev_kspace = np.zeros(kspace_mean_mag_np.shape)
+                    for val in gen_im_np_list:
+                        std_dev = std_dev + np.power((val - kspace_mean_mag_np), 2)
+
+                    std_dev_kspace = std_dev_kspace / 8
+                    std_dev_kspace = np.sqrt(std_dev_kspace)
 
                     fig = plt.figure()
                     generate_image(fig, true_im_np, true_im_np, 'GT', 1, 2, 2)
@@ -294,16 +305,16 @@ def main(args):
 
                     fig = plt.figure(figsize=(18, 9))
 
-                    #TODO: ADD KSPACE UNCERTAINTY MAP
-                    generate_image(fig, kspace_true_mag_np, kspace_true_mag_np, 'GT', 1, 2, 3, kspace=True)
-                    generate_image(fig, kspace_true_mag_np, kspace_us_mag_np, 'Undersampled', 2, 2, 4, kspace=True)
-                    generate_image(fig, kspace_true_mag_np, best_kspace_mean_mag, 'Supervised', 3, 2, 4, kspace=True)
-                    generate_image(fig, kspace_true_mag_np, kspace_mean_mag_np, 'Mean', 4, 2, 4, kspace=True)
-                    # im, ax = generate_image(fig, kspace_true_mag_np, std_dev, 'Std. Dev', 4, 2, 4)
-                    # get_colorbar(fig, im, ax)
-                    generate_error_map(fig, kspace_true_mag_np, kspace_us_mag_np, f'Error', 6, 2, 4, kspace=True)
-                    generate_error_map(fig, kspace_true_mag_np, best_kspace_mean_mag, f'Error', 7, 2, 4, kspace=True)
-                    im, ax = generate_error_map(fig, kspace_true_mag_np, kspace_mean_mag_np, f'Error', 8, 2, 4, kspace=True)
+                    generate_image(fig, kspace_true_mag_np, kspace_true_mag_np, 'GT', 1, 2, 5, kspace=True)
+                    generate_image(fig, kspace_true_mag_np, kspace_us_mag_np, 'Undersampled', 2, 2, 5, kspace=True)
+                    generate_image(fig, kspace_true_mag_np, best_kspace_mean_mag, 'Supervised', 3, 2, 5, kspace=True)
+                    generate_image(fig, kspace_true_mag_np, kspace_mean_mag_np, 'Mean', 4, 2, 5, kspace=True)
+                    im, ax = generate_image(fig, kspace_true_mag_np, std_dev, 'Std. Dev', 5, 2, 5)
+                    get_colorbar(fig, im, ax)
+
+                    generate_error_map(fig, kspace_true_mag_np, kspace_us_mag_np, f'Error', 7, 2, 5, kspace=True)
+                    generate_error_map(fig, kspace_true_mag_np, best_kspace_mean_mag, f'Error', 8, 2, 5, kspace=True)
+                    im, ax = generate_error_map(fig, kspace_true_mag_np, kspace_mean_mag_np, f'Error', 9, 2, 5, kspace=True)
                     get_colorbar(fig, im, ax)
 
                     plt.savefig(f'/home/bendel.8/Git_Repos/MRIGAN/mean_and_std_kspace.png')
