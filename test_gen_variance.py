@@ -193,8 +193,13 @@ def get_gen_supervised(args, type):
 
 def gif_im(true, gen_im, index, type):
     fig = plt.figure()
-    generate_image(fig, true, gen_im, f'z {index}', 1, 2, 1)
-    im, ax = generate_error_map(fig, true, gen_im, f'z {index}', 2, 2, 1)
+    if type == 'kspace':
+        generate_image(fig, true, gen_im, f'z {index}', 1, 2, 1, kspace=True)
+        im, ax = generate_error_map(fig, true, gen_im, f'z {index}', 2, 2, 1, kspace=True)
+    else:
+        generate_image(fig, true, gen_im, f'z {index}', 1, 2, 1)
+        im, ax = generate_error_map(fig, true, gen_im, f'z {index}', 2, 2, 1)
+
     get_colorbar(fig, im, ax)
     plt.savefig(f'/home/bendel.8/Git_Repos/MRIGAN/gifs/gif_{type}_{index - 1}.png')
 
