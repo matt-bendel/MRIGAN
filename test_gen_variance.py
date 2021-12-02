@@ -108,6 +108,9 @@ def generate_image(fig, target, image, method, image_ind, rows, cols, kspace=Fal
         ax.set_xticks([])
         ax.set_yticks([])
     else:
+        if kspace:
+            image = ((image - image.min()) / (image.max() - image.min())) * 255
+            target = ((target - target.min()) / (target.max() - target.min())) * 255
         im = ax.imshow(np.abs(image), cmap='gray', vmin=0, vmax=np.max(target))
         ax.set_xticks([])
         ax.set_yticks([])
@@ -286,9 +289,9 @@ def main(args):
                     fig = plt.figure(figsize=(18, 9))
 
                     #TODO: ADD KSPACE UNCERTAINTY MAP
-                    generate_image(fig, kspace_true_mag_np, kspace_true_mag_np, 'GT', 1, 2, 3)
-                    generate_image(fig, kspace_true_mag_np, best_kspace_mean_mag, 'Supervised', 2, 2, 3)
-                    generate_image(fig, kspace_true_mag_np, kspace_mean_mag_np, 'Mean', 3, 2, 3)
+                    generate_image(fig, kspace_true_mag_np, kspace_true_mag_np, 'GT', 1, 2, 3, kspace=True)
+                    generate_image(fig, kspace_true_mag_np, best_kspace_mean_mag, 'Supervised', 2, 2, 3, kspace=True)
+                    generate_image(fig, kspace_true_mag_np, kspace_mean_mag_np, 'Mean', 3, 2, 3, kspace=True)
                     # im, ax = generate_image(fig, kspace_true_mag_np, std_dev, 'Std. Dev', 4, 2, 4)
                     # get_colorbar(fig, im, ax)
                     generate_error_map(fig, kspace_true_mag_np, best_kspace_mean_mag, f'Error', 5, 2, 3, kspace=True)
