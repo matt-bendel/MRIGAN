@@ -125,6 +125,10 @@ def generate_error_map(fig, target, recon, method, image_ind, rows, cols, relati
     ax = fig.add_subplot(rows, cols, image_ind)  # Add to subplot
 
     # Normalize error between target and reconstruction
+    if kspace:
+        recon = recon ** 0.45
+        target = target ** 0.45
+
     error = (target - recon) if relative else np.abs(target - recon)
     # normalized_error = error / error.max() if not relative else error
     if relative:
@@ -217,7 +221,8 @@ def main(args):
 
     for i, data in enumerate(dev_loader):
         input, target_full, mean_val, std, nnz_index_mask = data
-        kspace_gt = prep_input_2_chan(input, 'kspace', args)
+        kspace_gt = prep_input_2_chan(target_full, 'kspace', args)
+        kspace_us = prep_input_2_chan(input, 'kspace', args)
         input = prep_input_2_chan(input, args.network_input, args)
         target_full = prep_input_2_chan(target_full, args.network_input, args)
         old_input = input.to(args.device)
@@ -240,6 +245,7 @@ def main(args):
                 if j == 7:
                     true_im = complex_abs(target_batch[j].permute(1, 2, 0))
                     kspace_true_mag_np = complex_abs(kspace_gt[j].permute(1, 2, 0)).cpu().numpy()
+                    kspace_us_mag_np = complex_abs(kspace_us[j].permute(1, 2, 0)).cpu().numpy()
                     gen_mean_im = complex_abs(mean_batch[j].permute(1, 2, 0))
                     kspace_mean_mag_np = complex_abs(kspace_mean_batch[j].permute(1, 2, 0)).cpu().numpy()
                     best_gen_mean_im = complex_abs(best_mean_batch[j].permute(1, 2, 0))
@@ -290,12 +296,14 @@ def main(args):
 
                     #TODO: ADD KSPACE UNCERTAINTY MAP
                     generate_image(fig, kspace_true_mag_np, kspace_true_mag_np, 'GT', 1, 2, 3, kspace=True)
-                    generate_image(fig, kspace_true_mag_np, best_kspace_mean_mag, 'Supervised', 2, 2, 3, kspace=True)
-                    generate_image(fig, kspace_true_mag_np, kspace_mean_mag_np, 'Mean', 3, 2, 3, kspace=True)
+                    generate_image(fig, kspace_true_mag_np, kspace_us_mag_np, 'Undersampled', 2, 2, 4, kspace=True)
+                    generate_image(fig, kspace_true_mag_np, best_kspace_mean_mag, 'Supervised', 3, 2, 4, kspace=True)
+                    generate_image(fig, kspace_true_mag_np, kspace_mean_mag_np, 'Mean', 4, 2, 4, kspace=True)
                     # im, ax = generate_image(fig, kspace_true_mag_np, std_dev, 'Std. Dev', 4, 2, 4)
                     # get_colorbar(fig, im, ax)
-                    generate_error_map(fig, kspace_true_mag_np, best_kspace_mean_mag, f'Error', 5, 2, 3, kspace=True)
-                    im, ax = generate_error_map(fig, kspace_true_mag_np, kspace_mean_mag_np, f'Error', 6, 2, 3, kspace=True)
+                    generate_error_map(fig, kspace_true_mag_np, kspace_us_mag_np, f'Error', 6, 2, 4, kspace=True)
+                    generate_error_map(fig, kspace_true_mag_np, best_kspace_mean_mag, f'Error', 7, 2, 4, kspace=True)
+                    im, ax = generate_error_map(fig, kspace_true_mag_np, kspace_mean_mag_np, f'Error', 8, 2, 4, kspace=True)
                     get_colorbar(fig, im, ax)
 
                     plt.savefig(f'/home/bendel.8/Git_Repos/MRIGAN/mean_and_std_kspace.png')
