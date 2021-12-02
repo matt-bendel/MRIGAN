@@ -236,6 +236,31 @@ def average_gen(generator, input_w_z, old_input, args):
 
     return torch.div(average_gen, 8)
 
+
+def get_gen_supervised(args):
+    from utils.training.prepare_model import build_model, build_optim, build_discriminator
+
+    checkpoint_file_gen = pathlib.Path(
+        f'/home/bendel.8/Git_Repos/MRIGAN/trained_models/image/2_presentation_temp/generator_best_model.pt')
+    checkpoint_gen = torch.load(checkpoint_file_gen, map_location=torch.device('cuda'))
+
+    generator = build_model(args)
+    discriminator = build_discriminator(args)
+
+    if args.data_parallel:
+        generator = torch.nn.DataParallel(generator)
+        discriminator = torch.nn.DataParallel(discriminator)
+
+    generator.load_state_dict(checkpoint_gen['model'])
+
+    opt_gen = build_optim(args, generator.parameters())
+    opt_gen.load_state_dict(checkpoint_gen['optimizer'])
+
+    optimizer_D = torch.optim.Adam(discriminator.parameters(), lr=args.lr, betas=(args.beta_1, args.beta_2))
+
+    return generator, opt_gen, discriminator, optimizer_D, args, checkpoint_gen['best_dev_loss'], 0
+
+
 def main(args):
     args.exp_dir.mkdir(parents=True, exist_ok=True)
 
@@ -243,7 +268,7 @@ def main(args):
     args.out_chans = 2
 
     if args.resume:
-        generator, optimizer_G, discriminator, optimizer_D, args, best_dev_loss, start_epoch = resume_train(args)
+        generator, optimizer_G, discriminator, optimizer_D, args, best_dev_loss, start_epoch = get_gen_supervised(args)
     else:
         generator, discriminator, best_dev_loss, start_epoch = fresh_start(args)
         # Optimizers
