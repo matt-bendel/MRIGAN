@@ -93,14 +93,15 @@ def average_gen(generator, input_w_z, z, old_input, args, num_z=8):
     return torch.div(average_gen, num_z), gen_list, kspace_refined_out #torch.div(average_gen_kspace, num_z)
 
 
-def generate_image(fig, target, image, method, image_ind, rows, cols):
+def generate_image(fig, target, image, method, image_ind, rows, cols, kspace=False):
     # rows and cols are both previously defined ints
     ax = fig.add_subplot(rows, cols, image_ind)
     if method != 'GT' and method != 'Std. Dev':
         psnr_val = psnr(target, image)
         snr_val = snr(target, image)
         ssim_val = ssim(target, image)
-        ax.set_title(f'PSNR: {psnr_val:.2f}, SNR: {snr_val:.2f}\nSSIM: {ssim_val:.4f}')
+        if not kspace:
+            ax.set_title(f'PSNR: {psnr_val:.2f}, SNR: {snr_val:.2f}\nSSIM: {ssim_val:.4f}')
 
     if method == 'Std. Dev':
         im = ax.imshow(image, cmap='viridis')
@@ -213,7 +214,7 @@ def main(args):
 
     for i, data in enumerate(dev_loader):
         input, target_full, mean_val, std, nnz_index_mask = data
-        kspace_gt = prep_input_2_chan(input, 'kspace', args)
+        kspace_gt = prep_input_2_chan(target_full, 'kspace', args)
         input = prep_input_2_chan(input, args.network_input, args)
         target_full = prep_input_2_chan(target_full, args.network_input, args)
         old_input = input.to(args.device)

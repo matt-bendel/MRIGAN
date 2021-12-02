@@ -37,6 +37,7 @@ def create_arg_parser():
 
     # LOGISTICAL ARGS
     parser.add_argument('--report-interval', type=int, default=5, help='Period of loss reporting')
+    parser.add_argument('--inpaint', action='store_true', help='Whether or not to remove chunk of image')
     parser.add_argument('--device', type=int, default=0,
                         help='Which device to train on. Use idx of cuda device or -1 for CPU')
     parser.add_argument('--exp-dir', type=pathlib.Path,
