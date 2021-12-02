@@ -57,15 +57,13 @@ def readd_measures_im(data_tensor, old, args, kspace=False):
 
         disc_inp[k, :, :, :] = output_tensor.permute(2, 0, 1) + old_out.permute(2, 0, 1)
 
-    kspace_recons = disc_inp
-
     for k in range(data_tensor.shape[0]):
         output = torch.squeeze(disc_inp[k])
         output_tensor = ifft2c_new(output.permute(1, 2, 0))
 
         disc_inp[k, :, :, :] = output_tensor.permute(2, 0, 1)
 
-    return disc_inp if not kspace else kspace_recons
+    return disc_inp
 
 
 def prep_input_2_chan(data_tensor, unet_type, args, disc=False, disc_image=True):

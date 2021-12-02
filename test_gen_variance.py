@@ -109,8 +109,8 @@ def generate_image(fig, target, image, method, image_ind, rows, cols, kspace=Fal
         ax.set_yticks([])
     else:
         if kspace:
-            image = image**0.5
-            target = target**0.5
+            image = image**0.45
+            target = target**0.45
         im = ax.imshow(np.abs(image), cmap='gray', vmin=0, vmax=np.max(target))
         ax.set_xticks([])
         ax.set_yticks([])
