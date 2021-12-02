@@ -282,7 +282,7 @@ def main(args):
                     std_dev = np.sqrt(std_dev)
 
                     std_dev_kspace = np.zeros(kspace_mean_mag_np.shape)
-                    for val in gen_im_np_list:
+                    for val in gen_kspace_np_list:
                         std_dev = std_dev + np.power((val - kspace_mean_mag_np), 2)
 
                     std_dev_kspace = std_dev_kspace / 8
