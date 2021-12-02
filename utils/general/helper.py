@@ -7,7 +7,7 @@ from data import transforms
 from utils.fftc import ifft2c_new, fft2c_new
 
 
-def get_mask(b_size):
+def get_mask():
     a = np.array(
         [0, 10, 19, 28, 37, 46, 54, 61, 69, 76, 83, 89, 95, 101, 107, 112, 118, 122, 127, 132, 136, 140, 144, 148,
          151, 155, 158, 161, 164,
@@ -75,7 +75,7 @@ def readd_measures_im(data_tensor, old, args, kspace=False):
         old_out = torch.squeeze(old[k])
         old_out = fft2c_new(old_out.permute(1, 2, 0))
 
-        mask = get_mask(data_tensor.shape[0])
+        mask = get_mask()
 
         disc_inp[k, :, :, :] = output_tensor.permute(2, 0, 1) * mask.to(args.device) + old_out.permute(2, 0, 1)
 
