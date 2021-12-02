@@ -6,6 +6,21 @@ import numpy as np
 from data import transforms
 from utils.fftc import ifft2c_new, fft2c_new
 
+def get_mask():
+    a = np.array(
+        [0, 10, 19, 28, 37, 46, 54, 61, 69, 76, 83, 89, 95, 101, 107, 112, 118, 122, 127, 132, 136, 140, 144, 148,
+         151, 155, 158, 161, 164,
+         167, 170, 173, 176, 178, 181, 183, 186, 188, 191, 193, 196, 198, 201, 203, 206, 208, 211, 214, 217, 220,
+         223, 226, 229, 233, 236,
+         240, 244, 248, 252, 257, 262, 266, 272, 277, 283, 289, 295, 301, 308, 315, 323, 330, 338, 347, 356, 365,
+         374])
+    m = np.ones((384, 384))
+    m[:, a] = 0
+    m[:, 176:208] = 0
+    samp = m
+    numcoil = 2
+    mask = np.tile(samp, (numcoil, 1, 1)).transpose((1, 2, 0)).astype(np.float32)
+    print(mask.shape)
 
 def get_inverse_mask():
     a = np.array(
@@ -58,6 +73,7 @@ def readd_measures_im(data_tensor, old, args, kspace=False):
         disc_inp[k, :, :, :] = output_tensor.permute(2, 0, 1) + old_out.permute(2, 0, 1)
 
     if kspace:
+        get_mask()
         return disc_inp
 
     for k in range(data_tensor.shape[0]):
