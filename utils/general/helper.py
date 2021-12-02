@@ -24,7 +24,7 @@ def get_mask(b_size):
     mask = np.repeat(np.expand_dims(mask, 2), 2, axis=2).transpose(2, 0, 1)
     # mask = np.repeat(np.expand_dims(mask, 0).transpose(0, 3, 1, 2), b_size, axis=0)
 
-    return mask
+    return transforms.to_tensor(mask)
 
 
 def get_inverse_mask():
@@ -77,7 +77,7 @@ def readd_measures_im(data_tensor, old, args, kspace=False):
 
         mask = get_mask(data_tensor.shape[0])
 
-        disc_inp[k, :, :, :] = output_tensor.permute(2, 0, 1)*mask + old_out.permute(2, 0, 1)
+        disc_inp[k, :, :, :] = output_tensor.permute(2, 0, 1) * mask.to(args.device) + old_out.permute(2, 0, 1)
 
     if kspace:
         get_mask()

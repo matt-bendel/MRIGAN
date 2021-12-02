@@ -104,13 +104,15 @@ def generate_image(fig, target, image, method, image_ind, rows, cols, kspace=Fal
             ax.set_title(f'PSNR: {psnr_val:.2f}, SNR: {snr_val:.2f}\nSSIM: {ssim_val:.4f}')
 
     if method == 'Std. Dev':
+        if kspace:
+            image = image**0.8
         im = ax.imshow(image, cmap='viridis')
         ax.set_xticks([])
         ax.set_yticks([])
     else:
         if kspace:
-            image = image**0.45
-            target = target**0.45
+            image = image**0.4
+            target = target**0.4
         im = ax.imshow(np.abs(image), cmap='gray', vmin=0, vmax=np.max(target))
         ax.set_xticks([])
         ax.set_yticks([])
@@ -126,8 +128,8 @@ def generate_error_map(fig, target, recon, method, image_ind, rows, cols, relati
 
     # Normalize error between target and reconstruction
     if kspace:
-        recon = recon ** 0.45
-        target = target ** 0.45
+        recon = recon ** 0.4
+        target = target ** 0.4
 
     error = (target - recon) if relative else np.abs(target - recon)
     # normalized_error = error / error.max() if not relative else error
