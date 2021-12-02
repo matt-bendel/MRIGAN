@@ -22,7 +22,7 @@ def get_mask():
     print(mask.shape)
     mask = cv2.resize(mask[:, :, 0], dsize=(96, 96), interpolation=cv2.INTER_LINEAR)
     print(mask.shape)
-    mask = np.repeat(mask, 2, axis=2)
+    mask = np.repeat(np.expand_dims(mask, 2), 2, axis=2)
     print(mask.shape)
     mask = np.repeat(np.expand_dims(mask, 0).transpose(0, 3, 1, 2), 16, axis=0)
     print(mask.shape)
