@@ -6,7 +6,8 @@ import numpy as np
 from data import transforms
 from utils.fftc import ifft2c_new, fft2c_new
 
-def get_mask():
+
+def get_mask(b_size):
     a = np.array(
         [0, 10, 19, 28, 37, 46, 54, 61, 69, 76, 83, 89, 95, 101, 107, 112, 118, 122, 127, 132, 136, 140, 144, 148,
          151, 155, 158, 161, 164,
@@ -19,13 +20,12 @@ def get_mask():
     m[:, 176:208] = 0
     samp = m
     mask = np.tile(samp, (1, 1, 1)).transpose((1, 2, 0)).astype(np.float32)
-    print(mask.shape)
     mask = cv2.resize(mask[:, :, 0], dsize=(96, 96), interpolation=cv2.INTER_LINEAR)
-    print(mask.shape)
-    mask = np.repeat(np.expand_dims(mask, 2), 2, axis=2)
-    print(mask.shape)
-    mask = np.repeat(np.expand_dims(mask, 0).transpose(0, 3, 1, 2), 16, axis=0)
-    print(mask.shape)
+    mask = np.repeat(np.expand_dims(mask, 2), 2, axis=2).transpose(2, 0, 1)
+    # mask = np.repeat(np.expand_dims(mask, 0).transpose(0, 3, 1, 2), b_size, axis=0)
+
+    return mask
+
 
 def get_inverse_mask():
     a = np.array(
@@ -75,7 +75,9 @@ def readd_measures_im(data_tensor, old, args, kspace=False):
         old_out = torch.squeeze(old[k])
         old_out = fft2c_new(old_out.permute(1, 2, 0))
 
-        disc_inp[k, :, :, :] = output_tensor.permute(2, 0, 1) + old_out.permute(2, 0, 1)
+        mask = get_mask(data_tensor.shape[0])
+
+        disc_inp[k, :, :, :] = output_tensor.permute(2, 0, 1)*mask + old_out.permute(2, 0, 1)
 
     if kspace:
         get_mask()
