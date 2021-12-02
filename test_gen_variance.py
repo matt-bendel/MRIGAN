@@ -137,7 +137,7 @@ def generate_error_map(fig, target, recon, method, image_ind, rows, cols, relati
         im = ax.imshow(k * error, cmap='bwr', origin='lower', vmin=-0.0001, vmax=0.0001)  # Plot image
         plt.gca().invert_yaxis()
     else:
-        im = ax.imshow(k * error, cmap='jet', vmax=1) if kspace else ax.imshow(k * error, cmap='jet', vmax=0.0001)
+        im = ax.imshow(k * error, cmap='jet', vmax=1) if kspace else ax.imshow(k * error, cmap='jet')
 
     # Remove axis ticks
     ax.set_xticks([])
