@@ -345,6 +345,13 @@ def main(args):
 
                     generate_gif('image')
 
+                    place = 1
+                    for val in gen_kspace_np_list:
+                        gif_im(kspace_true_mag_np, val, place, 'kspace')
+                        place += 1
+
+                    generate_gif('kspace')
+
         if i + 1 == 1:
             exit()
 
