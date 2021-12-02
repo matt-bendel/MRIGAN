@@ -20,6 +20,7 @@ def get_mask():
     samp = m
     numcoil = 2
     mask = np.tile(samp, (numcoil, 1, 1)).transpose((1, 2, 0)).astype(np.float32)
+    mask = np.expand_dims(mask, 0).transpose(0, 3, 1, 2)
     print(mask.shape)
 
 def get_inverse_mask():
