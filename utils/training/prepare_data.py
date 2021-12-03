@@ -66,6 +66,7 @@ class DataTransform:
         x = ifft(kspace, (0, 1))  # (768, 396, 16)
 
         coil_compressed_x = ImageCropandKspaceCompression(x)  # (384, 384, 8)
+        gt_kspace = fft(coil_compressed_x, (1, 0))  # (384, 384, 8)
 
         if self.args.inpaint:
             from random import randrange
@@ -82,7 +83,7 @@ class DataTransform:
 
         masked_kspace = kspace * mask
 
-        kspace = transforms.to_tensor(kspace)
+        kspace = transforms.to_tensor(gt_kspace)
         kspace = kspace.permute(2, 0, 1, 3)
 
         masked_kspace = transforms.to_tensor(masked_kspace)
