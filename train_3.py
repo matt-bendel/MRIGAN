@@ -389,8 +389,9 @@ def main(args):
                 for k in range(old_input.shape[0] - 1):
                     gen_pred_loss += torch.mean(fake_pred[k + 1])
 
-                # var_loss = torch.mean(torch.mean(torch.var(disc_inputs_gen, 1), dim=1))
-                var_loss = torch.mean(torch.var(disc_inputs_gen, dim=1) * torch.abs(target_full-avg_recon), dim=(0, 1, 2, 3))
+                # var_loss = torch.mean(torch.var(disc_inputs_gen, dim=1) * torch.abs(target_full-avg_recon), dim=(0, 1, 2, 3))
+                var_loss = torch.mean(torch.var(disc_inputs_gen, dim=1), dim=(0, 1, 2, 3))
+
                 var_weight = 0.012
 
                 # TODO: BEST -0.001 adv and var_weight = 0.012
