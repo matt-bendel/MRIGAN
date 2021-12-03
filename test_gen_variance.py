@@ -278,7 +278,7 @@ def main(args):
                     for val in gen_im_np_list:
                         std_dev = std_dev + np.power((val - gen_mean_im_np), 2)
 
-                    std_dev = std_dev * np.abs(gen_mean_im_np - true_im_np) / 8
+                    std_dev = std_dev / 8
                     std_dev = np.sqrt(std_dev)
 
                     std_dev_kspace = np.zeros(kspace_mean_mag_np.shape)
