@@ -276,7 +276,7 @@ def main(args):
 
                     std_dev = np.zeros(gen_mean_im_np.shape)
                     for val in gen_im_np_list:
-                        std_dev = std_dev + np.power((val - gen_mean_im_np), 2)
+                        std_dev = std_dev + np.power((val - gen_mean_im_np), 2) * np.abs(true_im_np - val)
 
                     std_dev = std_dev / 8
                     std_dev = np.sqrt(std_dev)
@@ -340,7 +340,6 @@ def main(args):
                     get_colorbar(fig, im, ax)
                     plt.savefig(f'/home/bendel.8/Git_Repos/MRIGAN/comparison_{args.network_input}.png')
 
-                    #TODO: GENERATE KSPACE GIF
                     place = 1
                     for val in gen_im_np_list:
                         gif_im(true_im_np, val, place, 'image')
