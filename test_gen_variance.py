@@ -104,7 +104,7 @@ def generate_image(fig, target, image, method, image_ind, rows, cols, kspace=Fal
             ax.set_title(f'PSNR: {psnr_val:.2f}, SNR: {snr_val:.2f}\nSSIM: {ssim_val:.4f}')
 
     if method == 'Std. Dev':
-        im = ax.imshow(image**0.5, cmap='viridis')
+        im = ax.imshow(image, cmap='viridis')
         ax.set_xticks([])
         ax.set_yticks([])
     else:

@@ -72,7 +72,7 @@ class DataTransform:
             from random import randrange
 
             n = coil_compressed_x.shape[0]
-            square_length = n // 5
+            square_length = n // 4
             end = n - 2 * square_length
 
             rand_start = randrange(square_length, end)
