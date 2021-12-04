@@ -240,12 +240,12 @@ def main(args):
     train_loader, dev_loader = create_data_loaders(args, val_only=True)
 
     for i, data in enumerate(dev_loader):
-        input, target_full, mean_val, std, nnz_index_mask = data
+        input, target_full, mean_val, std, nnz_index_mask, old_input = data
         kspace_gt = prep_input_2_chan(target_full, 'kspace', args)
         kspace_us = prep_input_2_chan(input, 'kspace', args)
         input = prep_input_2_chan(input, args.network_input, args)
         target_full = prep_input_2_chan(target_full, args.network_input, args)
-        old_input = input.to(args.device)
+        old_input = old_input.to(args.device)
 
         with torch.no_grad():
             input_w_z = input.to(args.device)
