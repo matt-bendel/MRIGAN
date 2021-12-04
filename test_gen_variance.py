@@ -244,6 +244,7 @@ def main(args):
         kspace_gt = prep_input_2_chan(target_full, 'kspace', args)
         kspace_us = prep_input_2_chan(input, 'kspace', args)
         input = prep_input_2_chan(input, args.network_input, args)
+        old_input = prep_input_2_chan(old_input, args.network_input, args)
         target_full = prep_input_2_chan(target_full, args.network_input, args)
         old_input = old_input.to(args.device)
 
