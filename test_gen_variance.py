@@ -264,7 +264,7 @@ def main(args):
 
             for j in range(mean_batch.shape[0]):
                 if j == 7:
-                    print(mean_disc_score[j].item())
+                    mean_disc_score_num = mean_disc_score[j].item()
                     true_im = complex_abs(target_batch[j].permute(1, 2, 0))
                     kspace_true_mag_np = complex_abs(kspace_gt[j].permute(1, 2, 0)).cpu().numpy()
                     kspace_us_mag_np = complex_abs(kspace_us[j].permute(1, 2, 0)).cpu().numpy()
@@ -275,9 +275,12 @@ def main(args):
                     zero_im = complex_abs(zero_batch[j].permute(1, 2, 0))
                     gens_im_list = []
                     disc_batch = []
-                    for val in gens_batch_list:
-                        disc_batch.append(dis(val))
+                    for i, val in enumerate(gens_batch_list):
+                        pred = dis(val)
+                        disc_batch.append(pred[i].item())
                         gens_im_list.append(complex_abs(val[j].permute(1, 2, 0)))
+
+                    print(disc_batch)
 
                     true_im_np = true_im.cpu().numpy() * std[j].cpu().numpy() + mean_val[j].cpu().numpy()
                     gen_mean_im_np = gen_mean_im.cpu().numpy() * std[j].cpu().numpy() + mean_val[j].cpu().numpy()
