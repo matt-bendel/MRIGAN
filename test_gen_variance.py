@@ -93,7 +93,7 @@ def average_gen(generator, input_w_z, z, old_input, args, num_z=8):
     return torch.div(average_gen, num_z), gen_list, torch.div(average_gen_kspace, num_z), gen_list_kspace
 
 
-def generate_image(fig, target, image, method, image_ind, rows, cols, kspace=False):
+def generate_image(fig, target, image, method, image_ind, rows, cols, kspace=False, disc_num=False):
     # rows and cols are both previously defined ints
     ax = fig.add_subplot(rows, cols, image_ind)
     if method != 'GT' and method != 'Std. Dev':
@@ -101,7 +101,8 @@ def generate_image(fig, target, image, method, image_ind, rows, cols, kspace=Fal
         snr_val = snr(target, image)
         ssim_val = ssim(target, image)
         if not kspace:
-            ax.set_title(f'PSNR: {psnr_val:.2f}, SNR: {snr_val:.2f}\nSSIM: {ssim_val:.4f}')
+            pred = 'True' if disc_num > 0 else 'False'
+            ax.set_title(f'PSNR: {psnr_val:.2f}, SNR: {snr_val:.2f}\nSSIM: {ssim_val:.4f}, Pred: {pred}') if disc_num else ax.set_title(f'PSNR: {psnr_val:.2f}, SNR: {snr_val:.2f}\nSSIM: {ssim_val:.4f}')
 
     if method == 'Std. Dev':
         im = ax.imshow(image, cmap='viridis')
@@ -276,9 +277,9 @@ def main(args):
                     zero_im = complex_abs(zero_batch[j].permute(1, 2, 0))
                     gens_im_list = []
                     disc_batch = []
-                    for i, val in enumerate(gens_batch_list):
+                    for r, val in enumerate(gens_batch_list):
                         pred = dis(val)
-                        disc_batch.append(pred[i].item())
+                        disc_batch.append(pred[r].item())
                         gens_im_list.append(complex_abs(val[j].permute(1, 2, 0)))
 
                     print(disc_batch)
@@ -322,7 +323,7 @@ def main(args):
 
                     generate_image(fig, true_im_np, true_im_np, 'GT', 1, 2, 4)
                     generate_image(fig, true_im_np, best_gen_mean_im_np, 'Supervised', 2, 2, 4)
-                    generate_image(fig, true_im_np, gen_mean_im_np, 'Mean', 3, 2, 4)
+                    generate_image(fig, true_im_np, gen_mean_im_np, 'Mean', 3, 2, 4, disc_num=mean_disc_score_num)
                     im, ax = generate_image(fig, true_im_np, std_dev, 'Std. Dev', 4, 2, 4)
                     get_colorbar(fig, im, ax)
                     generate_error_map(fig, true_im_np, best_gen_mean_im_np, f'Error', 6, 2, 4)
