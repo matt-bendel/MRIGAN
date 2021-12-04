@@ -101,8 +101,8 @@ def generate_image(fig, target, image, method, image_ind, rows, cols, kspace=Fal
         snr_val = snr(target, image)
         ssim_val = ssim(target, image)
         if not kspace:
-            pred = 'True' if disc_num > 0 else 'False'
-            ax.set_title(f'PSNR: {psnr_val:.2f}, SNR: {snr_val:.2f}\nSSIM: {ssim_val:.4f}, Pred: {pred}') if disc_num else ax.set_title(f'PSNR: {psnr_val:.2f}, SNR: {snr_val:.2f}\nSSIM: {ssim_val:.4f}')
+            pred = disc_num
+            ax.set_title(f'PSNR: {psnr_val:.2f}, SNR: {snr_val:.2f}\nSSIM: {ssim_val:.4f}, Pred: {pred} True') if disc_num else ax.set_title(f'PSNR: {psnr_val:.2f}, SNR: {snr_val:.2f}\nSSIM: {ssim_val:.4f}')
 
     if method == 'Std. Dev':
         im = ax.imshow(image, cmap='viridis')
