@@ -241,13 +241,12 @@ def main(args):
     train_loader, dev_loader = create_data_loaders(args, val_only=True)
 
     for i, data in enumerate(dev_loader):
-        input, target_full, mean_val, std, nnz_index_mask, old_input = data
+        input, target_full, mean_val, std, nnz_index_mask = data
         kspace_gt = prep_input_2_chan(target_full, 'kspace', args)
         kspace_us = prep_input_2_chan(input, 'kspace', args)
         input = prep_input_2_chan(input, args.network_input, args)
-        old_input = prep_input_2_chan(old_input, args.network_input, args)
         target_full = prep_input_2_chan(target_full, args.network_input, args)
-        old_input = old_input.to(args.device)
+        old_input = input.to(args.device)
 
         with torch.no_grad():
             input_w_z = input.to(args.device)
@@ -266,7 +265,7 @@ def main(args):
 
             for j in range(mean_batch.shape[0]):
                 if j == 7:
-                    mean_disc_score_num = mean_disc_score[j].item()
+                    mean_disc_score_num = 1 / (1 + np.exp(-mean_disc_score[j].item()))
                     true_im = complex_abs(target_batch[j].permute(1, 2, 0))
                     kspace_true_mag_np = complex_abs(kspace_gt[j].permute(1, 2, 0)).cpu().numpy()
                     kspace_us_mag_np = complex_abs(kspace_us[j].permute(1, 2, 0)).cpu().numpy()
@@ -279,10 +278,9 @@ def main(args):
                     disc_batch = []
                     for r, val in enumerate(gens_batch_list):
                         pred = dis(val)
-                        disc_batch.append(pred[r].item())
+                        pred = 1 / (1 + np.exp(-pred[r].item()))
+                        disc_batch.append(pred)
                         gens_im_list.append(complex_abs(val[j].permute(1, 2, 0)))
-
-                    print(disc_batch)
 
                     true_im_np = true_im.cpu().numpy() * std[j].cpu().numpy() + mean_val[j].cpu().numpy()
                     gen_mean_im_np = gen_mean_im.cpu().numpy() * std[j].cpu().numpy() + mean_val[j].cpu().numpy()
@@ -350,12 +348,12 @@ def main(args):
 
                     fig = plt.figure(figsize=(14, 14))
                     place = 1
-                    for val in gen_im_np_list:
+                    for r, val in enumerate(gen_im_np_list):
                         if place <= 4:
-                            generate_image(fig, true_im_np, val, f'z {place}', place, 4, 4)
+                            generate_image(fig, true_im_np, val, f'z {place}', place, 4, 4, disc_num=disc_batch[r])
                             im, ax = generate_error_map(fig, true_im_np, val, f'z {place}', place + 4, 4, 4)
                         else:
-                            generate_image(fig, true_im_np, val, f'z {place}', place + 4, 4, 4)
+                            generate_image(fig, true_im_np, val, f'z {place}', place + 4, 4, 4, disc_num=disc_batch[r])
                             im, ax = generate_error_map(fig, true_im_np, val, f'z {place}', place + 8, 4, 4)
                         place += 1
                         if place > 8:
