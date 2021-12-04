@@ -283,6 +283,7 @@ def main(args):
 
     first = True
     best_loss_val = 0
+    best_loss_dis = 0
 
     with open(f'trained_models/{args.network_input}/loss_{args.z_location}.txt', 'w') as loss_file:
         for epoch in range(start_epoch, args.num_epochs):
@@ -460,6 +461,10 @@ def main(args):
             print(save_str_2)
 
             save_model(args, epoch, generator, optimizer_G, best_loss_val, best_model, 'generator')
+
+            best_model = GLOBAL_LOSS_DICT['d_acc'][epoch] > best_loss_dis
+            best_loss_dis = GLOBAL_LOSS_DICT['d_acc'][epoch] if GLOBAL_LOSS_DICT['d_acc'][epoch] > best_loss_dis else best_loss_dis
+
             save_model(args, epoch, discriminator, optimizer_D, best_loss_val, best_model, 'discriminator')
 
             # plot_epoch(args, generator, epoch)
