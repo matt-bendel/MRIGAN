@@ -173,6 +173,19 @@ def get_gen(args, type):
 
     return generator
 
+def get_dis(args, type):
+    checkpoint_file_gen = pathlib.Path(
+        f'/home/bendel.8/Git_Repos/MRIGAN/trained_models/{type}/{args.z_location}/discriminator_best_model.pt')
+    checkpoint_dis = torch.load(checkpoint_file_gen, map_location=torch.device('cuda'))
+
+    discriminator = build_model(args)
+
+    if args.data_parallel:
+        discriminator = torch.nn.DataParallel(discriminator)
+
+    discriminator.load_state_dict(checkpoint_dis['model'])
+
+    return discriminator
 
 def get_gen_supervised(args, type):
     checkpoint_file_gen = pathlib.Path(
@@ -218,8 +231,10 @@ def main(args):
     args.out_chans = 2
 
     gen = get_gen(args, args.network_input)
+    dis = get_gen(args, args.network_input)
     best_gen = get_gen_supervised(args, args.network_input)
     gen.eval()
+    dis.eval()
     best_gen.eval()
 
     train_loader, dev_loader = create_data_loaders(args, val_only=True)
@@ -235,6 +250,8 @@ def main(args):
         with torch.no_grad():
             input_w_z = input.to(args.device)
             mean, gens, kspace_mean_batch, kspace_gens = average_gen(gen, input_w_z, None, old_input, args)
+            mean_disc_score = dis(mean)
+            print(mean_disc_score.item())
             best_mean, best_gens, best_kspace_mean_batch , best_kspace_gens = average_gen(best_gen, input_w_z, None, old_input, args)
             zero = z_gen(gen, input_w_z, torch.zeros((input.shape[0], args.latent_size)), old_input)
 
@@ -257,7 +274,9 @@ def main(args):
                     best_kspace_mean_mag = complex_abs(best_kspace_mean_batch[j].permute(1, 2, 0)).cpu().numpy()
                     zero_im = complex_abs(zero_batch[j].permute(1, 2, 0))
                     gens_im_list = []
+                    disc_batch = []
                     for val in gens_batch_list:
+                        disc_batch.append(dis(val))
                         gens_im_list.append(complex_abs(val[j].permute(1, 2, 0)))
 
                     true_im_np = true_im.cpu().numpy() * std[j].cpu().numpy() + mean_val[j].cpu().numpy()
