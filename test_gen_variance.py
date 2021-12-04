@@ -241,7 +241,6 @@ def main(args):
 
     for i, data in enumerate(dev_loader):
         input, target_full, mean_val, std, nnz_index_mask = data
-        print(torch.is_nonzero(input).shape)
         kspace_gt = prep_input_2_chan(target_full, 'kspace', args)
         kspace_us = prep_input_2_chan(input, 'kspace', args)
         input = prep_input_2_chan(input, args.network_input, args)
