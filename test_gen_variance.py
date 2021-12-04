@@ -251,7 +251,6 @@ def main(args):
             input_w_z = input.to(args.device)
             mean, gens, kspace_mean_batch, kspace_gens = average_gen(gen, input_w_z, None, old_input, args)
             mean_disc_score = dis(mean)
-            print(mean_disc_score.item())
             best_mean, best_gens, best_kspace_mean_batch , best_kspace_gens = average_gen(best_gen, input_w_z, None, old_input, args)
             zero = z_gen(gen, input_w_z, torch.zeros((input.shape[0], args.latent_size)), old_input)
 
@@ -265,6 +264,7 @@ def main(args):
 
             for j in range(mean_batch.shape[0]):
                 if j == 7:
+                    print(mean_disc_score[j].item())
                     true_im = complex_abs(target_batch[j].permute(1, 2, 0))
                     kspace_true_mag_np = complex_abs(kspace_gt[j].permute(1, 2, 0)).cpu().numpy()
                     kspace_us_mag_np = complex_abs(kspace_us[j].permute(1, 2, 0)).cpu().numpy()
