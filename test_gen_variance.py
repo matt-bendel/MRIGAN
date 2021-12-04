@@ -231,7 +231,7 @@ def main(args):
     args.out_chans = 2
 
     gen = get_gen(args, args.network_input)
-    dis = get_gen(args, args.network_input)
+    dis = get_dis(args, args.network_input)
     best_gen = get_gen_supervised(args, args.network_input)
     gen.eval()
     dis.eval()
