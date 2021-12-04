@@ -13,7 +13,7 @@ from typing import Optional
 from utils.math import complex_abs
 from utils.training.prepare_data import create_data_loaders
 from utils.training.parse_args import create_arg_parser
-from utils.training.prepare_model import resume_train, fresh_start, build_model
+from utils.training.prepare_model import resume_train, fresh_start, build_model, build_discriminator
 from utils.general.helper import readd_measures_im, prep_input_2_chan
 from skimage.metrics import peak_signal_noise_ratio, structural_similarity
 
@@ -178,7 +178,7 @@ def get_dis(args, type):
         f'/home/bendel.8/Git_Repos/MRIGAN/trained_models/{type}/{args.z_location}/discriminator_best_model.pt')
     checkpoint_dis = torch.load(checkpoint_file_gen, map_location=torch.device('cuda'))
 
-    discriminator = build_model(args)
+    discriminator = build_discriminator(args)
 
     if args.data_parallel:
         discriminator = torch.nn.DataParallel(discriminator)
