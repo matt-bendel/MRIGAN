@@ -203,13 +203,13 @@ def get_gen_supervised(args, type):
     return generator
 
 
-def gif_im(true, gen_im, index, type):
+def gif_im(true, gen_im, index, type, disc_num=False):
     fig = plt.figure()
     if type == 'kspace':
         generate_image(fig, true, gen_im, f'z {index}', 1, 2, 1, kspace=True)
         im, ax = generate_error_map(fig, true, gen_im, f'z {index}', 2, 2, 1, kspace=True)
     else:
-        generate_image(fig, true, gen_im, f'z {index}', 1, 2, 1)
+        generate_image(fig, true, gen_im, f'z {index}', 1, 2, 1, disc_num=disc_num)
         im, ax = generate_error_map(fig, true, gen_im, f'z {index}', 2, 2, 1)
 
     get_colorbar(fig, im, ax)
@@ -363,8 +363,8 @@ def main(args):
                     plt.savefig(f'/home/bendel.8/Git_Repos/MRIGAN/comparison_{args.network_input}.png')
 
                     place = 1
-                    for val in gen_im_np_list:
-                        gif_im(true_im_np, val, place, 'image')
+                    for r, val in enumerate(gen_im_np_list):
+                        gif_im(true_im_np, val, place, 'image', disc_num=disc_batch[r])
                         place += 1
 
                     generate_gif('image')
