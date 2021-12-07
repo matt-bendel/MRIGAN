@@ -83,8 +83,8 @@ class DataTransform:
         output_x_r = cv2.resize(output_x[:, :, 0].numpy(), dsize=(96, 96), interpolation=cv2.INTER_LINEAR)
         output_x_c = cv2.resize(output_x[:, :, 1].numpy(), dsize=(96, 96), interpolation=cv2.INTER_LINEAR)
 
-        output_x_r = torch.from_numpy(output_x_r).unsqueeze(-1)
-        output_x_c = torch.from_numpy(output_x_c).unsqueeze(-1)
+        output_x_r = torch.from_numpy(output_x_r).type(torch.FloatTensor).unsqueeze(-1)
+        output_x_c = torch.from_numpy(output_x_c).type(torch.FloatTensor).unsqueeze(-1)
         ######################################
         output_x = torch.cat((output_x_r, output_x_c), dim=-1)
 
@@ -103,9 +103,6 @@ class DataTransform:
 
         kspace = fft2c_new(image)
         masked_kspace = kspace * mask
-
-        print(kspace.type())
-        print(masked_kspace.type())
 
         # masked_kspace = kspace * mask
 
