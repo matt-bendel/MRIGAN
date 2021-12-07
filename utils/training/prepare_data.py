@@ -7,7 +7,8 @@ from torch.utils.data import DataLoader
 from data import transforms
 
 from data.mri_data import SelectiveSliceData, SelectiveSliceData_Val
-
+from utils.fftc import ifft2c_new
+import cv2
 
 class DataTransform:
     """
@@ -66,14 +67,28 @@ class DataTransform:
         x = ifft(kspace, (0, 1))  # (768, 396, 16)
 
         coil_compressed_x = ImageCropandKspaceCompression(x)  # (384, 384, 8)
-        gt_kspace = fft(coil_compressed_x, (1, 0))  # (384, 384, 8)
+
+        output_tensor = torch.zeros(8, 384, 384, 2)
+        im_tensor = transforms.to_tensor(coil_compressed_x).permute(2, 0, 1, 3)
+        print(im_tensor.shape)
+        exit()
+        output_x = transforms.root_sum_of_squares(output_tensor)
+        # REMOVE BELOW TWO LINES TO GO BACK UP
+        output_x_r = cv2.resize(output_x[:, :, 0].numpy(), dsize=(96, 96), interpolation=cv2.INTER_LINEAR)
+        output_x_c = cv2.resize(output_x[:, :, 1].numpy(), dsize=(96, 96), interpolation=cv2.INTER_LINEAR)
+
+        output_x_r = torch.from_numpy(output_x_r).unsqueeze(-1)
+        output_x_c = torch.from_numpy(output_x_c).unsqueeze(-1)
+        ######################################
+        output_x = torch.cat((output_x_r, output_x_c), dim=-1)
+        disc_inp[k, :, :, :] = output_x.permute(2, 0, 1)
 
         if self.args.inpaint:
             from random import randrange
 
             n = coil_compressed_x.shape[0]
-            square_length = n // 8
-            end = n - 2 * square_length
+            square_length = n // 5
+            end = n - square_length
 
             rand_start = randrange(square_length, end)
 
@@ -89,42 +104,9 @@ class DataTransform:
         masked_kspace = transforms.to_tensor(masked_kspace)
         masked_kspace = masked_kspace.permute(2, 0, 1, 3)
 
-        # Apply mask
-        nnz_index_mask = mask[0, :, 0].nonzero()[0]
-
-        noise_var = torch.tensor(5.3459594390181664e-11)
-
-        nnz_masked_kspace = masked_kspace[:, :, nnz_index_mask, :]
-        nnz_masked_kspace_real = nnz_masked_kspace[:, :, :, 0]
-        nnz_masked_kspace_imag = nnz_masked_kspace[:, :, :, 1]
-        nnz_masked_kspace_real_flat = flatten(nnz_masked_kspace_real)
-        nnz_masked_kspace_imag_flat = flatten(nnz_masked_kspace_imag)
-
-        noise_flat_1 = (torch.sqrt(0.5 * noise_var)) * torch.randn(nnz_masked_kspace_real_flat.size())
-        noise_flat_2 = (torch.sqrt(0.5 * noise_var)) * torch.randn(nnz_masked_kspace_real_flat.size())
-
-        nnz_masked_kspace_real_flat_noisy = nnz_masked_kspace_real_flat.float() + noise_flat_1
-        nnz_masked_kspace_imag_flat_noisy = nnz_masked_kspace_imag_flat.float() + noise_flat_2
-
-        nnz_masked_kspace_real_noisy = unflatten(nnz_masked_kspace_real_flat_noisy, nnz_masked_kspace_real.shape)
-        nnz_masked_kspace_imag_noisy = unflatten(nnz_masked_kspace_imag_flat_noisy, nnz_masked_kspace_imag.shape)
-
-        nnz_masked_kspace_noisy = nnz_masked_kspace * 0
-        nnz_masked_kspace_noisy[:, :, :, 0] = nnz_masked_kspace_real_noisy
-        nnz_masked_kspace_noisy[:, :, :, 1] = nnz_masked_kspace_imag_noisy
-
-        masked_kspace_noisy = 0 * masked_kspace
-        masked_kspace_noisy[:, :, nnz_index_mask, :] = nnz_masked_kspace_noisy
-
-        ## commenting the bellow one line will make the experiment noiseless case
-        # masked_kspace = masked_kspace_noisy
-
         ###################################
 
-        if self.args.z_location == 3:
-            stacked_masked_kspace = torch.zeros(17, 384, 384)
-        else:
-            stacked_masked_kspace = torch.zeros(16, 384, 384)
+        stacked_masked_kspace = torch.zeros(16, 384, 384)
 
         stacked_masked_kspace[0:8, :, :] = torch.squeeze(masked_kspace[:, :, :, 0])
         stacked_masked_kspace[8:16, :, :] = torch.squeeze(masked_kspace[:, :, :, 1])
