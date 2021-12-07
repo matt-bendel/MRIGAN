@@ -242,8 +242,8 @@ def main(args):
 
     for i, data in enumerate(dev_loader):
         input, target_full, mean_val, std, nnz_index_mask = data
-        kspace_gt = prep_input_2_chan(target_full, 'kspace', args)
-        kspace_us = prep_input_2_chan(input, 'kspace', args)
+        kspace_gt = target_full.to(args.device)
+        kspace_us = input.to(args.device)
         input = prep_input_2_chan(input, args.network_input, args)
         target_full = prep_input_2_chan(target_full, args.network_input, args).to(args.device)
         old_input = input.to(args.device)
