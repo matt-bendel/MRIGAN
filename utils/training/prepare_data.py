@@ -103,9 +103,6 @@ class DataTransform:
 
         kspace = fft2c_new(image)
         masked_kspace = kspace * mask
-        print(kspace.shape)
-        print(image.shape)
-        exit()
 
         # masked_kspace = kspace * mask
 
