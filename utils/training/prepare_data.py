@@ -104,6 +104,9 @@ class DataTransform:
         kspace = fft2c_new(image)
         masked_kspace = kspace * mask
 
+        print(kspace.type())
+        print(masked_kspace.type())
+
         # masked_kspace = kspace * mask
 
         # kspace = transforms.to_tensor(gt_kspace)
