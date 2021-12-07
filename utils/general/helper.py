@@ -119,22 +119,41 @@ def prep_input_2_chan(data_tensor, unet_type, args, disc=False, disc_image=True)
 
         return disc_inp
 
-    for k in range(data_tensor.shape[0]):
-        output = torch.squeeze(data_tensor[k])
-        output_tensor = torch.zeros(8, 384, 384, 2)
-        output_tensor[:, :, :, 0] = output[0:8, :, :]
-        output_tensor[:, :, :, 1] = output[8:16, :, :]
-        output_x = ifft2c_new(output_tensor)
-        output_x = transforms.root_sum_of_squares(output_x)
-        # REMOVE BELOW TWO LINES TO GO BACK UP
-        output_x_r = cv2.resize(output_x[:, :, 0].numpy(), dsize=(96, 96), interpolation=cv2.INTER_LINEAR)
-        output_x_c = cv2.resize(output_x[:, :, 1].numpy(), dsize=(96, 96), interpolation=cv2.INTER_LINEAR)
+    if unet_type == 'kspace':
+        for k in range(data_tensor.shape[0]):
+            output = torch.squeeze(data_tensor[k])
+            output_tensor = torch.zeros(8, 384, 384, 2)
+            output_tensor[:, :, :, 0] = output[0:8, :, :]
+            output_tensor[:, :, :, 1] = output[8:16, :, :]
+            output_x = ifft2c_new(output_tensor)
+            output_x = transforms.root_sum_of_squares(output_x)
+            # REMOVE BELOW LINES TO GO BACK UP
+            output_x_r = cv2.resize(output_x[:, :, 0].numpy(), dsize=(96, 96), interpolation=cv2.INTER_LINEAR)
+            output_x_c = cv2.resize(output_x[:, :, 1].numpy(), dsize=(96, 96), interpolation=cv2.INTER_LINEAR)
 
-        output_x_r = torch.from_numpy(output_x_r).unsqueeze(-1)
-        output_x_c = torch.from_numpy(output_x_c).unsqueeze(-1)
-        ######################################
-        output_x = torch.cat((output_x_r, output_x_c), dim=-1)
+            output_x_r = torch.from_numpy(output_x_r).unsqueeze(-1)
+            output_x_c = torch.from_numpy(output_x_c).unsqueeze(-1)
+            ######################################
+            output_x = fft2c_new(torch.cat((output_x_r, output_x_c), dim=-1))
 
-        disc_inp[k, :, :, :] = output_x.permute(2, 0, 1)
+            disc_inp[k, :, :, :] = output_x.permute(2, 0, 1)
+    else:
+        for k in range(data_tensor.shape[0]):
+            output = torch.squeeze(data_tensor[k])
+            output_tensor = torch.zeros(8, 384, 384, 2)
+            output_tensor[:, :, :, 0] = output[0:8, :, :]
+            output_tensor[:, :, :, 1] = output[8:16, :, :]
+            output_x = ifft2c_new(output_tensor)
+            output_x = transforms.root_sum_of_squares(output_x)
+            # REMOVE BELOW TWO LINES TO GO BACK UP
+            output_x_r = cv2.resize(output_x[:, :, 0].numpy(), dsize=(96, 96), interpolation=cv2.INTER_LINEAR)
+            output_x_c = cv2.resize(output_x[:, :, 1].numpy(), dsize=(96, 96), interpolation=cv2.INTER_LINEAR)
+
+            output_x_r = torch.from_numpy(output_x_r).unsqueeze(-1)
+            output_x_c = torch.from_numpy(output_x_c).unsqueeze(-1)
+            ######################################
+            output_x = torch.cat((output_x_r, output_x_c), dim=-1)
+
+            disc_inp[k, :, :, :] = output_x.permute(2, 0, 1)
 
     return disc_inp
