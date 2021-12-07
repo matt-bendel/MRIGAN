@@ -132,7 +132,7 @@ class DataTransform:
         # mean = (-4.0156e-11)
         # std = (2.5036e-05)
 
-        return stacked_masked_kspace, stacked_kspace, mean, std, None
+        return stacked_masked_kspace, stacked_kspace, mean, std, False
 
 
 def create_datasets(args, val_only):
