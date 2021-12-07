@@ -245,7 +245,7 @@ def main(args):
         kspace_gt = prep_input_2_chan(target_full, 'kspace', args)
         kspace_us = prep_input_2_chan(input, 'kspace', args)
         input = prep_input_2_chan(input, args.network_input, args)
-        target_full = prep_input_2_chan(target_full, args.network_input, args)
+        target_full = prep_input_2_chan(target_full, args.network_input, args).to(args.device)
         old_input = input.to(args.device)
 
         with torch.no_grad():
