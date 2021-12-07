@@ -105,4 +105,4 @@ def prep_input_2_chan(data_tensor, unet_type, args, disc=False, disc_image=True)
         return disc_inp
 
     disc_inp = ifft2c_new(data_tensor)
-    return disc_inp.permute(2, 0, 1)
+    return disc_inp.permute(0, 3, 1, 2)
