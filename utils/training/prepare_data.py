@@ -103,7 +103,7 @@ class DataTransform:
 
         kspace = fft2c_new(image)
         masked_kspace = kspace * mask
-        zfr = fft2c_new(masked_kspace)
+        zfr = ifft2c_new(masked_kspace)
 
         # masked_kspace = kspace * mask
 
