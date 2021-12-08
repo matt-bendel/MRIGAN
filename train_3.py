@@ -436,8 +436,8 @@ def main(args):
                         output = complex_abs(ims[k])
                         target = complex_abs(target_im[k])
 
-                        output = output.cpu().numpy()
-                        target = target.cpu().numpy()
+                        output = output.cpu().numpy() * std[k].numpy() + mean[k].numpy()
+                        target = target.cpu().numpy() * std[k].numpy() + mean[k].numpy()
 
                         losses['ssim'].append(ssim(target, output))
                         losses['psnr'].append(psnr(target, output))

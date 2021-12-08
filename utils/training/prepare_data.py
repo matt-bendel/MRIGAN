@@ -103,6 +103,7 @@ class DataTransform:
 
         kspace = fft2c_new(image)
         masked_kspace = kspace * mask
+        zfr = fft2c_new(masked_kspace)
 
         # masked_kspace = kspace * mask
 
@@ -119,20 +120,20 @@ class DataTransform:
         # stacked_masked_kspace[0:8, :, :] = torch.squeeze(masked_kspace[:, :, :, 0])
         # stacked_masked_kspace[8:16, :, :] = torch.squeeze(masked_kspace[:, :, :, 1])
         # stacked_masked_kspace, mean, std = transforms.normalize_instance(stacked_masked_kspace, eps=1e-11)
-        stacked_masked_kspace, mean, std = transforms.normalize_instance(masked_kspace, eps=1e-11)
+        zfr, mean, std = transforms.normalize_instance(zfr, eps=1e-11)
         # stacked_masked_kspace = (stacked_masked_kspace - (-4.0156e-11)) / (2.5036e-05)
 
         # stacked_kspace = torch.zeros(16, 384, 384)
         # stacked_kspace[0:8, :, :] = torch.squeeze(kspace[:, :, :, 0])
         # stacked_kspace[8:16, :, :] = torch.squeeze(kspace[:, :, :, 1])
         # stacked_kspace = transforms.normalize(stacked_kspace, mean, std, eps=1e-11)
-        stacked_kspace = transforms.normalize(kspace, mean, std, eps=1e-11)
+        image = transforms.normalize(image, mean, std, eps=1e-11)
         # stacked_kspace = (stacked_kspace - (-4.0156e-11)) / (2.5036e-05)
 
         # mean = (-4.0156e-11)
         # std = (2.5036e-05)
 
-        return stacked_masked_kspace, stacked_kspace, mean, std, False
+        return fft2c_new(zfr), fft2c_new(image), mean, std, False
 
 
 def create_datasets(args, val_only):
