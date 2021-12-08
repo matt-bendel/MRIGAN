@@ -102,7 +102,9 @@ def generate_image(fig, target, image, method, image_ind, rows, cols, kspace=Fal
         ssim_val = ssim(target, image)
         if not kspace:
             pred = disc_num
-            ax.set_title(f'PSNR: {psnr_val:.2f}, SNR: {snr_val:.2f}\nSSIM: {ssim_val:.4f}, Pred: {pred*100:.2f}% True') if disc_num else ax.set_title(f'PSNR: {psnr_val:.2f}, SNR: {snr_val:.2f}\nSSIM: {ssim_val:.4f}')
+            ax.set_title(
+                f'PSNR: {psnr_val:.2f}, SNR: {snr_val:.2f}\nSSIM: {ssim_val:.4f}, Pred: {pred * 100:.2f}% True') if disc_num else ax.set_title(
+                f'PSNR: {psnr_val:.2f}, SNR: {snr_val:.2f}\nSSIM: {ssim_val:.4f}')
 
     if method == 'Std. Dev':
         im = ax.imshow(image, cmap='viridis')
@@ -110,8 +112,8 @@ def generate_image(fig, target, image, method, image_ind, rows, cols, kspace=Fal
         ax.set_yticks([])
     else:
         if kspace:
-            image = image**0.4
-            target = target**0.4
+            image = image ** 0.4
+            target = target ** 0.4
         im = ax.imshow(np.abs(image), cmap='gray', vmin=0, vmax=np.max(target))
         ax.set_xticks([])
         ax.set_yticks([])
@@ -174,6 +176,7 @@ def get_gen(args, type):
 
     return generator
 
+
 def get_dis(args, type):
     checkpoint_file_gen = pathlib.Path(
         f'/home/bendel.8/Git_Repos/MRIGAN/trained_models/{type}/{args.z_location}/discriminator_best_model.pt')
@@ -187,6 +190,7 @@ def get_dis(args, type):
     discriminator.load_state_dict(checkpoint_dis['model'])
 
     return discriminator
+
 
 def get_gen_supervised(args, type):
     checkpoint_file_gen = pathlib.Path(
@@ -252,7 +256,8 @@ def main(args):
             input_w_z = input.to(args.device)
             mean, gens, kspace_mean_batch, kspace_gens = average_gen(gen, input_w_z, None, old_input, args)
             mean_disc_score = dis(mean)
-            best_mean, best_gens, best_kspace_mean_batch , best_kspace_gens = average_gen(best_gen, input_w_z, None, old_input, args)
+            best_mean, best_gens, best_kspace_mean_batch, best_kspace_gens = average_gen(best_gen, input_w_z, None,
+                                                                                         old_input, args)
             zero = z_gen(gen, input_w_z, torch.zeros((input.shape[0], args.latent_size)), old_input)
 
             target_batch = prep_input_2_chan(target_full, args.network_input, args, disc=True).to(args.device)
@@ -341,7 +346,8 @@ def main(args):
 
                     generate_error_map(fig, kspace_true_mag_np, kspace_us_mag_np, f'Error', 7, 2, 5, kspace=True)
                     generate_error_map(fig, kspace_true_mag_np, best_kspace_mean_mag, f'Error', 8, 2, 5, kspace=True)
-                    im, ax = generate_error_map(fig, kspace_true_mag_np, kspace_mean_mag_np, f'Error', 9, 2, 5, kspace=True)
+                    im, ax = generate_error_map(fig, kspace_true_mag_np, kspace_mean_mag_np, f'Error', 9, 2, 5,
+                                                kspace=True)
                     get_colorbar(fig, im, ax)
 
                     plt.savefig(f'/home/bendel.8/Git_Repos/MRIGAN/mean_and_std_kspace.png')
