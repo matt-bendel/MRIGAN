@@ -94,7 +94,7 @@ class DataTransform:
             from random import randrange
 
             n = image.shape[0]
-            square_length = n // 5
+            square_length = n // 6
             end = n - square_length
 
             rand_start = randrange(square_length, end)
