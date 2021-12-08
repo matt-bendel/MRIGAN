@@ -266,27 +266,26 @@ def main(args):
             for j in range(mean_batch.shape[0]):
                 if j == 7:
                     mean_disc_score_num = 1 / (1 + np.exp(-mean_disc_score[j].item()))
-                    true_im = complex_abs(target_batch[j].permute(1, 2, 0))
+                    true_im = complex_abs(target_batch[j].permute(1, 2, 0) * std[j] + mean_val[j])
                     kspace_true_mag_np = complex_abs(kspace_gt[j].permute(1, 2, 0)).cpu().numpy()
                     kspace_us_mag_np = complex_abs(kspace_us[j].permute(1, 2, 0)).cpu().numpy()
-                    gen_mean_im = complex_abs(mean_batch[j].permute(1, 2, 0))
+                    gen_mean_im = complex_abs(mean_batch[j].permute(1, 2, 0) * std[j] + mean_val[j])
                     kspace_mean_mag_np = complex_abs(kspace_mean_batch[j].permute(1, 2, 0)).cpu().numpy()
-                    best_gen_mean_im = complex_abs(best_mean_batch[j].permute(1, 2, 0))
+                    best_gen_mean_im = complex_abs(best_mean_batch[j].permute(1, 2, 0) * std[j] + mean_val[j])
                     best_kspace_mean_mag = complex_abs(best_kspace_mean_batch[j].permute(1, 2, 0)).cpu().numpy()
-                    zero_im = complex_abs(zero_batch[j].permute(1, 2, 0))
+                    zero_im = complex_abs(zero_batch[j].permute(1, 2, 0) * std[j] + mean_val[j])
                     gens_im_list = []
                     disc_batch = []
                     for r, val in enumerate(gens_batch_list):
                         pred = dis(val)
                         pred = 1 / (1 + np.exp(-pred[r].item()))
                         disc_batch.append(pred)
-                        gens_im_list.append(complex_abs(val[j].permute(1, 2, 0)))
+                        gens_im_list.append(complex_abs(val[j].permute(1, 2, 0) * std[j] + mean_val[j]))
 
-                    true_im_np = true_im.cpu().numpy() * std[j].cpu().numpy() + mean_val[j].cpu().numpy()
-                    gen_mean_im_np = gen_mean_im.cpu().numpy() * std[j].cpu().numpy() + mean_val[j].cpu().numpy()
-                    best_gen_mean_im_np = best_gen_mean_im.cpu().numpy() * std[j].cpu().numpy() + mean_val[
-                        j].cpu().numpy()
-                    zero_im_np = zero_im.cpu().numpy() * std[j].cpu().numpy() + mean_val[j].cpu().numpy()
+                    true_im_np = true_im.cpu().numpy()
+                    gen_mean_im_np = gen_mean_im.cpu().numpy()
+                    best_gen_mean_im_np = best_gen_mean_im.cpu().numpy()
+                    zero_im_np = zero_im.cpu().numpy()
 
                     gen_im_np_list = []
                     for val in gens_im_list:
