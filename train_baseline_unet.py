@@ -96,7 +96,7 @@ def train_epoch(args, epoch, model, data_loader, optimizer, writer):
 
         output = model(input)  # .squeeze(1)
 
-        output = readd_measures_im(output, input, args)
+        # output = readd_measures_im(output, input, args)
 
         target_im = prep_input_2_chan(target, args.network_input, args, disc=True).to(args.device).permute(0, 2, 3, 1)
         output_im = prep_input_2_chan(output, args.network_input, args, disc=True).to(args.device).permute(0, 2, 3, 1)
