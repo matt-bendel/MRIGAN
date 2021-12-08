@@ -8,19 +8,29 @@ from utils.fftc import ifft2c_new, fft2c_new
 
 
 def get_mask():
+    # a = np.array(
+    #     [0, 10, 19, 28, 37, 46, 54, 61, 69, 76, 83, 89, 95, 101, 107, 112, 118, 122, 127, 132, 136, 140, 144, 148,
+    #      151, 155, 158, 161, 164,
+    #      167, 170, 173, 176, 178, 181, 183, 186, 188, 191, 193, 196, 198, 201, 203, 206, 208, 211, 214, 217, 220,
+    #      223, 226, 229, 233, 236,
+    #      240, 244, 248, 252, 257, 262, 266, 272, 277, 283, 289, 295, 301, 308, 315, 323, 330, 338, 347, 356, 365,
+    #      374])
+    # m = np.ones((384, 384))
+    # m[:, a] = 0
+    # m[:, 176:208] = 0
+    # samp = m
+    # mask = np.tile(samp, (1, 1, 1)).transpose((1, 2, 0)).astype(np.float32)
+    # mask = cv2.resize(mask[:, :, 0], dsize=(96, 96), interpolation=cv2.INTER_LINEAR)
     a = np.array(
-        [0, 10, 19, 28, 37, 46, 54, 61, 69, 76, 83, 89, 95, 101, 107, 112, 118, 122, 127, 132, 136, 140, 144, 148,
-         151, 155, 158, 161, 164,
-         167, 170, 173, 176, 178, 181, 183, 186, 188, 191, 193, 196, 198, 201, 203, 206, 208, 211, 214, 217, 220,
-         223, 226, 229, 233, 236,
-         240, 244, 248, 252, 257, 262, 266, 272, 277, 283, 289, 295, 301, 308, 315, 323, 330, 338, 347, 356, 365,
-         374])
-    m = np.ones((384, 384))
-    m[:, a] = 0
-    m[:, 176:208] = 0
+        [1, 9, 15, 21, 26, 31, 35, 39, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51, 52, 53, 54, 56, 59, 63, 67, 72, 77,
+         83, 89]
+    )
+    m = np.zeros((96, 96))
+    m[:, a] = True
+    m[:, 42:54] = True
     samp = m
-    mask = np.tile(samp, (1, 1, 1)).transpose((1, 2, 0)).astype(np.float32)
-    mask = cv2.resize(mask[:, :, 0], dsize=(96, 96), interpolation=cv2.INTER_LINEAR)
+    numcoil = 2
+    mask = np.tile(samp, (numcoil, 1, 1)).transpose((1, 2, 0)).astype(np.float32)
     mask = np.repeat(np.expand_dims(mask, 2), 2, axis=2).transpose(2, 0, 1)
     # mask = np.repeat(np.expand_dims(mask, 0).transpose(0, 3, 1, 2), b_size, axis=0)
 
@@ -75,10 +85,10 @@ def readd_measures_im(data_tensor, old, args, kspace=False):
         old_out = torch.squeeze(old[k])
         old_out = fft2c_new(old_out.permute(1, 2, 0))
 
-        # mask = get_mask()
+        mask = get_mask()
 
-        # disc_inp[k, :, :, :] = output_tensor.permute(2, 0, 1) * mask.to(args.device) + old_out.permute(2, 0, 1)
-        disc_inp[k, :, :, :] = output_tensor.permute(2, 0, 1) + old_out.permute(2, 0, 1)
+        disc_inp[k, :, :, :] = output_tensor.permute(2, 0, 1) * mask.to(args.device) + old_out.permute(2, 0, 1)
+        # disc_inp[k, :, :, :] = output_tensor.permute(2, 0, 1) + old_out.permute(2, 0, 1)
 
     if kspace:
         return disc_inp
