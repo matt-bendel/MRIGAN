@@ -138,9 +138,7 @@ def evaluate(args, epoch, model, data_loader, writer):
             input = prep_input_2_chan(input, args.network_input, args)
             target = prep_input_2_chan(target, args.network_input, args)
 
-            z = torch.zeros((input.shape[0], 512, 3, 3))
-
-            output = model(input, z)
+            output = model(input)
 
             output = readd_measures_im(output, input, args)
 
