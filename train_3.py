@@ -433,11 +433,11 @@ def main(args):
                         0, 2, 3, 1)
 
                     for k in range(ims.shape[0]):
-                        output = complex_abs(ims[k])
-                        target = complex_abs(target_im[k])
+                        output = complex_abs(ims[k] * std[k] + mean[k])
+                        target = complex_abs(target_im[k] * std[k] + mean[k])
 
-                        output = output.cpu().numpy() * std[k].numpy() + mean[k].numpy()
-                        target = target.cpu().numpy() * std[k].numpy() + mean[k].numpy()
+                        output = output.cpu().numpy()
+                        target = target.cpu().numpy()
 
                         losses['ssim'].append(ssim(target, output))
                         losses['psnr'].append(psnr(target, output))

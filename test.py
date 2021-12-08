@@ -149,11 +149,11 @@ def main(args):
                 }
 
                 for j in range(output_batch.shape[0]):
-                    generared_im = complex_abs(output_batch[j].permute(1, 2, 0))
-                    true_im = complex_abs(target_batch[j].permute(1, 2, 0))
+                    generared_im = complex_abs(output_batch[j].permute(1, 2, 0) * std[j] + mean[j])
+                    true_im = complex_abs(target_batch[j].permute(1, 2, 0) * std[j] + mean[j])
 
-                    generated_im_np = generared_im.cpu().numpy() * std[j].numpy() + mean[j].numpy()
-                    true_im_np = true_im.cpu().numpy() * std[j].numpy() + mean[j].numpy()
+                    generated_im_np = generared_im.cpu().numpy()
+                    true_im_np = true_im.cpu().numpy()
 
                     batch_metrics['psnr'].append(psnr(true_im_np, generated_im_np, np.max(true_im_np)))
                     batch_metrics['ssim'].append(ssim(true_im_np, generated_im_np, np.max(true_im_np)))

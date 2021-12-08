@@ -146,11 +146,11 @@ def evaluate(args, epoch, model, data_loader, writer):
             output_im = prep_input_2_chan(output, args.network_input, args, disc=True).to(args.device).permute(0, 2, 3, 1)
 
             for i in range(output_im.shape[0]):
-                output = complex_abs(output_im[i])
-                target = complex_abs(target_im[i])
+                output = complex_abs(output_im[i] * std[i] + mean[i])
+                target = complex_abs(target_im[i] * std[i] + mean[i])
 
-                output = output.cpu().numpy() * std[i].numpy() + mean[i].numpy()
-                target = target.cpu().numpy() * std[i].numpy() + mean[i].numpy()
+                output = output.cpu().numpy()
+                target = target.cpu().numpy()
 
                 SSIM = ssim_numpy(target, output)
                 losses.append(SSIM)
