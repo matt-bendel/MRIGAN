@@ -94,9 +94,7 @@ def train_epoch(args, epoch, model, data_loader, optimizer, writer):
         input = prep_input_2_chan(input, args.network_input, args)
         target = prep_input_2_chan(target, args.network_input, args)
 
-        z = torch.zeros((input.shape[0], 512, 3, 3))
-
-        output = model(input, z)  # .squeeze(1)
+        output = model(input)  # .squeeze(1)
 
         output = readd_measures_im(output, input, args)
 
