@@ -289,7 +289,7 @@ def main(args):
 
                     gen_im_np_list = []
                     for val in gens_im_list:
-                        gen_im_np_list.append(val.cpu().numpy() * std[j].cpu().numpy() + mean_val[j].cpu().numpy())
+                        gen_im_np_list.append(val.cpu().numpy())
 
                     gen_kspace_np_list = []
                     for val in kspace_gens:
