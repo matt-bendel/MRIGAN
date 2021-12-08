@@ -149,8 +149,8 @@ def evaluate(args, epoch, model, data_loader, writer):
                 output = complex_abs(output_im[i])
                 target = complex_abs(target_im[i])
 
-                output = output.cpu().numpy() * std[i].numpy() + mean[i].numpy()
-                target = target.cpu().numpy() * std[i].numpy() + mean[i].numpy()
+                output = output.cpu().numpy()
+                target = target.cpu().numpy()
 
                 SSIM = ssim_numpy(target, output)
                 losses.append(SSIM)

@@ -287,15 +287,14 @@ def main(args):
                         disc_batch.append(pred)
                         gens_im_list.append(complex_abs(val[j].permute(1, 2, 0)))
 
-                    true_im_np = true_im.cpu().numpy() * std[j].cpu().numpy() + mean_val[j].cpu().numpy()
-                    gen_mean_im_np = gen_mean_im.cpu().numpy() * std[j].cpu().numpy() + mean_val[j].cpu().numpy()
-                    best_gen_mean_im_np = best_gen_mean_im.cpu().numpy() * std[j].cpu().numpy() + mean_val[
-                        j].cpu().numpy()
-                    zero_im_np = zero_im.cpu().numpy() * std[j].cpu().numpy() + mean_val[j].cpu().numpy()
+                    true_im_np = true_im.cpu().numpy()
+                    gen_mean_im_np = gen_mean_im.cpu().numpy()
+                    best_gen_mean_im_np = best_gen_mean_im.cpu().numpy()
+                    zero_im_np = zero_im.cpu().numpy()
 
                     gen_im_np_list = []
                     for val in gens_im_list:
-                        gen_im_np_list.append(val.cpu().numpy() * std[j].cpu().numpy() + mean_val[j].cpu().numpy())
+                        gen_im_np_list.append(val.cpu().numpy())
 
                     gen_kspace_np_list = []
                     for val in kspace_gens:
