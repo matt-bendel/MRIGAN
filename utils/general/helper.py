@@ -67,7 +67,7 @@ def add_z_to_input(args, input):
 def readd_measures_im(data_tensor, old, args, kspace=False):
     im_size = 96
     disc_inp = torch.zeros(data_tensor.shape[0], 2, im_size, im_size).to(args.device)
-    kspace_no_ip = torch.zeros(1)
+    kspace_no_ip = torch.zeros(data_tensor.shape[0], 2, im_size, im_size).to(args.device)
 
     for k in range(data_tensor.shape[0]):
         output = torch.squeeze(data_tensor[k])
@@ -75,15 +75,15 @@ def readd_measures_im(data_tensor, old, args, kspace=False):
 
         old_out = torch.squeeze(old[k])
         old_out = fft2c_new(old_out.permute(1, 2, 0))
-        kspace_no_ip = output_tensor
 
         # mask = get_mask()
 
         # disc_inp[k, :, :, :] = output_tensor.permute(2, 0, 1) * mask.to(args.device) + old_out.permute(2, 0, 1)
         disc_inp[k, :, :, :] = output_tensor.permute(2, 0, 1) + old_out.permute(2, 0, 1)
+        kspace_no_ip[k, :, :, :] = output_tensor.permute(2, 0, 1)
 
     if kspace:
-        return disc_inp if not args.inpaint else kspace_no_ip.permute(2, 0, 1)
+        return disc_inp if not args.inpaint else kspace_no_ip
 
     for k in range(data_tensor.shape[0]):
         output = torch.squeeze(disc_inp[k])
