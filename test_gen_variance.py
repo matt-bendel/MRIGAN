@@ -63,7 +63,7 @@ def z_gen(generator, input_w_z, z, old_input):
         # refined_out = output_gen + old_input[:, 0:16]
         refined_out = output_gen + old_input[:]
     else:
-        refined_out = readd_measures_im(output_gen, old_input, args)
+        refined_out = readd_measures_im(output_gen, old_input, args) if not args.inpaint else output_gen
 
     return refined_out
 
@@ -82,7 +82,7 @@ def average_gen(generator, input_w_z, z, old_input, args, num_z=8):
             # refined_out = output_gen + old_input[:, 0:16]
             refined_out = output_gen + old_input[:]
         else:
-            refined_out = readd_measures_im(output_gen, old_input, args)
+            refined_out = readd_measures_im(output_gen, old_input, args) if not args.inpaint else output_gen
             kspace_refined_out = readd_measures_im(output_gen, old_input, args, kspace=True)
 
         gen_list.append(refined_out)

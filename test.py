@@ -54,7 +54,7 @@ def ssim(
     return ssim
 
 
-def non_average_gen(generator, input_w_z, z, old_input):
+def non_average_gen(generator, input_w_z, z, old_input, args):
     start = time.perf_counter()
     output_gen = generator(input=input_w_z, z=z)
     finish = time.perf_counter() - start
@@ -63,12 +63,12 @@ def non_average_gen(generator, input_w_z, z, old_input):
         # refined_out = output_gen + old_input[:, 0:16]
         refined_out = output_gen + old_input[:]
     else:
-        refined_out = readd_measures_im(output_gen, old_input, args)
+        refined_out = readd_measures_im(output_gen, old_input, args) if not args.inpaint else output_gen
 
     return refined_out, finish
 
 
-def average_gen(generator, input_w_z, z, old_input):
+def average_gen(generator, input_w_z, z, old_input, args):
     start = time.perf_counter()
     average_gen = torch.zeros(input_w_z.shape).to(args.device)
 
@@ -81,7 +81,7 @@ def average_gen(generator, input_w_z, z, old_input):
             # refined_out = output_gen + old_input[:, 0:16]
             refined_out = output_gen + old_input[:]
         else:
-            refined_out = readd_measures_im(output_gen, old_input, args)
+            refined_out = readd_measures_im(output_gen, old_input, args) if not args.inpaint else output_gen
 
         average_gen = torch.add(average_gen, refined_out)
 
@@ -108,7 +108,7 @@ def get_gen(args, type='image'):
 def main(args):
     args.exp_dir.mkdir(parents=True, exist_ok=True)
 
-    args.in_chans = 17 if args.z_location == 3 else 2
+    args.in_chans = 2
     args.out_chans = 2
 
     generator = get_gen(args)
@@ -135,7 +135,7 @@ def main(args):
             with torch.no_grad():
                 input_w_z = input.to(args.device)
                 # refined_out, finish = non_average_gen(generator, input_w_z, z, old_input)
-                refined_out, finish = average_gen(generator, input_w_z, z, old_input)
+                refined_out, finish = average_gen(generator, input_w_z, z, old_input, args)
 
                 target_batch = prep_input_2_chan(target_full, args.network_input, args, disc=True).to(args.device)
                 output_batch = prep_input_2_chan(refined_out, args.network_input, args, disc=True).to(args.device)

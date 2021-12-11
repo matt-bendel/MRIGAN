@@ -159,49 +159,6 @@ def generate_error_map(fig, target, recon, image_ind, k=5, max=1):
     return im, ax
 
 
-def plot_epoch(args, generator, epoch):
-    std = CONSTANT_PLOTS['std']
-    mean = CONSTANT_PLOTS['mean']
-
-    z_1 = CONSTANT_PLOTS['measures'].unsqueeze(0).to(args.device)
-    z = torch.FloatTensor(np.random.normal(size=(z_1.shape[0], args.latent_size))).to(args.device)
-
-    generator.eval()
-    with torch.no_grad():
-        z_1_out = generator(input=z_1, z=z)
-
-    if args.network_input == 'kspace':
-        refined_z_1_out = z_1_out.cpu() + CONSTANT_PLOTS['measures'].unsqueeze(0)
-    else:
-        refined_z_1_out = readd_measures_im(z_1_out.cpu(), CONSTANT_PLOTS['measures'].unsqueeze(0), args)
-
-    target_prep = prep_input_2_chan(CONSTANT_PLOTS['gt'].unsqueeze(0), args.network_input, args, disc=True)[0]
-    zfr = prep_input_2_chan(CONSTANT_PLOTS['measures'].unsqueeze(0), args.network_input, args, disc=True)[0]
-    z_1_prep = prep_input_2_chan(refined_z_1_out, args.network_input, args, disc=True)[0]
-
-    target_im = complex_abs(target_prep.permute(1, 2, 0)) * std + mean
-    target_im = target_im.cpu().numpy()
-
-    zfr = complex_abs(zfr.permute(1, 2, 0)) * std + mean
-    zfr = zfr.cpu().numpy()
-
-    z_1_im = complex_abs(z_1_prep.permute(1, 2, 0)) * std + mean
-    z_1_im = z_1_im.detach().cpu().numpy()
-
-    fig = plt.figure(figsize=(18, 9))
-    fig.suptitle(f'Generated and GT Images at Epoch {epoch + 1}')
-    generate_image(fig, target_im, target_im, 'GT', 1)
-    generate_image(fig, target_im, zfr, 'ZFR', 2)
-    generate_image(fig, target_im, z_1_im, 'Z 1', 3)
-
-    max_val = np.max(np.abs(target_im - zfr))
-    generate_error_map(fig, target_im, zfr, 5, 1, max_val)
-    generate_error_map(fig, target_im, z_1_im, 6, 1, max_val)
-
-    plt.savefig(
-        f'/home/bendel.8/Git_Repos/MRIGAN/training_images/mae_ssim/gen_{args.network_input}_{args.z_location}_{epoch + 1}.png')
-
-
 def save_metrics(args):
     with open(f'/home/bendel.8/Git_Repos/MRIGAN/saved_metrics/loss_{args.network_input}_{args.z_location}.pkl',
               'wb') as f:
@@ -229,7 +186,7 @@ def average_gen(generator, input_w_z, old_input, args):
             # refined_out = output_gen + old_input[:, 0:16]
             refined_out = output_gen + old_input[:]
         else:
-            refined_out = readd_measures_im(output_gen, old_input, args)
+            refined_out = readd_measures_im(output_gen, old_input, args) if not args.inpaint else output_gen
 
         gen_list.append(refined_out)
         average_gen = torch.add(average_gen, refined_out)
@@ -317,7 +274,7 @@ def main(args):
                         # refined_out = output_gen + old_input[:, 0:16]
                         refined_out = output_gen + old_input[:]
                     else:
-                        refined_out = readd_measures_im(output_gen, old_input, args)
+                        refined_out = readd_measures_im(output_gen, old_input, args) if not args.inpaint else output_gen
 
                     # TURN OUTPUT INTO IMAGE FOR DISCRIMINATION AND GET REAL IMAGES FOR DISCRIMINATION
                     disc_target_batch = prep_input_2_chan(target_full, args.network_input, args, disc=True,
@@ -363,7 +320,7 @@ def main(args):
                 else:
                     refined_out = torch.zeros(size=output_gen.shape).to(args.device)
                     for k in range(args.num_z):
-                        refined_out[k, :, :, :, :] = readd_measures_im(output_gen[k], old_input, args)
+                        refined_out[k, :, :, :, :] = readd_measures_im(output_gen[k], old_input, args) if not args.inpaint else output_gen[k]
 
                 disc_output_batch = torch.zeros(size=refined_out.shape).to(args.device)
                 for k in range(args.num_z):
@@ -393,10 +350,10 @@ def main(args):
                 # var_loss = torch.mean(torch.var(disc_inputs_gen, dim=1) * torch.abs(target_full-avg_recon), dim=(0, 1, 2, 3))
                 var_loss = torch.mean(torch.var(disc_inputs_gen, dim=1), dim=(0, 1, 2, 3))
 
-                var_weight = 0.012
+                var_weight = 0.02
 
                 # TODO: BEST -0.001 adv and var_weight = 0.012
-                g_loss = -0.001*torch.mean(gen_pred_loss) + 0.001 * F.l1_loss(target_full, avg_recon) - mssim_tensor(
+                g_loss = -0.0001*torch.mean(gen_pred_loss) + 0.001 * F.l1_loss(target_full, avg_recon) - mssim_tensor(
                     target_full, avg_recon) - var_weight * var_loss
 
                 g_loss.backward()

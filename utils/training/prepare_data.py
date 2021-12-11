@@ -94,10 +94,10 @@ class DataTransform:
             from random import randrange
 
             n = image.shape[0]
-            square_length = n // 6
+            square_length = n // 5
             end = n - square_length
 
-            rand_start = randrange(square_length, end)
+            rand_start = 5 * n // 8 #randrange(square_length, end)
 
             image[rand_start:rand_start + square_length, rand_start:rand_start + square_length, :] = 0
 
@@ -127,7 +127,7 @@ class DataTransform:
         # stacked_kspace[0:8, :, :] = torch.squeeze(kspace[:, :, :, 0])
         # stacked_kspace[8:16, :, :] = torch.squeeze(kspace[:, :, :, 1])
         # stacked_kspace = transforms.normalize(stacked_kspace, mean, std, eps=1e-11)
-        target = transforms.normalize(image, mean, std)
+        target = transforms.normalize(output_x, mean, std)
         # stacked_kspace = (stacked_kspace - (-4.0156e-11)) / (2.5036e-05)
 
         # mean = (-4.0156e-11)
