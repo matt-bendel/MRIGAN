@@ -88,6 +88,7 @@ class DataTransform:
         ######################################
         output_x = torch.cat((output_x_r, output_x_c), dim=-1)
 
+        true_image = output_x
         image = output_x
 
         if self.args.inpaint:
@@ -127,7 +128,7 @@ class DataTransform:
         # stacked_kspace[0:8, :, :] = torch.squeeze(kspace[:, :, :, 0])
         # stacked_kspace[8:16, :, :] = torch.squeeze(kspace[:, :, :, 1])
         # stacked_kspace = transforms.normalize(stacked_kspace, mean, std, eps=1e-11)
-        target = transforms.normalize(output_x, mean, std)
+        target = transforms.normalize(true_image, mean, std)
         # stacked_kspace = (stacked_kspace - (-4.0156e-11)) / (2.5036e-05)
 
         # mean = (-4.0156e-11)

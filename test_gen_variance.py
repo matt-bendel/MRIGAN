@@ -335,8 +335,8 @@ def main(args):
                     im, ax = generate_image(fig, kspace_true_mag_np, std_dev_kspace, 'Std. Dev', 4, 2, 4)
                     get_colorbar(fig, im, ax)
 
-                    generate_error_map(fig, kspace_true_mag_np, kspace_us_mag_np, f'Error', 6, 2, 5, kspace=True)
-                    im, ax = generate_error_map(fig, kspace_true_mag_np, kspace_mean_mag_np, f'Error', 7, 2, 5, kspace=True)
+                    generate_error_map(fig, kspace_true_mag_np, kspace_us_mag_np, f'Error', 6, 2, 4, kspace=True)
+                    im, ax = generate_error_map(fig, kspace_true_mag_np, kspace_mean_mag_np, f'Error', 7, 2, 4, kspace=True)
                     get_colorbar(fig, im, ax)
 
                     plt.savefig(f'/home/bendel.8/Git_Repos/MRIGAN/mean_and_std_kspace.png')
