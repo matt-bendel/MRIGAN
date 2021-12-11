@@ -88,7 +88,7 @@ class DataTransform:
         ######################################
         output_x = torch.cat((output_x_r, output_x_c), dim=-1)
 
-        true_image = output_x
+        true_image = torch.clone(output_x)
         image = output_x
 
         if self.args.inpaint:
