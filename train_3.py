@@ -415,7 +415,7 @@ def main(args):
             GLOBAL_LOSS_DICT['d_loss'].append(np.mean(batch_loss['d_loss']))
             GLOBAL_LOSS_DICT['d_acc'].append(np.mean(batch_loss['d_acc']))
 
-            save_str = f"END OF EPOCH {epoch + 1}: [Average D loss: {GLOBAL_LOSS_DICT['d_loss'][epoch]:.4f}] [Average D Acc: {GLOBAL_LOSS_DICT['d_acc'][epoch]:.4f}] [Average G loss: {GLOBAL_LOSS_DICT['g_loss'][epoch]:.4f}]\n"
+            save_str = f"END OF EPOCH {epoch + 1}: [Average D loss: {GLOBAL_LOSS_DICT['d_loss'][epoch-start_epoch]:.4f}] [Average D Acc: {GLOBAL_LOSS_DICT['d_acc'][epoch-start_epoch]:.4f}] [Average G loss: {GLOBAL_LOSS_DICT['g_loss'][epoch-start_epoch]:.4f}]\n"
             print(save_str)
             loss_file.write(save_str)
 
@@ -424,8 +424,8 @@ def main(args):
 
             save_model(args, epoch, generator, optimizer_G, best_loss_val, best_model, 'generator')
 
-            best_model = GLOBAL_LOSS_DICT['d_acc'][epoch] > best_loss_dis
-            best_loss_dis = GLOBAL_LOSS_DICT['d_acc'][epoch] if GLOBAL_LOSS_DICT['d_acc'][epoch] > best_loss_dis else best_loss_dis
+            best_model = GLOBAL_LOSS_DICT['d_acc'][epoch-start_epoch] > best_loss_dis
+            best_loss_dis = GLOBAL_LOSS_DICT['d_acc'][epoch-start_epoch] if GLOBAL_LOSS_DICT['d_acc'][epoch-start_epoch] > best_loss_dis else best_loss_dis
 
             save_model(args, epoch, discriminator, optimizer_D, best_loss_val, best_model, 'discriminator')
 
