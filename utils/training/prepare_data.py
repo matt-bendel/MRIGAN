@@ -98,7 +98,7 @@ class DataTransform:
             square_length = n // 5
             end = n - square_length
 
-            rand_start = randrange(square_length, end)
+            rand_start = randrange(0, end)
 
             image[rand_start:rand_start + square_length, rand_start:rand_start + square_length, :] = 0
 

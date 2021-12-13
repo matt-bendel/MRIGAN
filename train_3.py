@@ -442,7 +442,7 @@ if __name__ == '__main__':
         args.device = torch.device('cuda')
     else:
         args.device = torch.device('cpu')
-    random.seed(0)
+    # random.seed(0)
     np.random.seed(0)
     torch.manual_seed(0)
 
