@@ -198,8 +198,12 @@ def get_gen_supervised(args):
     from utils.training.prepare_model import build_model, build_optim, build_discriminator
 
     checkpoint_file_gen = pathlib.Path(
-        f'/home/bendel.8/Git_Repos/MRIGAN/trained_models/image/2_presentation_temp/generator_best_model.pt')
+        f'/home/bendel.8/Git_Repos/MRIGAN/trained_models/image/{args.z_location}/generator_model.pt')
     checkpoint_gen = torch.load(checkpoint_file_gen, map_location=torch.device('cuda'))
+
+    checkpoint_file_dis = pathlib.Path(
+        f'/home/bendel.8/Git_Repos/MRIGAN/trained_models/image/{args.z_location}/discriminator_model.pt')
+    checkpoint_dis = torch.load(checkpoint_file_dis, map_location=torch.device('cuda'))
 
     generator = build_model(args)
     discriminator = build_discriminator(args)
@@ -213,9 +217,12 @@ def get_gen_supervised(args):
     opt_gen = build_optim(args, generator.parameters())
     opt_gen.load_state_dict(checkpoint_gen['optimizer'])
 
-    optimizer_D = torch.optim.Adam(discriminator.parameters(), lr=args.lr, betas=(args.beta_1, args.beta_2))
+    discriminator.load_state_dict(checkpoint_dis['model'])
 
-    return generator, opt_gen, discriminator, optimizer_D, args, 35, 0
+    opt_dis = build_optim(args, discriminator.parameters())
+    opt_dis.load_state_dict(checkpoint_dis['optimizer'])
+
+    return generator, opt_gen, discriminator, opt_dis, args, checkpoint_gen['best_dev_loss'], checkpoint_dis['best_dev_loss'], checkpoint_gen['epoch']
 
 
 def main(args):
@@ -225,22 +232,20 @@ def main(args):
     args.out_chans = 2
 
     if args.resume:
-        generator, optimizer_G, discriminator, optimizer_D, args, best_dev_loss, start_epoch = get_gen_supervised(args)
+        generator, optimizer_G, discriminator, optimizer_D, args, best_loss_val, best_loss_dis, start_epoch = get_gen_supervised(args)
     else:
         generator, discriminator, best_dev_loss, start_epoch = fresh_start(args)
         # Optimizers
         optimizer_G = torch.optim.Adam(generator.parameters(), lr=args.lr, betas=(args.beta_1, args.beta_2))
         optimizer_D = torch.optim.Adam(discriminator.parameters(), lr=args.lr, betas=(args.beta_1, args.beta_2))
+        best_loss_val = 0
+        best_loss_dis = 0
 
     logging.info(args)
     logging.info(generator)
     logging.info(discriminator)
 
     train_loader, dev_loader = create_data_loaders(args)
-
-    first = True
-    best_loss_val = 0
-    best_loss_dis = 0
 
     with open(f'trained_models/{args.network_input}/loss_{args.z_location}.txt', 'w') as loss_file:
         for epoch in range(start_epoch, args.num_epochs):
@@ -442,7 +447,7 @@ if __name__ == '__main__':
         args.device = torch.device('cuda')
     else:
         args.device = torch.device('cpu')
-    # random.seed(0)
+    random.seed(0)
     np.random.seed(0)
     torch.manual_seed(0)
 
