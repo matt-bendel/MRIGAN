@@ -54,7 +54,7 @@ def ssim(
     return ssim
 
 
-def non_average_gen(generator, input_w_z, z, old_input, args):
+def non_average_gen(generator, input_w_z, z, old_input, args, true_measures):
     start = time.perf_counter()
     output_gen = generator(input=input_w_z, z=z)
     finish = time.perf_counter() - start
@@ -63,7 +63,7 @@ def non_average_gen(generator, input_w_z, z, old_input, args):
         # refined_out = output_gen + old_input[:, 0:16]
         refined_out = output_gen + old_input[:]
     else:
-        refined_out = readd_measures_im(output_gen, old_input, args) if not args.inpaint else output_gen
+        refined_out = readd_measures_im(output_gen, old_input, args, true_measures=true_measures) if not args.inpaint else output_gen
 
     return refined_out, finish
 
@@ -124,7 +124,7 @@ def main(args):
         }
 
         for i, data in enumerate(dev_loader):
-            input, target_full, mean, std, nnz_index_mask = data
+            input, target_full, mean, std, true_measures = data
 
             input = prep_input_2_chan(input, args.network_input, args)
             target_full = prep_input_2_chan(target_full, args.network_input, args)
@@ -135,7 +135,7 @@ def main(args):
             with torch.no_grad():
                 input_w_z = input.to(args.device)
                 # refined_out, finish = non_average_gen(generator, input_w_z, z, old_input)
-                refined_out, finish = average_gen(generator, input_w_z, z, old_input, args)
+                refined_out, finish = average_gen(generator, input_w_z, z, old_input, args, true_measures)
 
                 target_batch = prep_input_2_chan(target_full, args.network_input, args, disc=True).to(args.device)
                 output_batch = prep_input_2_chan(refined_out, args.network_input, args, disc=True).to(args.device)

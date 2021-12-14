@@ -89,17 +89,22 @@ class DataTransform:
         output_x = torch.cat((output_x_r, output_x_c), dim=-1)
 
         true_image = torch.clone(output_x)
+        true_measures = fft2c_new(true_image) * mask
         image = output_x
 
-        if self.args.inpaint:
+        if self.args.inpaint or self.args.dynamic_inpaint:
             from random import randrange
 
             n = image.shape[0]
             square_length = n // 5
             end = n - square_length
 
-            rand_start_col = randrange(0, end)
-            rand_start_row = randrange(0, end)
+            if self.args.dynamic_inpaint:
+                rand_start_col = randrange(0, end)
+                rand_start_row = randrange(0, end)
+            else:
+                rand_start_col = 5*n//8
+                rand_start_row = 5*n//8
 
             image[rand_start_row:rand_start_row + square_length, rand_start_col:rand_start_col + square_length, :] = 0
 
@@ -135,7 +140,7 @@ class DataTransform:
         # mean = (-4.0156e-11)
         # std = (2.5036e-05)
 
-        return fft2c_new(zfr), fft2c_new(target), mean, std, False
+        return fft2c_new(zfr), fft2c_new(target), mean, std, true_measures.permute(2, 0, 1)
 
 
 def create_datasets(args, val_only):

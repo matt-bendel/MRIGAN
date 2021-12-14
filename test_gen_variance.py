@@ -68,7 +68,7 @@ def z_gen(generator, input_w_z, z, old_input):
     return refined_out
 
 
-def average_gen(generator, input_w_z, z, old_input, args, num_z=8):
+def average_gen(generator, input_w_z, z, old_input, args, true_measures, num_z=8):
     average_gen = torch.zeros(input_w_z.shape).to(args.device)
     average_gen_kspace = torch.zeros(input_w_z.shape).to(args.device)
     gen_list = []
@@ -82,8 +82,8 @@ def average_gen(generator, input_w_z, z, old_input, args, num_z=8):
             # refined_out = output_gen + old_input[:, 0:16]
             refined_out = output_gen + old_input[:]
         else:
-            refined_out = readd_measures_im(output_gen, old_input, args) if not args.inpaint else output_gen
-            kspace_refined_out = readd_measures_im(output_gen, old_input, args, kspace=True)
+            refined_out = readd_measures_im(output_gen, old_input, args, true_measures=true_measures) if not args.inpaint else output_gen
+            kspace_refined_out = readd_measures_im(output_gen, old_input, args, true_measures=true_measures, kspace=True)
 
         gen_list.append(refined_out)
         gen_list_kspace.append(kspace_refined_out)
@@ -241,7 +241,7 @@ def main(args):
     train_loader, dev_loader = create_data_loaders(args, val_only=True)
 
     for i, data in enumerate(dev_loader):
-        input, target_full, mean_val, std, nnz_index_mask = data
+        input, target_full, mean_val, std, true_measures = data
         kspace_gt = target_full.to(args.device).permute(0, 3, 1, 2)
         kspace_us = input.to(args.device).permute(0, 3, 1, 2)
         input = prep_input_2_chan(input, args.network_input, args)
@@ -250,9 +250,9 @@ def main(args):
 
         with torch.no_grad():
             input_w_z = input.to(args.device)
-            mean, gens, kspace_mean_batch, kspace_gens = average_gen(gen, input_w_z, None, old_input, args)
+            mean, gens, kspace_mean_batch, kspace_gens = average_gen(gen, input_w_z, None, old_input, args, true_measures)
             mean_disc_score = dis(mean)
-            best_mean, best_gens, best_kspace_mean_batch , best_kspace_gens = average_gen(best_gen, input_w_z, None, old_input, args)
+            best_mean, best_gens, best_kspace_mean_batch , best_kspace_gens = average_gen(best_gen, input_w_z, None, old_input, args, true_measures)
             zero = z_gen(gen, input_w_z, torch.zeros((input.shape[0], args.latent_size)), old_input)
 
             target_batch = prep_input_2_chan(target_full, args.network_input, args, disc=True).to(args.device)

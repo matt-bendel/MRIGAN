@@ -174,7 +174,7 @@ def average(gen_tensor):
     return torch.div(average_tensor, gen_tensor.shape[1])
 
 
-def average_gen(generator, input_w_z, old_input, args):
+def average_gen(generator, input_w_z, old_input, args, true_measures):
     average_gen = torch.zeros(input_w_z.shape).to(args.device)
     gen_list = []
     for j in range(8):
@@ -186,7 +186,7 @@ def average_gen(generator, input_w_z, old_input, args):
             # refined_out = output_gen + old_input[:, 0:16]
             refined_out = output_gen + old_input[:]
         else:
-            refined_out = readd_measures_im(output_gen, old_input, args) if not args.inpaint else output_gen
+            refined_out = readd_measures_im(output_gen, old_input, args, true_measures=true_measures) if not args.inpaint else output_gen
 
         gen_list.append(refined_out)
         average_gen = torch.add(average_gen, refined_out)
@@ -256,7 +256,7 @@ def main(args):
             }
 
             for i, data in enumerate(train_loader):
-                input, target_full, mean, std, nnz_index_mask = data
+                input, target_full, mean, std, true_measures = data
 
                 input = prep_input_2_chan(input, args.network_input, args)
                 target_full = prep_input_2_chan(target_full, args.network_input, args).to(args.device)
@@ -279,7 +279,7 @@ def main(args):
                         # refined_out = output_gen + old_input[:, 0:16]
                         refined_out = output_gen + old_input[:]
                     else:
-                        refined_out = readd_measures_im(output_gen, old_input, args) if not args.inpaint else output_gen
+                        refined_out = readd_measures_im(output_gen, old_input, args, true_measures=true_measures) if not args.inpaint else output_gen
 
                     # TURN OUTPUT INTO IMAGE FOR DISCRIMINATION AND GET REAL IMAGES FOR DISCRIMINATION
                     disc_target_batch = prep_input_2_chan(target_full, args.network_input, args, disc=True,
@@ -325,7 +325,7 @@ def main(args):
                 else:
                     refined_out = torch.zeros(size=output_gen.shape).to(args.device)
                     for k in range(args.num_z):
-                        refined_out[k, :, :, :, :] = readd_measures_im(output_gen[k], old_input, args) if not args.inpaint else output_gen[k]
+                        refined_out[k, :, :, :, :] = readd_measures_im(output_gen[k], old_input, args, true_measures=true_measures) if not args.inpaint else output_gen[k]
 
                 disc_output_batch = torch.zeros(size=refined_out.shape).to(args.device)
                 for k in range(args.num_z):
@@ -381,12 +381,12 @@ def main(args):
             for i, data in enumerate(dev_loader):
                 generator.eval()
                 with torch.no_grad():
-                    input, target_full, mean, std, nnz_index_mask = data
+                    input, target_full, mean, std, true_measures = data
 
                     input = prep_input_2_chan(input, args.network_input, args).to(args.device)
                     target_full = prep_input_2_chan(target_full, args.network_input, args).to(args.device)
 
-                    output_gen = average_gen(generator, input, input, args)
+                    output_gen = average_gen(generator, input, input, args, true_measures)
 
                     ims = prep_input_2_chan(output_gen, args.network_input, args, disc=True,
                                             disc_image=not args.disc_kspace).permute(0, 2, 3, 1)
