@@ -21,7 +21,7 @@ def create_arg_parser():
 
     # LEARNING ARGS
     parser.add_argument('--batch-size', default=16, type=int, help='Mini batch size')
-    parser.add_argument('--num-epochs', type=int, default=75, help='Number of training epochs')
+    parser.add_argument('--num-epochs', type=int, default=100, help='Number of training epochs')
     # TODO: LR BACK TO 1e-4 AND BETA_2 BACK TO 0.9
     parser.add_argument('--lr', type=float, default=1e-3, help='Learning rate')
     parser.add_argument('--beta_1', type=float, default=0, help='Beta 1 for Adam')
