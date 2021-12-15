@@ -68,7 +68,7 @@ def non_average_gen(generator, input_w_z, z, old_input, args, true_measures):
     return refined_out, finish
 
 
-def average_gen(generator, input_w_z, z, old_input, args):
+def average_gen(generator, input_w_z, z, old_input, args, true_measures):
     start = time.perf_counter()
     average_gen = torch.zeros(input_w_z.shape).to(args.device)
 
@@ -81,7 +81,7 @@ def average_gen(generator, input_w_z, z, old_input, args):
             # refined_out = output_gen + old_input[:, 0:16]
             refined_out = output_gen + old_input[:]
         else:
-            refined_out = readd_measures_im(output_gen, old_input, args) if not args.inpaint else output_gen
+            refined_out = readd_measures_im(output_gen, old_input, args, true_measures=true_measures) if not args.inpaint else output_gen
 
         average_gen = torch.add(average_gen, refined_out)
 
