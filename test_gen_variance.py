@@ -388,9 +388,9 @@ if __name__ == '__main__':
         args.device = torch.device('cuda')
     else:
         args.device = torch.device('cpu')
-    random.seed(args.seed)
+    # random.seed(args.seed)
     np.random.seed(args.seed)
-    torch.manual_seed(args.seed)
+    # torch.manual_seed(args.seed)
 
     main(args)
     # plot_loss()
