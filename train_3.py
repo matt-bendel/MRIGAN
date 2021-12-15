@@ -423,10 +423,6 @@ def main(args):
             print(save_str_2)
 
             save_model(args, epoch, generator, optimizer_G, best_loss_val, best_model, 'generator')
-
-            best_model = GLOBAL_LOSS_DICT['d_acc'][epoch-start_epoch] > best_loss_dis
-            best_loss_dis = GLOBAL_LOSS_DICT['d_acc'][epoch-start_epoch] if GLOBAL_LOSS_DICT['d_acc'][epoch-start_epoch] > best_loss_dis else best_loss_dis
-
             save_model(args, epoch, discriminator, optimizer_D, best_loss_val, best_model, 'discriminator')
 
             # plot_epoch(args, generator, epoch)
