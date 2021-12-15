@@ -81,12 +81,14 @@ def readd_measures_im(data_tensor, old, args, kspace=False, true_measures=False)
 
         # disc_inp[k, :, :, :] = output_tensor.permute(2, 0, 1) * mask.to(args.device) + old_out.permute(2, 0, 1)
         # disc_inp[k, :, :, :] = output_tensor.permute(2, 0, 1) + old_out.permute(2, 0, 1)
-        if not args.dynamic_inpaint:
+        if not args.dynamic_inpaint and not args.inpaint:
             disc_inp[k, :, :, :] = output_tensor.permute(2, 0, 1)
             disc_inp[k, :, inds[0], inds[1]] = old_out.permute(2, 0, 1)[:, inds[0], inds[1]]
-        else:
+        elif not args.inpaint:
             disc_inp[k, :, :, :] = output_tensor.permute(2, 0, 1)
             disc_inp[k, :, inds[0], inds[1]] = true_measures[:, inds[0], inds[1]]
+        else:
+            disc_inp[k, :, :, :] = output_tensor.permute(2, 0, 1)
 
         kspace_no_ip[k, :, :, :] = output_tensor.permute(2, 0, 1)
 
