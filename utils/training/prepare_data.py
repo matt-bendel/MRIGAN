@@ -135,12 +135,13 @@ class DataTransform:
         # stacked_kspace[8:16, :, :] = torch.squeeze(kspace[:, :, :, 1])
         # stacked_kspace = transforms.normalize(stacked_kspace, mean, std, eps=1e-11)
         target = transforms.normalize(true_image, mean, std)
+        true_me = transforms.normalize(ifft2c_new(true_measures), mean, std)
         # stacked_kspace = (stacked_kspace - (-4.0156e-11)) / (2.5036e-05)
 
         # mean = (-4.0156e-11)
         # std = (2.5036e-05)
 
-        return fft2c_new(zfr), fft2c_new(target), mean, std, true_measures.permute(2, 0, 1)
+        return fft2c_new(zfr), fft2c_new(target), mean, std, fft2c_new(true_me).permute(2, 0, 1)
 
 
 def create_datasets(args, val_only):
