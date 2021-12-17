@@ -260,6 +260,7 @@ def main(args):
 
                 input = prep_input_2_chan(input, args.network_input, args)
                 target_full = prep_input_2_chan(target_full, args.network_input, args).to(args.device)
+                true_measures = true_measures.to(args.device)
 
                 old_input = input.to(args.device)
 
@@ -385,6 +386,7 @@ def main(args):
 
                     input = prep_input_2_chan(input, args.network_input, args).to(args.device)
                     target_full = prep_input_2_chan(target_full, args.network_input, args).to(args.device)
+                    true_measures = true_measures.to(args.device)
 
                     output_gen = average_gen(generator, input, input, args, true_measures)
 

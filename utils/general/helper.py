@@ -86,7 +86,7 @@ def readd_measures_im(data_tensor, old, args, kspace=False, true_measures=False)
             disc_inp[k, :, inds[0], inds[1]] = old_out.permute(2, 0, 1)[:, inds[0], inds[1]]
         elif not args.inpaint:
             disc_inp[k, :, :, :] = output_tensor.permute(2, 0, 1)
-            disc_inp[k, :, inds[0], inds[1]] = true_measures[:, inds[0], inds[1]]
+            disc_inp[k, :, inds[0], inds[1]] = true_measures[k, :, inds[0], inds[1]]
         else:
             disc_inp[k, :, :, :] = output_tensor.permute(2, 0, 1)
 
