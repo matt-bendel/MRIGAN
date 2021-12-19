@@ -7,8 +7,8 @@ from models.baseline_unet.unet_residual import UnetModelRes
 
 def build_model(args):
     model = GeneratorModel(
-        in_chans=2,
-        out_chans=2,
+        in_chans=args.in_chans,
+        out_chans=args.out_chans,
         z_location=args.z_location,
         latent_size=512
     ).to(torch.device('cuda'))
@@ -27,10 +27,10 @@ def build_discriminator(args):
 
 def build_unet(args):
     model = UnetModelRes(
-        in_chans=2,
-        out_chans=2,
+        in_chans=args.in_chans,
+        out_chans=args.out_chans,
         chans=32,
-        num_pool_layers=5,
+        num_pool_layers=7,
     ).to(torch.device('cuda'))
     return model
 

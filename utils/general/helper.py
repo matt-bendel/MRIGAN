@@ -8,27 +8,6 @@ from utils.fftc import ifft2c_new, fft2c_new
 
 
 def get_mask():
-    # a = np.array(
-    #     [0, 10, 19, 28, 37, 46, 54, 61, 69, 76, 83, 89, 95, 101, 107, 112, 118, 122, 127, 132, 136, 140, 144, 148,
-    #      151, 155, 158, 161, 164,
-    #      167, 170, 173, 176, 178, 181, 183, 186, 188, 191, 193, 196, 198, 201, 203, 206, 208, 211, 214, 217, 220,
-    #      223, 226, 229, 233, 236,
-    #      240, 244, 248, 252, 257, 262, 266, 272, 277, 283, 289, 295, 301, 308, 315, 323, 330, 338, 347, 356, 365,
-    #      374])
-    a = np.array(
-        [1, 9, 15, 21, 26, 31, 35, 39, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51, 52, 53, 54, 56, 59, 63, 67, 72, 77,
-         83, 89]
-    )
-    m = np.zeros((96, 96))
-    m[:, a] = True
-    m[:, 42:54] = True
-
-    # mask = np.repeat(np.expand_dims(mask, 0).transpose(0, 3, 1, 2), b_size, axis=0)
-
-    return np.where(m == 1)
-
-
-def get_inverse_mask():
     a = np.array(
         [0, 10, 19, 28, 37, 46, 54, 61, 69, 76, 83, 89, 95, 101, 107, 112, 118, 122, 127, 132, 136, 140, 144, 148,
          151, 155, 158, 161, 164,
@@ -36,11 +15,20 @@ def get_inverse_mask():
          223, 226, 229, 233, 236,
          240, 244, 248, 252, 257, 262, 266, 272, 277, 283, 289, 295, 301, 308, 315, 323, 330, 338, 347, 356, 365,
          374])
-    m = np.ones((384, 384))
-    m[:, a] = 0
-    m[:, 176:208] = 0
+    m = np.zeros((384, 384))
+    m[:, a] = True
+    m[:, 176:208] = True
+    # a = np.array(
+    #     [1, 9, 15, 21, 26, 31, 35, 39, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51, 52, 53, 54, 56, 59, 63, 67, 72, 77,
+    #      83, 89]
+    # )
+    # m = np.zeros((96, 96))
+    # m[:, a] = True
+    # m[:, 42:54] = True
 
-    return m
+    # mask = np.repeat(np.expand_dims(mask, 0).transpose(0, 3, 1, 2), b_size, axis=0)
+
+    return np.where(m == 1)
 
 
 def add_z_to_input(args, input):
@@ -51,7 +39,7 @@ def add_z_to_input(args, input):
                     3: Add as an extra input channel
                     """
     Tensor = torch.FloatTensor
-    inverse_mask = get_inverse_mask()
+    inverse_mask = get_mask()
     for i in range(input.shape[0]):
         if args.z_location == 1 or args.z_location == 3:
             z = np.random.normal(size=(384, 384))
@@ -79,8 +67,6 @@ def readd_measures_im(data_tensor, old, args, kspace=False, true_measures=False)
 
         inds = get_mask()
 
-        # disc_inp[k, :, :, :] = output_tensor.permute(2, 0, 1) * mask.to(args.device) + old_out.permute(2, 0, 1)
-        # disc_inp[k, :, :, :] = output_tensor.permute(2, 0, 1) + old_out.permute(2, 0, 1)
         if not args.dynamic_inpaint and not args.inpaint:
             disc_inp[k, :, :, :] = output_tensor.permute(2, 0, 1)
             disc_inp[k, :, inds[0], inds[1]] = old_out.permute(2, 0, 1)[:, inds[0], inds[1]]
@@ -105,19 +91,16 @@ def readd_measures_im(data_tensor, old, args, kspace=False, true_measures=False)
 
 
 def prep_input_2_chan(data_tensor, unet_type, args, disc=False, disc_image=True):
-    im_size = 96
-    disc_inp = torch.zeros(data_tensor.shape[0], 2, im_size, im_size).to(args.device)
+    im_size = 384
+    disc_inp = torch.zeros(data_tensor.shape[0], 16, im_size, im_size).to(args.device)
 
     if disc and disc_image:
-        for k in range(data_tensor.shape[0]):
-            output = torch.squeeze(data_tensor[k])
-            if args.network_input == 'kspace':
-                output_tensor = ifft2c_new(output.permute(1, 2, 0))
-                disc_inp[k, :, :, :] = output_tensor.permute(2, 0, 1)
-            else:
-                disc_inp[k, :, :, :] = output
+        return data_tensor
 
-        return disc_inp
-
-    disc_inp = ifft2c_new(data_tensor)
-    return disc_inp.permute(0, 3, 1, 2)
+    temp = torch.zeros(data_tensor.shape[0], im_size, im_size, 2).to(args.device)
+    temp[:,:,:,0] = data_tensor[:, 0:8, :, :]
+    temp[:,:,:,1] = data_tensor[:, 8:16, :, :]
+    temp = ifft2c_new(temp)
+    disc_inp[:, 0:8, :, :] = temp[:,:,:,0]
+    disc_inp[:, 8:16, :, :] = temp[:,:,:,1]
+    return disc_inp

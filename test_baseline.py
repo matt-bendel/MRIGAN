@@ -97,8 +97,18 @@ def main(args):
 
 
                 for j in range(output_batch.shape[0]):
-                    generared_im = complex_abs(output_batch[j].permute(1, 2, 0) * std[j] + mean[j])
-                    true_im = complex_abs(target_batch[j].permute(1, 2, 0) * std[j] + mean[j])
+                    output_rss = torch.zeros(8, output_batch.shape[2], output_batch.shape[2], 2)
+                    output_rss[:, :, :, 0] = output_batch[i, 0:8, :, :]
+                    output_rss[:, :, :, 1] = output_batch[i, 8:16, :, :]
+                    output_rss = transforms.root_sum_of_squares(output_rss * std[i] + mean[i])
+
+                    target_rss = torch.zeros(8, target_batch.shape[2], target_batch.shape[2], 2)
+                    target_rss[:, :, :, 0] = target_batch[i, 0:8, :, :]
+                    target_rss[:, :, :, 1] = target_batch[i, 8:16, :, :]
+                    target_rss = transforms.root_sum_of_squares(target_rss * std[i] + mean[i])
+
+                    generared_im = complex_abs(output_rss)
+                    true_im = complex_abs(target_rss)
 
                     generated_im_np = generared_im.cpu().numpy()
                     true_im_np = true_im.cpu().numpy()

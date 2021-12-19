@@ -49,27 +49,27 @@ class DataTransform:
                 norm (float): L2 norm of the entire volume.
         """
         # GRO Sampling mask:
-        # a = np.array(
-        #     [0, 10, 19, 28, 37, 46, 54, 61, 69, 76, 83, 89, 95, 101, 107, 112, 118, 122, 127, 132, 136, 140, 144, 148,
-        #      151, 155, 158, 161, 164,
-        #      167, 170, 173, 176, 178, 181, 183, 186, 188, 191, 193, 196, 198, 201, 203, 206, 208, 211, 214, 217, 220,
-        #      223, 226, 229, 233, 236,
-        #      240, 244, 248, 252, 257, 262, 266, 272, 277, 283, 289, 295, 301, 308, 315, 323, 330, 338, 347, 356, 365,
-        #      374])
         a = np.array(
-            [1, 9, 15, 21, 26, 31, 35, 39, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51, 52, 53, 54, 56, 59, 63, 67, 72, 77,
-             83, 89]
-        )
-        # m = np.zeros((384, 384))
-        # m[:, a] = True
-        # m[:, 176:208] = True
-        # samp = m
-        m = np.zeros((96, 96))
+            [0, 10, 19, 28, 37, 46, 54, 61, 69, 76, 83, 89, 95, 101, 107, 112, 118, 122, 127, 132, 136, 140, 144, 148,
+             151, 155, 158, 161, 164,
+             167, 170, 173, 176, 178, 181, 183, 186, 188, 191, 193, 196, 198, 201, 203, 206, 208, 211, 214, 217, 220,
+             223, 226, 229, 233, 236,
+             240, 244, 248, 252, 257, 262, 266, 272, 277, 283, 289, 295, 301, 308, 315, 323, 330, 338, 347, 356, 365,
+             374])
+        # a = np.array(
+        #     [1, 9, 15, 21, 26, 31, 35, 39, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51, 52, 53, 54, 56, 59, 63, 67, 72, 77,
+        #      83, 89]
+        # )
+        m = np.zeros((384, 384))
         m[:, a] = True
-        m[:, 42:54] = True
+        m[:, 176:208] = True
         samp = m
-        numcoil = 2
-        mask = transforms.to_tensor(np.tile(samp, (numcoil, 1, 1)).transpose((1, 2, 0)).astype(np.float32))
+        # m = np.zeros((96, 96))
+        # m[:, a] = True
+        # m[:, 42:54] = True
+        # samp = m
+        numcoil = 8
+        mask = transforms.to_tensor(np.tile(samp, (numcoil, 1, 1, 2)).astype(np.float32))
 
         kspace = kspace.transpose(1, 2, 0)
 
@@ -78,24 +78,27 @@ class DataTransform:
         coil_compressed_x = ImageCropandKspaceCompression(x)  # (384, 384, 8)
 
         im_tensor = transforms.to_tensor(coil_compressed_x).permute(2, 0, 1, 3)
-        output_x = transforms.root_sum_of_squares(im_tensor)
-        # REMOVE BELOW TWO LINES TO GO BACK UP
-        output_x_r = cv2.resize(output_x[:, :, 0].numpy(), dsize=(96, 96), interpolation=cv2.INTER_LINEAR)
-        output_x_c = cv2.resize(output_x[:, :, 1].numpy(), dsize=(96, 96), interpolation=cv2.INTER_LINEAR)
+        # output_x = transforms.root_sum_of_squares(im_tensor)
+        # # REMOVE BELOW TWO LINES TO GO BACK UP
+        # output_x_r = cv2.resize(output_x[:, :, 0].numpy(), dsize=(96, 96), interpolation=cv2.INTER_LINEAR)
+        # output_x_c = cv2.resize(output_x[:, :, 1].numpy(), dsize=(96, 96), interpolation=cv2.INTER_LINEAR)
+        #
+        # output_x_r = torch.from_numpy(output_x_r).type(torch.FloatTensor).unsqueeze(-1)
+        # output_x_c = torch.from_numpy(output_x_c).type(torch.FloatTensor).unsqueeze(-1)
+        # ######################################
+        # output_x = torch.cat((output_x_r, output_x_c), dim=-1)
 
-        output_x_r = torch.from_numpy(output_x_r).type(torch.FloatTensor).unsqueeze(-1)
-        output_x_c = torch.from_numpy(output_x_c).type(torch.FloatTensor).unsqueeze(-1)
-        ######################################
-        output_x = torch.cat((output_x_r, output_x_c), dim=-1)
-
-        true_image = torch.clone(output_x)
-        true_measures = fft2c_new(true_image) * mask
+        true_image = torch.clone(im_tensor)
+        print(mask.shape)
+        print(true_image.shape)
+        exit()
+        true_measures = fft2c_new(im_tensor) * mask
         image = output_x
 
         if self.args.inpaint or self.args.dynamic_inpaint:
             from random import randrange
 
-            n = image.shape[0]
+            n = image.shape[1]
             square_length = n // 5
             end = n - square_length
 
@@ -122,26 +125,46 @@ class DataTransform:
 
         ###################################
 
-        # stacked_masked_kspace = torch.zeros(16, 384, 384)
-        #
-        # stacked_masked_kspace[0:8, :, :] = torch.squeeze(masked_kspace[:, :, :, 0])
-        # stacked_masked_kspace[8:16, :, :] = torch.squeeze(masked_kspace[:, :, :, 1])
-        # stacked_masked_kspace, mean, std = transforms.normalize_instance(stacked_masked_kspace, eps=1e-11)
-        zfr, mean, std = transforms.normalize_instance(zfr)
-        # stacked_masked_kspace = (stacked_masked_kspace - (-4.0156e-11)) / (2.5036e-05)
+        stacked_masked_zfr = torch.zeros(16, 384, 384)
 
-        # stacked_kspace = torch.zeros(16, 384, 384)
-        # stacked_kspace[0:8, :, :] = torch.squeeze(kspace[:, :, :, 0])
-        # stacked_kspace[8:16, :, :] = torch.squeeze(kspace[:, :, :, 1])
-        # stacked_kspace = transforms.normalize(stacked_kspace, mean, std, eps=1e-11)
-        target = transforms.normalize(true_image, mean, std)
+        stacked_masked_zfr[0:8, :, :] = torch.squeeze(zfr[:, :, :, 0])
+        stacked_masked_zfr[8:16, :, :] = torch.squeeze(zfr[:, :, :, 1])
+        stacked_masked_zfr, mean, std = transforms.normalize_instance(stacked_masked_zfr)
+        # zfr, mean, std = transforms.normalize_instance(zfr)
+
+        stacked_image = torch.zeros(16, 384, 384)
+        stacked_image[0:8, :, :] = torch.squeeze(true_image[:, :, :, 0])
+        stacked_image[8:16, :, :] = torch.squeeze(true_image[:, :, :, 1])
+        stacked_image = transforms.normalize(stacked_image, mean, std)
+        # target = transforms.normalize(true_image, mean, std)
         true_me = transforms.normalize(ifft2c_new(true_measures), mean, std)
-        # stacked_kspace = (stacked_kspace - (-4.0156e-11)) / (2.5036e-05)
 
-        # mean = (-4.0156e-11)
-        # std = (2.5036e-05)
+        temp = torch.zeros(8, 384, 384,2)
+        stacked_masked_kspace = torch.zeros(16, 384, 384)
+        temp[:, :, :, 0] = stacked_masked_zfr[0:8, :, :]
+        temp[:, :, :, 1] = stacked_masked_zfr[8:16, :, :]
+        masked_kspace_normalized = fft2c_new(temp)
+        stacked_masked_kspace[0:8, :, :] = torch.squeeze(masked_kspace_normalized[:, :, :, 0])
+        stacked_masked_kspace[8:16, :, :] = torch.squeeze(masked_kspace_normalized[:, :, :, 1])
 
-        return fft2c_new(zfr), fft2c_new(target), mean, std, fft2c_new(true_me).permute(2, 0, 1)
+        temp = torch.zeros(8, 384, 384, 2)
+        stacked_kspace = torch.zeros(16, 384, 384)
+        temp[:, :, :, 0] = stacked_image[0:8, :, :]
+        temp[:, :, :, 1] = stacked_image[8:16, :, :]
+        kspace_normalized = fft2c_new(temp)
+        stacked_kspace[0:8, :, :] = torch.squeeze(kspace_normalized[:, :, :, 0])
+        stacked_kspace[8:16, :, :] = torch.squeeze(kspace_normalized[:, :, :, 1])
+
+        temp = torch.zeros(8, 384, 384, 2)
+        stacked_true_measures = torch.zeros(16, 384, 384)
+        temp[:, :, :, 0] = stacked_masked_zfr[0:8, :, :]
+        temp[:, :, :, 1] = stacked_masked_zfr[8:16, :, :]
+        true_measures_normal = fft2c_new(temp)
+        stacked_true_measures[0:8, :, :] = torch.squeeze(true_measures_normal[:, :, :, 0])
+        stacked_true_measures[8:16, :, :] = torch.squeeze(true_measures_normal[:, :, :, 1])
+
+
+        return stacked_masked_kspace.permute(1,2,0), stacked_kspace.permute(1,2,0), mean, std, stacked_true_measures
 
 
 def create_datasets(args, val_only):

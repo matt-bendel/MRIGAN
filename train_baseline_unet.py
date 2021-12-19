@@ -142,12 +142,22 @@ def evaluate(args, epoch, model, data_loader, writer):
 
             # output = readd_measures_im(output, input, args)
 
-            target_im = prep_input_2_chan(target, args.network_input, args, disc=True).to(args.device).permute(0, 2, 3, 1)
-            output_im = prep_input_2_chan(output, args.network_input, args, disc=True).to(args.device).permute(0, 2, 3, 1)
+            target_im = prep_input_2_chan(target, args.network_input, args, disc=True).to(args.device)
+            output_im = prep_input_2_chan(output, args.network_input, args, disc=True).to(args.device)
 
             for i in range(output_im.shape[0]):
-                output = complex_abs(output_im[i] * std[i] + mean[i])
-                target = complex_abs(target_im[i] * std[i] + mean[i])
+                output_rss = torch.zeros(8, output_im.shape[2], output_im.shape[2], 2)
+                output_rss[:, :, :, 0] = output_im[i, 0:8, :, :]
+                output_rss[:, :, :, 1] = output_im[i, 8:16, :, :]
+                output_rss = transforms.root_sum_of_squares(output_rss * std[i] + mean[i])
+
+                target_rss = torch.zeros(8, target_im.shape[2], target_im.shape[2], 2)
+                target_rss[:, :, :, 0] = target_im[i, 0:8, :, :]
+                target_rss[:, :, :, 1] = target_im[i, 8:16, :, :]
+                target_rss = transforms.root_sum_of_squares(target_rss * std[i] + mean[i])
+
+                output = complex_abs(output_rss)
+                target = complex_abs(target_rss)
 
                 output = output.cpu().numpy()
                 target = target.cpu().numpy()
