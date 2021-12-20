@@ -201,7 +201,7 @@ def build_model(args):
     model = UnetModelRes(
         in_chans=16,
         out_chans=16,
-        chans=384,
+        chans=256,
         num_pool_layers=4
     ).to(torch.device('cuda'))
     return model
@@ -269,7 +269,7 @@ if __name__ == '__main__':
     mse = torch.nn.MSELoss()
     args = create_arg_parser().parse_args()
     args.num_epochs = 50
-    args.batch_size = 10
+    args.batch_size = 8
     # restrict visible cuda devices
     if args.data_parallel or (args.device >= 0):
         if not args.data_parallel:
