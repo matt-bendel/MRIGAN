@@ -150,15 +150,12 @@ def evaluate(args, epoch, model, data_loader, writer):
                 output_rss = torch.zeros(8, output_im.shape[2], output_im.shape[2], 2)
                 output_rss[:, :, :, 0] = output_im[i, 0:8, :, :]
                 output_rss[:, :, :, 1] = output_im[i, 8:16, :, :]
-                output_rss = transforms.root_sum_of_squares(output_rss * std[i] + mean[i])
+                output = transforms.root_sum_of_squares(complex_abs(output_rss * std[i] + mean[i]))
 
                 target_rss = torch.zeros(8, target_im.shape[2], target_im.shape[2], 2)
                 target_rss[:, :, :, 0] = target_im[i, 0:8, :, :]
                 target_rss[:, :, :, 1] = target_im[i, 8:16, :, :]
-                target_rss = transforms.root_sum_of_squares(target_rss * std[i] + mean[i])
-
-                output = complex_abs(output_rss)
-                target = complex_abs(target_rss)
+                target = transforms.root_sum_of_squares(complex_abs(target_rss * std[i] + mean[i]))
 
                 output = output.cpu().numpy()
                 target = target.cpu().numpy()
@@ -168,11 +165,11 @@ def evaluate(args, epoch, model, data_loader, writer):
                 psnr.append(psnr_val(target, output))
                 if iter+1==1 and i==2:
                     plt.figure()
-                    plt.imshow(output, cmap='gray')
+                    plt.imshow(np.abs(output), cmap='gray')
                     plt.savefig('temp_out.png')
 
                     plt.figure()
-                    plt.imshow(target, cmap='gray')
+                    plt.imshow(np.abs(target), cmap='gray')
                     plt.savefig('temp_targ.png')
 
             if iter + 1 == 40:
@@ -205,7 +202,7 @@ def build_model(args):
         in_chans=16,
         out_chans=16,
         chans=256,
-        num_pool_layers=7
+        num_pool_layers=4
     ).to(torch.device('cuda'))
     return model
 
