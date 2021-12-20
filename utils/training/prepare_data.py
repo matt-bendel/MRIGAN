@@ -91,7 +91,7 @@ class DataTransform:
 
         true_image = torch.clone(im_tensor)
         true_measures = fft2c_new(im_tensor) * mask
-        image = output_x
+        image = im_tensor
 
         if self.args.inpaint or self.args.dynamic_inpaint:
             from random import randrange
