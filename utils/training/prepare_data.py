@@ -69,7 +69,8 @@ class DataTransform:
         # m[:, 42:54] = True
         # samp = m
         numcoil = 8
-        mask = transforms.to_tensor(np.tile(samp, (numcoil, 1, 1, 2)).astype(np.float32))
+        mask = transforms.to_tensor(np.tile(samp, (numcoil, 1, 1)).astype(np.float32))
+        mask = torch.unsqueeze(mask,-1).repeate(0,0,0,2)
 
         kspace = kspace.transpose(1, 2, 0)
 
