@@ -97,10 +97,10 @@ def prep_input_2_chan(data_tensor, unet_type, args, disc=False, disc_image=True)
     if disc and disc_image:
         return data_tensor
 
-    temp = torch.zeros(data_tensor.shape[0], im_size, im_size, 2).to(args.device)
-    temp[:,:,:,0] = data_tensor[:, 0:8, :, :]
-    temp[:,:,:,1] = data_tensor[:, 8:16, :, :]
+    temp = torch.zeros(data_tensor.shape[0], 8, im_size, im_size, 2).to(args.device)
+    temp[:,:,:,:,0] = data_tensor[:, 0:8, :, :]
+    temp[:,:,:,:,1] = data_tensor[:, 8:16, :, :]
     temp = ifft2c_new(temp)
-    disc_inp[:, 0:8, :, :] = temp[:,:,:,0]
-    disc_inp[:, 8:16, :, :] = temp[:,:,:,1]
+    disc_inp[:, 0:8, :, :] = temp[:,:,:,:,0]
+    disc_inp[:, 8:16, :, :] = temp[:,:,:,:,1]
     return disc_inp
