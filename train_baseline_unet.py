@@ -34,6 +34,7 @@ import numpy as np
 import torch
 from tensorboardX import SummaryWriter
 from torch.nn import functional as F
+import matplotlib.pyplot as plt
 
 from typing import Optional
 from data import transforms
@@ -165,6 +166,14 @@ def evaluate(args, epoch, model, data_loader, writer):
                 SSIM = ssim_numpy(target, output)
                 losses.append(SSIM)
                 psnr.append(psnr_val(target, output))
+                if iter+1==1 and i==2:
+                    plt.figure()
+                    plt.imshow(output, cmap='gray')
+                    plt.savefig('temp_out.png')
+
+                    plt.figure()
+                    plt.imshow(target, cmap='gray')
+                    plt.savefig('temp_targ.png')
 
             if iter + 1 == 40:
                 break
