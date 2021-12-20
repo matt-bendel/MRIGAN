@@ -70,7 +70,7 @@ class DataTransform:
         # samp = m
         numcoil = 8
         mask = transforms.to_tensor(np.tile(samp, (numcoil, 1, 1)).astype(np.float32))
-        mask = torch.unsqueeze(mask,-1).repeate(0,0,0,2)
+        mask = torch.unsqueeze(mask,-1).repeat(1,1,1,2)
 
         kspace = kspace.transpose(1, 2, 0)
 
@@ -90,9 +90,6 @@ class DataTransform:
         # output_x = torch.cat((output_x_r, output_x_c), dim=-1)
 
         true_image = torch.clone(im_tensor)
-        print(mask.shape)
-        print(true_image.shape)
-        exit()
         true_measures = fft2c_new(im_tensor) * mask
         image = output_x
 
