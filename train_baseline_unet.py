@@ -193,10 +193,10 @@ def save_model(args, exp_dir, epoch, model, optimizer, best_dev_loss, is_new_bes
 
 def build_model(args):
     model = UnetModelRes(
-        in_chans=2,
-        out_chans=2,
+        in_chans=16,
+        out_chans=16,
         chans=32,
-        num_pool_layers=5
+        num_pool_layers=7
     ).to(torch.device('cuda'))
     return model
 
