@@ -111,13 +111,13 @@ def save_model(args, epoch, model, optimizer, best_dev_loss, is_new_best, m_type
                         )
 
 
-def compute_gradient_penalty(D, real_samples, fake_samples, args):
+def compute_gradient_penalty(D, real_samples, fake_samples, args, y):
     """Calculates the gradient penalty loss for WGAN GP"""
     # Random weight term for interpolation between real and fake samples
     alpha = Tensor(np.random.random((real_samples.size(0), 1, 1, 1))).to(args.device)
     # Get random interpolation between real and fake samples
     interpolates = (alpha * real_samples + ((1 - alpha) * fake_samples)).requires_grad_(True)
-    d_interpolates = D(interpolates)
+    d_interpolates = D(interpolates, y)
     fake = Tensor(real_samples.shape[0], 1).fill_(1.0).to(args.device)
     # Get gradient w.r.t. interpolates
     gradients = autograd.grad(
@@ -301,7 +301,7 @@ def main(args):
 
                     # Gradient penalty
                     gradient_penalty = compute_gradient_penalty(discriminator, disc_target_batch.data,
-                                                                disc_output_batch.data, args)
+                                                                disc_output_batch.data, args, old_input.data)
                     # Adversarial loss
                     d_loss = torch.mean(fake_pred) - torch.mean(
                         real_pred) + lambda_gp * gradient_penalty + 0.001 * torch.mean(
