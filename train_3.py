@@ -402,14 +402,14 @@ def main(args):
 
                     for k in range(ims.shape[0]):
                         output_rss = torch.zeros(8, ims.shape[2], ims.shape[2], 2)
-                        output_rss[:, :, :, 0] = ims[i, 0:8, :, :]
-                        output_rss[:, :, :, 1] = ims[i, 8:16, :, :]
-                        output = transforms.root_sum_of_squares(complex_abs(output_rss * std[i] + mean[i]))
+                        output_rss[:, :, :, 0] = ims[k, 0:8, :, :]
+                        output_rss[:, :, :, 1] = ims[k, 8:16, :, :]
+                        output = transforms.root_sum_of_squares(complex_abs(output_rss * std[k] + mean[k]))
 
                         target_rss = torch.zeros(8, target_im.shape[2], target_im.shape[2], 2)
-                        target_rss[:, :, :, 0] = target_im[i, 0:8, :, :]
-                        target_rss[:, :, :, 1] = target_im[i, 8:16, :, :]
-                        target = transforms.root_sum_of_squares(complex_abs(target_rss * std[i] + mean[i]))
+                        target_rss[:, :, :, 0] = target_im[k, 0:8, :, :]
+                        target_rss[:, :, :, 1] = target_im[k, 8:16, :, :]
+                        target = transforms.root_sum_of_squares(complex_abs(target_rss * std[k] + mean[k]))
 
                         output = output.cpu().numpy()
                         target = target.cpu().numpy()
