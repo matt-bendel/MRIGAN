@@ -73,10 +73,10 @@ def readd_measures_im(data_tensor, old, args, kspace=False, true_measures=False)
 
         if not args.dynamic_inpaint and not args.inpaint:
             refined_measures = output_tensor
-            refined_measures[:, ind[0], ind[1], :] = old_out[:, inds[0], inds[1], :]
+            refined_measures[:, inds[0], inds[1], :] = old_out[:, inds[0], inds[1], :]
         elif not args.inpaint:
             refined_measures = output_tensor
-            refined_measures[:, ind[0], ind[1], :] = true_measures[k, :, inds[0], inds[1], :]
+            refined_measures[:, inds[0], inds[1], :] = true_measures[k, :, inds[0], inds[1], :]
         else:
             refined_measures = output_tensor
 
