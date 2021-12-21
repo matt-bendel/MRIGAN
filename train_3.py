@@ -291,8 +291,8 @@ def main(args):
                                                           disc_image=not args.disc_kspace).to(args.device)
 
                     # MAKE PREDICTIONS
-                    real_pred = discriminator(disc_target_batch, old_input)
-                    fake_pred = discriminator(disc_output_batch, old_input)
+                    real_pred = discriminator(input=disc_target_batch, y=old_input)
+                    fake_pred = discriminator(input=disc_output_batch, y=old_input)
 
                     real_acc = real_pred[real_pred > 0].shape[0]
                     fake_acc = fake_pred[fake_pred <= 0].shape[0]
@@ -350,7 +350,7 @@ def main(args):
                     cond = torch.zeros(1, disc_inputs_gen.shape[2], disc_inputs_gen.shape[3], disc_inputs_gen.shape[4])
                     cond[0, :, :, :] = old_input[k, :, :, :]
                     cond = cond.repeat(4, 1, 1, 1)
-                    temp = discriminator(disc_inputs_gen[k], cond)
+                    temp = discriminator(input=disc_inputs_gen[k], y=cond)
                     fake_pred[k] = temp[:, 0]
 
                 gen_pred_loss = torch.mean(fake_pred[0])
