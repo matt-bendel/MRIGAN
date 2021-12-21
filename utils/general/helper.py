@@ -64,7 +64,7 @@ def readd_measures_im(data_tensor, old, args, kspace=False, true_measures=False)
         temp[:, :, :, 1] =  data_tensor[k, 8:16, :, :]
         output_tensor = fft2c_new(temp)
 
-        temp = torch.zeros(old.shape[0], 8, im_size, im_size, 2).to(args.device)
+        temp = torch.zeros(8, im_size, im_size, 2).to(args.device)
         new_data = old.permute(0, 3, 1, 2)
         temp[:, :, :, 0] = new_data[k, 0:8, :, :]
         temp[:, :, :, 1] = new_data[k, 8:16, :, :]
