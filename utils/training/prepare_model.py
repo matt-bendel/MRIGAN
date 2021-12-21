@@ -27,10 +27,10 @@ def build_discriminator(args):
 
 def build_unet(args):
     model = UnetModelRes(
-        in_chans=args.in_chans,
-        out_chans=args.out_chans,
-        chans=32,
-        num_pool_layers=7,
+        in_chans=16,
+        out_chans=16,
+        chans=256,
+        num_pool_layers=4,
     ).to(torch.device('cuda'))
     return model
 

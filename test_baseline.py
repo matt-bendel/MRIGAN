@@ -138,6 +138,7 @@ if __name__ == '__main__':
     Tensor = torch.FloatTensor
 
     args = create_arg_parser().parse_args()
+    args.batch_size = 8
     # restrict visible cuda devices
     if args.data_parallel or (args.device >= 0):
         if not args.data_parallel:
