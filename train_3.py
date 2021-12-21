@@ -350,6 +350,8 @@ def main(args):
                     cond = torch.zeros(1, disc_inputs_gen.shape[2], disc_inputs_gen.shape[3], disc_inputs_gen.shape[4])
                     cond[0, :, :, :] = old_input[k, :, :, :]
                     cond = cond.repeat(4, 1, 1, 1)
+                    print(cond.shape)
+                    print(disc_inputs_gen[k].shape)
                     temp = discriminator(input=disc_inputs_gen[k], y=cond)
                     fake_pred[k] = temp[:, 0]
 
