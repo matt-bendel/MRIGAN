@@ -154,15 +154,11 @@ class DataTransform:
         stacked_kspace[8:16, :, :] = torch.squeeze(kspace_normalized[:, :, :, 1])
 
         temp = torch.zeros(8, 384, 384, 2)
-        stacked_true_measures = torch.zeros(16, 384, 384)
         temp[:, :, :, 0] = stacked_masked_zfr[0:8, :, :]
         temp[:, :, :, 1] = stacked_masked_zfr[8:16, :, :]
         true_measures_normal = fft2c_new(temp)
-        stacked_true_measures[0:8, :, :] = torch.squeeze(true_measures_normal[:, :, :, 0])
-        stacked_true_measures[8:16, :, :] = torch.squeeze(true_measures_normal[:, :, :, 1])
 
-
-        return stacked_masked_kspace.permute(1,2,0), stacked_kspace.permute(1,2,0), mean, std, stacked_true_measures
+        return stacked_masked_kspace.permute(1,2,0), stacked_kspace.permute(1,2,0), mean, std, true_measures_normal
 
 
 def create_datasets(args, val_only):

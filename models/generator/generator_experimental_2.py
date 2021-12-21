@@ -121,19 +121,21 @@ class GeneratorModel(nn.Module):
 
         self.in_chans = in_chans
         self.out_chans = out_chans
-        self.chans = 32
-        self.num_pool_layers = 5
+        self.chans = 16
+        self.num_pool_layers = 7
         self.latent_size = latent_size
 
         num_pool_layers = self.num_pool_layers
 
-        chans = self.chans
-
-        self.down_sample_layers = nn.ModuleList([ConvDownBlock(in_chans, chans, batch_norm=False)])
         ch = self.chans
+
+        self.down_sample_layers = nn.ModuleList([ConvDownBlock(in_chans, ch, batch_norm=False)])
         for i in range(num_pool_layers - 1):
-            self.down_sample_layers += [ConvDownBlock(ch, ch * 2)]
-            ch *= 2
+            if ch != 512:
+                self.down_sample_layers += [ConvDownBlock(ch, ch * 2)]
+                ch *= 2
+            else:
+                self.down_sample_layers += [ConvDownBlock(ch, ch)]
 
         self.conv = nn.Sequential(
             nn.Conv2d(ch * 2, ch, kernel_size=3, padding=1),
@@ -158,8 +160,12 @@ class GeneratorModel(nn.Module):
 
         self.up_sample_layers = nn.ModuleList()
         for i in range(num_pool_layers - 1):
-            self.up_sample_layers += [ConvUpBlock(ch * 2, ch // 2)]
-            ch //= 2
+            if i >= 1:
+                self.up_sample_layers += [ConvUpBlock(ch * 2, ch // 2)]
+                ch //= 2
+            else:
+                self.up_sample_layers += [ConvUpBlock(ch * 2, ch)]
+
         self.up_sample_layers += [ConvUpBlock(ch * 2, ch)]
         self.conv2 = nn.Sequential(
             nn.Conv2d(ch, ch // 2, kernel_size=1),

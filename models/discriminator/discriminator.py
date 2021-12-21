@@ -144,7 +144,7 @@ class DiscriminatorModel(nn.Module):
         """
         super().__init__()
 
-        self.in_chans = 2
+        self.in_chans = 16
         self.out_chans = 2
         self.z_location = z_location
         self.model_type = model_type
@@ -152,48 +152,49 @@ class DiscriminatorModel(nn.Module):
 
         # CHANGE BACK TO 16 FOR MORE
         self.initial_layers = nn.Sequential(
-            nn.Conv2d(self.in_chans, 32, kernel_size=(3, 3), padding=1),  # 384x384
+            nn.Conv2d(self.in_chans*2, 16, kernel_size=(3, 3), padding=1),  # 384x384
             nn.LeakyReLU()
         )
 
         self.encoder_layers = nn.ModuleList()
-        # self.encoder_layers += [FullDownBlock(16, 32)]  # 192x192
-        # self.encoder_layers += [FullDownBlock(32, 64)]  # 96x96
-        self.encoder_layers += [FullDownBlock(32, 64)]  # 48x48
-        self.encoder_layers += [FullDownBlock(64, 128)]  # 24x24
-        self.encoder_layers += [FullDownBlock(128, 256)]  # 12x12
-        self.encoder_layers += [FullDownBlock(256, 512)]  # 6x6
+        self.encoder_layers += [FullDownBlock(16, 32)]  # 192x192
+        self.encoder_layers += [FullDownBlock(32, 64)]  # 96x96
+        self.encoder_layers += [FullDownBlock(64, 128)]  # 48x48
+        self.encoder_layers += [FullDownBlock(128, 256)]  # 24x24
+        self.encoder_layers += [FullDownBlock(256, 512)]  # 12x12
+        self.encoder_layers += [FullDownBlock(512, 512)]  # 6x6
         self.encoder_layers += [FullDownBlock(512, 512)]  # 3x3
 
-        self.post_mbsd_1 = nn.Sequential(
-            nn.Conv2d(513, 513, kernel_size=(3, 3), padding=1),
-            nn.LeakyReLU(negative_slope=0.2)
-        )
-
-        self.post_mbsd_2 = nn.Sequential(
-            nn.Conv2d(513, 513, kernel_size=(3, 3), padding=0),
-            nn.LeakyReLU(negative_slope=0.2)
-        )
+        # self.post_mbsd_1 = nn.Sequential(
+        #     nn.Conv2d(513, 513, kernel_size=(3, 3), padding=1),
+        #     nn.LeakyReLU(negative_slope=0.2)
+        # )
+        #
+        # self.post_mbsd_2 = nn.Sequential(
+        #     nn.Conv2d(513, 513, kernel_size=(3, 3), padding=0),
+        #     nn.LeakyReLU(negative_slope=0.2)
+        # )
 
         self.dense = nn.Sequential(
             nn.Flatten(),
-            nn.Linear(513, 1) if self.mbsd else nn.Linear(512*3*3,1),
+            nn.Linear(512*3*3,1),
         )
 
-    def forward(self, input):
-        output = self.initial_layers(input)
+    def forward(self, input, y):
+        output = torch.cat([input,y], dim=1)
+        output = self.initial_layers(output)
 
         # Apply down-sampling layers
         for layer in self.encoder_layers:
             output = layer(output)
 
         # COMMENT OUT MBSD WHEN NOT IN USE - ALSO IN INIT
-        if self.mbsd:
-            x = miniBatchStdDev(output)
-            x = self.post_mbsd_1(x)
-            # x = x.view(-1, num_flat_features(x))
-            x = self.post_mbsd_2(x)
-
-            output = x
+        # if self.mbsd:
+        #     x = miniBatchStdDev(output)
+        #     x = self.post_mbsd_1(x)
+        #     # x = x.view(-1, num_flat_features(x))
+        #     x = self.post_mbsd_2(x)
+        #
+        #     output = x
 
         return self.dense(output)

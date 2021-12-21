@@ -92,7 +92,7 @@ def average_gen(generator, input_w_z, z, old_input, args, true_measures):
 
 def get_gen(args, type='image'):
     checkpoint_file_gen = pathlib.Path(
-        f'/home/bendel.8/Git_Repos/MRIGAN/trained_models/{type}/{args.z_location}/generator_best_model.pt')
+        f'/home/bendel.8/Git_Repos/full_scale_mrigan/MRIGAN/trained_models/{type}/{args.z_location}/generator_best_model.pt')
     checkpoint_gen = torch.load(checkpoint_file_gen, map_location=torch.device('cuda'))
 
     generator = build_model(args)

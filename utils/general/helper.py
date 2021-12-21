@@ -54,38 +54,50 @@ def add_z_to_input(args, input):
 
 
 def readd_measures_im(data_tensor, old, args, kspace=False, true_measures=False):
-    im_size = 96
-    disc_inp = torch.zeros(data_tensor.shape[0], 2, im_size, im_size).to(args.device)
-    kspace_no_ip = torch.zeros(data_tensor.shape[0], 2, im_size, im_size).to(args.device)
+    im_size = 384
+    disc_inp = torch.zeros(data_tensor.shape[0], 16, im_size, im_size).to(args.device)
+    kspace_no_ip = torch.zeros(data_tensor.shape[0], 16, im_size, im_size).to(args.device)
 
     for k in range(data_tensor.shape[0]):
-        output = torch.squeeze(data_tensor[k])
-        output_tensor = fft2c_new(output.permute(1, 2, 0))
+        temp = torch.zeros(8, im_size, im_size, 2).to(args.device)
+        new_data = data_tensor
+        temp[:, :, :, 0] = new_data[k, :, 0:8, :, :]
+        temp[:, :, :, 1] =  new_data[k, :, 8:16, :, :]
+        output_tensor = fft2c_new(temp)
 
-        old_out = torch.squeeze(old[k])
-        old_out = fft2c_new(old_out.permute(1, 2, 0))
+        temp = torch.zeros(old.shape[0], 8, im_size, im_size, 2).to(args.device)
+        new_data = old.permute(0, 3, 1, 2)
+        temp[:, :, :, 0] = new_data[k, :, 0:8, :, :]
+        temp[:, :, :, 1] = new_data[k, :, 8:16, :, :]
+        old_out = fft2c_new(temp)
 
         inds = get_mask()
 
         if not args.dynamic_inpaint and not args.inpaint:
-            disc_inp[k, :, :, :] = output_tensor.permute(2, 0, 1)
-            disc_inp[k, :, inds[0], inds[1]] = old_out.permute(2, 0, 1)[:, inds[0], inds[1]]
+            refined_measures = output_tensor
+            refined_measures[:, ind[0], ind[1], :] = old_out[:, inds[0], inds[1], :]
         elif not args.inpaint:
-            disc_inp[k, :, :, :] = output_tensor.permute(2, 0, 1)
-            disc_inp[k, :, inds[0], inds[1]] = true_measures[k, :, inds[0], inds[1]]
+            refined_measures = output_tensor
+            refined_measures[:, ind[0], ind[1], :] = true_measures[k, :, inds[0], inds[1], :]
         else:
-            disc_inp[k, :, :, :] = output_tensor.permute(2, 0, 1)
+            refined_measures = output_tensor
 
-        kspace_no_ip[k, :, :, :] = output_tensor.permute(2, 0, 1)
+        disc_inp[k, 0:8, :, :] = refined_measures[:, :, :, 0]
+        disc_inp[k, 8:16, :, :] = refined_measures[:, :, :, 1]
+        kspace_no_ip[k, 0:8, :, :] = output_tensor[:, :, :, 0]
+        kspace_no_ip[k, 8:16, :, :] = output_tensor[:, :, :, 1]
 
     if kspace:
         return disc_inp if not args.inpaint else kspace_no_ip
 
     for k in range(data_tensor.shape[0]):
-        output = torch.squeeze(disc_inp[k])
-        output_tensor = ifft2c_new(output.permute(1, 2, 0))
+        temp = torch.zeros(8, im_size, im_size, 2).to(args.device)
+        temp[:, :, :, 0] = disc_inp[k, 0:8, :, :]
+        temp[:, :, :, 1] = disc_inp[k, 8:16, :, :]
+        output_tensor = ifft2c_new(temp)
 
-        disc_inp[k, :, :, :] = output_tensor.permute(2, 0, 1)
+        disc_inp[k, 0:8, :, :] = output_tensor[:, :, :, 0]
+        disc_inp[k, 8:16, :, :] = output_tensor[:, :, :, 1]
 
     return disc_inp
 

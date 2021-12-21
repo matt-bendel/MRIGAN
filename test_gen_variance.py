@@ -162,7 +162,7 @@ def get_colorbar(fig, im, ax):
 
 def get_gen(args, type):
     checkpoint_file_gen = pathlib.Path(
-        f'/home/bendel.8/Git_Repos/MRIGAN/trained_models/{type}/{args.z_location}/generator_best_model.pt')
+        f'/home/bendel.8/Git_Repos/full_scale_mrigan/MRIGAN/trained_models/{type}/{args.z_location}/generator_best_model.pt')
     checkpoint_gen = torch.load(checkpoint_file_gen, map_location=torch.device('cuda'))
 
     generator = build_model(args)
@@ -176,7 +176,7 @@ def get_gen(args, type):
 
 def get_dis(args, type):
     checkpoint_file_gen = pathlib.Path(
-        f'/home/bendel.8/Git_Repos/MRIGAN/trained_models/{type}/{args.z_location}/discriminator_best_model.pt')
+        f'/home/bendel.8/Git_Repos/full_scale_mrigan/MRIGAN/trained_models/{type}/{args.z_location}/discriminator_best_model.pt')
     checkpoint_dis = torch.load(checkpoint_file_gen, map_location=torch.device('cuda'))
 
     discriminator = build_discriminator(args)
@@ -190,7 +190,7 @@ def get_dis(args, type):
 
 def get_gen_supervised(args, type):
     checkpoint_file_gen = pathlib.Path(
-        f'/home/bendel.8/Git_Repos/MRIGAN/trained_models/{type}/2_presentation_temp/generator_best_model.pt')
+        f'/home/bendel.8/Git_Repos/full_scale_mrigan/MRIGAN/trained_models/{type}/2_presentation_temp/generator_best_model.pt')
     checkpoint_gen = torch.load(checkpoint_file_gen, map_location=torch.device('cuda'))
 
     generator = build_model(args)
@@ -213,18 +213,18 @@ def gif_im(true, gen_im, index, type, disc_num=False):
         im, ax = generate_error_map(fig, true, gen_im, f'z {index}', 2, 2, 1)
 
     get_colorbar(fig, im, ax)
-    plt.savefig(f'/home/bendel.8/Git_Repos/MRIGAN/gifs/gif_{type}_{index - 1}.png')
+    plt.savefig(f'/home/bendel.8/Git_Repos/full_scale_mrigan/MRIGAN/gifs/gif_{type}_{index - 1}.png')
 
 
 def generate_gif(type):
     images = []
     for i in range(8):
-        images.append(iio.imread(f'/home/bendel.8/Git_Repos/MRIGAN/gifs/gif_{type}_{i}.png'))
+        images.append(iio.imread(f'/home/bendel.8/Git_Repos/full_scale_mrigan/MRIGAN/gifs/gif_{type}_{i}.png'))
 
     iio.mimsave(f'variation_{type}_gif.gif', images, duration=0.25)
 
     for i in range(8):
-        os.remove(f'/home/bendel.8/Git_Repos/MRIGAN/gifs/gif_{type}_{i}.png')
+        os.remove(f'/home/bendel.8/Git_Repos/full_scale_mrigan/MRIGAN/gifs/gif_{type}_{i}.png')
 
 
 def main(args):
@@ -314,7 +314,7 @@ def main(args):
                     generate_image(fig, true_im_np, zero_im_np, 'Z=0', 2, 2, 2)
                     im, ax = generate_error_map(fig, true_im_np, zero_im_np, f'Error', 4, 2, 2)
                     get_colorbar(fig, im, ax)
-                    plt.savefig(f'/home/bendel.8/Git_Repos/MRIGAN/z_0_{args.network_input}.png')
+                    plt.savefig(f'/home/bendel.8/Git_Repos/full_scale_mrigan/MRIGAN/z_0_{args.network_input}.png')
 
                     fig = plt.figure(figsize=(18, 9))
 
@@ -325,7 +325,7 @@ def main(args):
                     im, ax = generate_error_map(fig, true_im_np, gen_mean_im_np, f'Error', 5, 2, 3)
                     get_colorbar(fig, im, ax)
 
-                    plt.savefig(f'/home/bendel.8/Git_Repos/MRIGAN/mean_and_std_{args.network_input}.png')
+                    plt.savefig(f'/home/bendel.8/Git_Repos/full_scale_mrigan/MRIGAN/mean_and_std_{args.network_input}.png')
 
                     fig = plt.figure(figsize=(18, 9))
 
@@ -339,7 +339,7 @@ def main(args):
                     im, ax = generate_error_map(fig, kspace_true_mag_np, kspace_mean_mag_np, f'Error', 7, 2, 4, kspace=True)
                     get_colorbar(fig, im, ax)
 
-                    plt.savefig(f'/home/bendel.8/Git_Repos/MRIGAN/mean_and_std_kspace.png')
+                    plt.savefig(f'/home/bendel.8/Git_Repos/full_scale_mrigan/MRIGAN/mean_and_std_kspace.png')
 
                     fig = plt.figure(figsize=(14, 14))
                     place = 1
@@ -355,7 +355,7 @@ def main(args):
                             break
 
                     get_colorbar(fig, im, ax)
-                    plt.savefig(f'/home/bendel.8/Git_Repos/MRIGAN/comparison_{args.network_input}.png')
+                    plt.savefig(f'/home/bendel.8/Git_Repos/full_scale_mrigan/MRIGAN/comparison_{args.network_input}.png')
 
                     place = 1
                     for r, val in enumerate(gen_im_np_list):

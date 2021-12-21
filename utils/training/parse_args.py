@@ -43,7 +43,7 @@ def create_arg_parser():
     parser.add_argument('--device', type=int, default=0,
                         help='Which device to train on. Use idx of cuda device or -1 for CPU')
     parser.add_argument('--exp-dir', type=pathlib.Path,
-                        default=pathlib.Path('/home/bendel.8/Git_Repos/MRIGAN/trained_models'),
+                        default=pathlib.Path('/home/bendel.8/Git_Repos/full_scale_mrigan/MRIGAN/trained_models'),
                         help='Path where model and results should be saved')
     parser.add_argument('--resume', action='store_true',
                         help='If set, resume the training from a previous model checkpoint. '

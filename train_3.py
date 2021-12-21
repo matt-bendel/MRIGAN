@@ -160,7 +160,7 @@ def generate_error_map(fig, target, recon, image_ind, k=5, max=1):
 
 
 def save_metrics(args):
-    with open(f'/home/bendel.8/Git_Repos/MRIGAN/saved_metrics/loss_{args.network_input}_{args.z_location}.pkl',
+    with open(f'/home/bendel.8/Git_Repos/full_scale_mrigan/MRIGAN/saved_metrics/loss_{args.network_input}_{args.z_location}.pkl',
               'wb') as f:
         pickle.dump(GLOBAL_LOSS_DICT, f, pickle.HIGHEST_PROTOCOL)
 
@@ -198,11 +198,11 @@ def get_gen_supervised(args):
     from utils.training.prepare_model import build_model, build_optim, build_discriminator
 
     checkpoint_file_gen = pathlib.Path(
-        f'/home/bendel.8/Git_Repos/MRIGAN/trained_models/image/{args.z_location}/generator_model.pt')
+        f'/home/bendel.8/Git_Repos/full_scale_mrigan/MRIGAN/trained_models/image/{args.z_location}/generator_model.pt')
     checkpoint_gen = torch.load(checkpoint_file_gen, map_location=torch.device('cuda'))
 
     checkpoint_file_dis = pathlib.Path(
-        f'/home/bendel.8/Git_Repos/MRIGAN/trained_models/image/{args.z_location}/discriminator_model.pt')
+        f'/home/bendel.8/Git_Repos/full_scale_mrigan/MRIGAN/trained_models/image/{args.z_location}/discriminator_model.pt')
     checkpoint_dis = torch.load(checkpoint_file_dis, map_location=torch.device('cuda'))
 
     generator = build_model(args)
@@ -228,8 +228,8 @@ def get_gen_supervised(args):
 def main(args):
     args.exp_dir.mkdir(parents=True, exist_ok=True)
 
-    args.in_chans = 17 if args.z_location == 3 else 2
-    args.out_chans = 2
+    args.in_chans = 16
+    args.out_chans = 16
 
     if args.resume:
         generator, optimizer_G, discriminator, optimizer_D, args, best_loss_val, best_loss_dis, start_epoch = get_gen_supervised(args)
@@ -290,8 +290,8 @@ def main(args):
                                                           disc_image=not args.disc_kspace).to(args.device)
 
                     # MAKE PREDICTIONS
-                    real_pred = discriminator(disc_target_batch)
-                    fake_pred = discriminator(disc_output_batch)
+                    real_pred = discriminator(disc_target_batch, old_input)
+                    fake_pred = discriminator(disc_output_batch, old_input)
 
                     real_acc = real_pred[real_pred > 0].shape[0]
                     fake_acc = fake_pred[fake_pred <= 0].shape[0]
@@ -346,7 +346,10 @@ def main(args):
                 # Train on fake images
                 fake_pred = torch.zeros((old_input.shape[0], args.num_z)).to(args.device)
                 for k in range(old_input.shape[0]):
-                    temp = discriminator(disc_inputs_gen[k])
+                    cond = torch.zeros(1, disc_inputs_gen.shape[2], disc_inputs_gen.shape[3], disc_inputs_gen.shape[4])
+                    cond[0, :, :, :] = old_input[k, :, :, :]
+                    cond = cond.repeat(4, 1, 1, 1)
+                    temp = discriminator(disc_inputs_gen[k], cond)
                     fake_pred[k] = temp[:, 0]
 
                 gen_pred_loss = torch.mean(fake_pred[0])
@@ -357,9 +360,10 @@ def main(args):
                 var_loss = torch.mean(torch.var(disc_inputs_gen, dim=1), dim=(0, 1, 2, 3))
 
                 var_weight = 0.1
+                adv_weight = 1e-5
 
                 # TODO: BEST -0.001 adv and var_weight = 0.012
-                g_loss = -0.0001*torch.mean(gen_pred_loss) + 0.001 * F.l1_loss(target_full, avg_recon) - mssim_tensor(
+                g_loss = -adv_weight*torch.mean(gen_pred_loss) + 0.001 * F.l1_loss(target_full, avg_recon) - mssim_tensor(
                     target_full, avg_recon) - var_weight * var_loss
 
                 g_loss.backward()
@@ -391,20 +395,35 @@ def main(args):
                     output_gen = average_gen(generator, input, input, args, true_measures)
 
                     ims = prep_input_2_chan(output_gen, args.network_input, args, disc=True,
-                                            disc_image=not args.disc_kspace).permute(0, 2, 3, 1)
+                                            disc_image=not args.disc_kspace)
                     target_im = prep_input_2_chan(target_full, args.network_input, args, disc=True).to(
-                        args.device).permute(
-                        0, 2, 3, 1)
+                        args.device)
 
                     for k in range(ims.shape[0]):
-                        output = complex_abs(ims[k] * std[k] + mean[k])
-                        target = complex_abs(target_im[k] * std[k] + mean[k])
+                        output_rss = torch.zeros(8, ims.shape[2], ims.shape[2], 2)
+                        output_rss[:, :, :, 0] = ims[i, 0:8, :, :]
+                        output_rss[:, :, :, 1] = ims[i, 8:16, :, :]
+                        output = transforms.root_sum_of_squares(complex_abs(output_rss * std[i] + mean[i]))
+
+                        target_rss = torch.zeros(8, target_im.shape[2], target_im.shape[2], 2)
+                        target_rss[:, :, :, 0] = target_im[i, 0:8, :, :]
+                        target_rss[:, :, :, 1] = target_im[i, 8:16, :, :]
+                        target = transforms.root_sum_of_squares(complex_abs(target_rss * std[i] + mean[i]))
 
                         output = output.cpu().numpy()
                         target = target.cpu().numpy()
 
                         losses['ssim'].append(ssim(target, output))
                         losses['psnr'].append(psnr(target, output))
+
+                    if iter + 1 == 1 and i == 2:
+                        plt.figure()
+                        plt.imshow(np.abs(output), cmap='gray')
+                        plt.savefig('temp_gen_out.png')
+
+                        plt.figure()
+                        plt.imshow(np.abs(target), cmap='gray')
+                        plt.savefig('temp_gen_targ.png')
 
                     if i == 40:
                         break
