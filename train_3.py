@@ -361,7 +361,7 @@ def main(args):
                 var_loss = torch.mean(torch.var(disc_inputs_gen, dim=1), dim=(0, 1, 2, 3))
 
                 var_weight = 0.1
-                adv_weight = 1e-6
+                adv_weight = 1e-5
 
                 # TODO: BEST -0.001 adv and var_weight = 0.012
                 g_loss = -adv_weight*torch.mean(gen_pred_loss) + 0.001 * F.l1_loss(target_full, avg_recon) - mssim_tensor(
@@ -423,7 +423,7 @@ def main(args):
                                 val_rss = torch.zeros(8, output.shape[0], output.shape[0], 2).to(args.device)
                                 val_rss[:, :, :, 0] = val[k, 0:8, :, :]
                                 val_rss[:, :, :, 1] = val[k, 8:16, :, :]
-                                gen_im_list.append(complex_abs(val_rss * std[k] + mean_val[k]).cpu().numpy())
+                                gen_im_list.append(complex_abs(val_rss * std[k] + mean[k]).cpu().numpy())
 
                             std_dev = np.zeros(output.shape)
                             for val in gen_im_list:
