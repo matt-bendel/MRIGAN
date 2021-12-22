@@ -417,14 +417,14 @@ def main(args):
                         losses['ssim'].append(ssim(target, output))
                         losses['psnr'].append(psnr(target, output))
 
-                    if iter + 1 == 1 and i == 2:
-                        plt.figure()
-                        plt.imshow(np.abs(output), cmap='gray')
-                        plt.savefig('temp_gen_out.png')
+                        if i + 1 == 1 and k == 2:
+                            plt.figure()
+                            plt.imshow(np.abs(output), cmap='gray')
+                            plt.savefig('temp_gen_out.png')
 
-                        plt.figure()
-                        plt.imshow(np.abs(target), cmap='gray')
-                        plt.savefig('temp_gen_targ.png')
+                            plt.figure()
+                            plt.imshow(np.abs(target), cmap='gray')
+                            plt.savefig('temp_gen_targ.png')
 
                     if i == 40:
                         break
