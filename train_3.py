@@ -304,8 +304,7 @@ def main(args):
                                                                 disc_output_batch.data, args, old_input.data)
                     # Adversarial loss
                     d_loss = torch.mean(fake_pred) - torch.mean(
-                        real_pred) + lambda_gp * gradient_penalty + 0.001 * torch.mean(
-                        torch.cat((real_pred, fake_pred)) ** 2)
+                        real_pred) + lambda_gp * gradient_penalty + 0.001 * torch.mean(real_pred ** 2)
 
                     d_loss.backward()
                     optimizer_D.step()
