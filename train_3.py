@@ -431,8 +431,22 @@ def main(args):
                             std_dev = std_dev / 8
                             std_dev = np.sqrt(std_dev)
 
-                            plt.figure()
-                            plt.imshow(std_dev, cmap='gray')
+                            fig = plt.figure()
+                            ax = fig.add_subplot(1, 1, 1)
+                            im = ax.imshow(std_dev, cmap='viridis')
+                            ax.set_xticks([])
+                            ax.set_yticks([])
+                            fig.subplots_adjust(right=0.85)  # Make room for colorbar
+
+                            # Get position of final error map axis
+                            [[x10, y10], [x11, y11]] = ax.get_position().get_points()
+
+                            pad = 0.01
+                            width = 0.02
+                            cbar_ax = fig.add_axes([x11 + pad, y10, width, y11 - y10])
+
+                            fig.colorbar(im, cax=cbar_ax)
+
                             plt.savefig('std_dev_gen.png')
 
                             plt.figure()
@@ -443,7 +457,7 @@ def main(args):
                             plt.imshow(np.abs(target), cmap='gray')
                             plt.savefig('temp_gen_targ.png')
 
-                    if i == 20:
+                    if i == 25:
                         break
 
             psnr_loss = np.mean(losses['psnr'])
