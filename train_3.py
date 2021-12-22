@@ -423,7 +423,7 @@ def main(args):
                                 val_rss = torch.zeros(8, output.shape[0], output.shape[0], 2).to(args.device)
                                 val_rss[:, :, :, 0] = val[k, 0:8, :, :]
                                 val_rss[:, :, :, 1] = val[k, 8:16, :, :]
-                                gen_im_list.append(complex_abs(val_rss * std[k] + mean[k]).cpu().numpy())
+                                gen_im_list.append(transforms.root_sum_of_squares(complex_abs(val_rss * std[k] + mean[k])).cpu().numpy())
 
                             std_dev = np.zeros(output.shape)
                             for val in gen_im_list:
