@@ -420,7 +420,7 @@ def main(args):
                         if i + 1 == 1 and k == 2:
                             gen_im_list = []
                             for r, val in enumerate(gen_list):
-                                val_rss = torch.zeros(8, target_im.shape[2], target_im.shape[2], 2).to(args.device)
+                                val_rss = torch.zeros(8, output.shape[0], output.shape[0], 2).to(args.device)
                                 val_rss[:, :, :, 0] = val[k, 0:8, :, :]
                                 val_rss[:, :, :, 1] = val[k, 8:16, :, :]
                                 gen_im_list.append(complex_abs(val_rss * std[k] + mean_val[k]).cpu().numpy())
