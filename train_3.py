@@ -192,7 +192,7 @@ def average_gen(generator, input_w_z, old_input, args, true_measures):
         gen_list.append(refined_out)
         average_gen = torch.add(average_gen, refined_out)
 
-    return torch.div(average_gen, 8)
+    return torch.div(average_gen, 8), gen_list
 
 
 def get_gen_supervised(args):
@@ -393,7 +393,7 @@ def main(args):
                     target_full = prep_input_2_chan(target_full, args.network_input, args).to(args.device)
                     true_measures = true_measures.to(args.device)
 
-                    output_gen = average_gen(generator, input, input, args, true_measures)
+                    output_gen, gen_list = average_gen(generator, input, input, args, true_measures)
 
                     ims = prep_input_2_chan(output_gen, args.network_input, args, disc=True,
                                             disc_image=not args.disc_kspace)
@@ -418,6 +418,24 @@ def main(args):
                         losses['psnr'].append(psnr(target, output))
 
                         if i + 1 == 1 and k == 2:
+                            gen_im_list = []
+                            for r, val in enumerate(gen_list):
+                                val_rss = torch.zeros(8, target_im.shape[2], target_im.shape[2], 2).to(args.device)
+                                val_rss[:, :, :, 0] = val[k, 0:8, :, :]
+                                val_rss[:, :, :, 1] = val[k, 8:16, :, :]
+                                gen_im_list.append(complex_abs(val_rss * std[k] + mean_val[k]).cpu().numpy())
+
+                            std_dev = np.zeros(output.shape)
+                            for val in gen_im_list:
+                                std_dev = std_dev + np.power((val - output), 2)
+
+                            std_dev = std_dev / 8
+                            std_dev = np.sqrt(std_dev)
+
+                            plt.figure()
+                            plt.imshow(std_dev, cmap='gray')
+                            plt.savefig('std_dev_gen.png')
+
                             plt.figure()
                             plt.imshow(np.abs(output), cmap='gray')
                             plt.savefig('temp_gen_out.png')
@@ -426,7 +444,7 @@ def main(args):
                             plt.imshow(np.abs(target), cmap='gray')
                             plt.savefig('temp_gen_targ.png')
 
-                    if i == 40:
+                    if i == 20:
                         break
 
             psnr_loss = np.mean(losses['psnr'])
@@ -456,6 +474,7 @@ if __name__ == '__main__':
     Tensor = torch.FloatTensor
 
     args = create_arg_parser().parse_args()
+    args.batch_size = 12
     # restrict visible cuda devices
     if args.data_parallel or (args.device >= 0):
         if not args.data_parallel:
