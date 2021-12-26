@@ -433,7 +433,7 @@ def main(args):
 
                             fig = plt.figure()
                             ax = fig.add_subplot(1, 1, 1)
-                            im = ax.imshow(std_dev, cmap='viridis')
+                            im = ax.imshow(std_dev, cmap='viridis', vmax=5e-5)
                             ax.set_xticks([])
                             ax.set_yticks([])
                             fig.subplots_adjust(right=0.85)  # Make room for colorbar
