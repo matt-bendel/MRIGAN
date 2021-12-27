@@ -359,7 +359,7 @@ def main(args):
                 # var_loss = torch.mean(torch.var(disc_inputs_gen, dim=1) * torch.abs(target_full-avg_recon), dim=(0, 1, 2, 3))
                 var_loss = torch.mean(torch.var(disc_inputs_gen, dim=1), dim=(0, 1, 2, 3))
 
-                var_weight = 0.15
+                var_weight = 0.12
                 adv_weight = 1e-6
 
                 # TODO: BEST -0.001 adv and var_weight = 0.012
@@ -433,7 +433,7 @@ def main(args):
 
                             fig = plt.figure()
                             ax = fig.add_subplot(1, 1, 1)
-                            im = ax.imshow(std_dev, cmap='viridis', vmax=5e-5)
+                            im = ax.imshow(std_dev, cmap='viridis')
                             ax.set_xticks([])
                             ax.set_yticks([])
                             fig.subplots_adjust(right=0.85)  # Make room for colorbar
