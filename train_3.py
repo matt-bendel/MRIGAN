@@ -359,11 +359,12 @@ def main(args):
                 # var_loss = torch.mean(torch.var(disc_inputs_gen, dim=1) * torch.abs(target_full-avg_recon), dim=(0, 1, 2, 3))
                 var_loss = torch.mean(torch.var(disc_inputs_gen, dim=1), dim=(0, 1, 2, 3))
 
-                var_weight = 0.12
+                var_weight = 0.125
                 adv_weight = 1e-6
+                l1_weight = 1e-4
 
                 # TODO: BEST -0.001 adv and var_weight = 0.012
-                g_loss = -adv_weight*torch.mean(gen_pred_loss) + 0.001 * F.l1_loss(target_full, avg_recon) - mssim_tensor(
+                g_loss = -adv_weight*torch.mean(gen_pred_loss) + l1_weight * F.l1_loss(target_full, avg_recon) - mssim_tensor(
                     target_full, avg_recon) - var_weight * var_loss
 
                 g_loss.backward()
