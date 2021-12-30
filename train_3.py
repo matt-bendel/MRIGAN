@@ -24,6 +24,7 @@ import os
 import shutil
 import torch
 import pytorch_ssim
+import pytorch_msssim
 
 import numpy as np
 import torch.autograd as autograd
@@ -88,8 +89,8 @@ def ssim(
 
 def mssim_tensor(gt, pred):
     """ Compute Normalized Mean Squared Error (NMSE) """
-    ssim_loss = pytorch_ssim.SSIM()
-    return ssim_loss(gt, pred)
+    # ssim_loss = pytorch_ssim.SSIM()
+    return pytorch_msssim.msssim(gt, pred)
 
 
 def save_model(args, epoch, model, optimizer, best_dev_loss, is_new_best, m_type):
@@ -361,10 +362,10 @@ def main(args):
 
                 var_weight = 0.125
                 adv_weight = 1e-6
-                l1_weight = 1e-3
+                mssim_weight = 0.84
 
                 # TODO: BEST -0.001 adv and var_weight = 0.012
-                g_loss = -adv_weight*torch.mean(gen_pred_loss) + l1_weight * F.l1_loss(target_full, avg_recon) - mssim_tensor(
+                g_loss = -adv_weight*torch.mean(gen_pred_loss) + (1-mssim_weight) * F.l1_loss(target_full, avg_recon) - mssim_weight * mssim_tensor(
                     target_full, avg_recon) - var_weight * var_loss
 
                 g_loss.backward()
