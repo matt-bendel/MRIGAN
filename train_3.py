@@ -235,6 +235,7 @@ def main(args):
 
     if args.resume:
         generator, optimizer_G, discriminator, optimizer_D, args, best_loss_val, best_loss_dis, start_epoch = get_gen_supervised(args)
+        start_epoch = start_epoch + 1
     else:
         generator, discriminator, best_dev_loss, start_epoch = fresh_start(args)
         # Optimizers
@@ -462,7 +463,7 @@ def main(args):
                             plt.savefig('temp_gen_targ.png')
                             plt.close()
 
-                    if i == 25:
+                    if i == 50:
                         break
 
             psnr_loss = np.mean(losses['psnr'])
