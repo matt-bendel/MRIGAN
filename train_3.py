@@ -463,7 +463,7 @@ def main(args):
                             plt.savefig('temp_gen_targ.png')
                             plt.close()
 
-                    if i == 50:
+                    if i == 100:
                         break
 
             psnr_loss = np.mean(losses['psnr'])
