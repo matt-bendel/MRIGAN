@@ -58,11 +58,11 @@ class ConvDownBlock(nn.Module):
 
         if self.batch_norm:
             out = self.activation(self.bn(self.conv_1(input)))
-            skip_out = self.res(out)  # self.activation(self.bn(self.conv_2(out)))
+            skip_out = self.res(self.res(out))  # self.activation(self.bn(self.conv_2(out)))
             out = self.conv_3(skip_out)
         else:
             out = self.activation(self.conv_1(input))
-            skip_out = self.res(out)  # self.activation(self.conv_2(out))
+            skip_out = self.res(self.res(out))  # self.activation(self.conv_2(out))
             out = self.conv_3(skip_out)
 
         return out, skip_out
@@ -88,7 +88,8 @@ class ConvUpBlock(nn.Module):
             nn.Conv2d(in_chans, out_chans, kernel_size=3, padding=1),
             nn.BatchNorm2d(out_chans),
             nn.PReLU(),
-            ResidualBlock(out_chans)
+            ResidualBlock(out_chans),
+            ResidualBlock(out_chans),
         )
 
     def forward(self, input, skip_input):
@@ -121,8 +122,8 @@ class GeneratorModel(nn.Module):
 
         self.in_chans = in_chans
         self.out_chans = out_chans
-        self.chans = 32
-        self.num_pool_layers = 7
+        self.chans = 256
+        self.num_pool_layers = 5
         self.latent_size = latent_size
 
         num_pool_layers = self.num_pool_layers
@@ -131,11 +132,8 @@ class GeneratorModel(nn.Module):
 
         self.down_sample_layers = nn.ModuleList([ConvDownBlock(in_chans, ch, batch_norm=False)])
         for i in range(num_pool_layers - 1):
-            if ch != 1024:
-                self.down_sample_layers += [ConvDownBlock(ch, ch * 2)]
-                ch *= 2
-            else:
-                self.down_sample_layers += [ConvDownBlock(ch, ch)]
+            self.down_sample_layers += [ConvDownBlock(ch, ch * 2)]
+            ch *= 2
 
         self.conv = nn.Sequential(
             nn.Conv2d(ch * 2, ch, kernel_size=3, padding=1),
@@ -154,6 +152,10 @@ class GeneratorModel(nn.Module):
             nn.LeakyReLU(negative_slope=0.2),
             nn.Conv2d(latent_size, latent_size * 2, kernel_size=(3, 3), padding=1),
             nn.LeakyReLU(negative_slope=0.2),
+            nn.Conv2d(latent_size * 2, latent_size * 4, kernel_size=(3, 3), padding=1),
+            nn.LeakyReLU(negative_slope=0.2),
+            nn.Conv2d(latent_size * 4, latent_size * 8, kernel_size=(3, 3), padding=1),
+            nn.LeakyReLU(negative_slope=0.2),
         )
         self.middle_z_grow_linear = nn.Sequential(
             nn.Linear(latent_size, latent_size // 4 * 3 * 3),
@@ -162,11 +164,8 @@ class GeneratorModel(nn.Module):
 
         self.up_sample_layers = nn.ModuleList()
         for i in range(num_pool_layers - 1):
-            if i >= 1:
-                self.up_sample_layers += [ConvUpBlock(ch * 2, ch // 2)]
-                ch //= 2
-            else:
-                self.up_sample_layers += [ConvUpBlock(ch * 2, ch)]
+            self.up_sample_layers += [ConvUpBlock(ch * 2, ch // 2)]
+            ch //= 2
 
         self.up_sample_layers += [ConvUpBlock(ch * 2, ch)]
         self.conv2 = nn.Sequential(
@@ -201,4 +200,4 @@ class GeneratorModel(nn.Module):
         for layer in self.up_sample_layers:
             output = layer(output, stack.pop())
 
-        return self.conv2(output)
+        return (self.conv2(output) + input)

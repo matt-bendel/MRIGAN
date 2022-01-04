@@ -299,7 +299,7 @@ def main(args):
                     real_acc = real_pred[real_pred > 0].shape[0]
                     fake_acc = fake_pred[fake_pred <= 0].shape[0]
 
-                    batch_loss['d_acc'].append((real_acc + fake_acc) / 32)
+                    batch_loss['d_acc'].append((real_acc + fake_acc) / real_pred.shape[0])
 
                     # Gradient penalty
                     gradient_penalty = compute_gradient_penalty(discriminator, disc_target_batch.data,
@@ -361,7 +361,7 @@ def main(args):
                 # var_loss = torch.mean(torch.var(disc_inputs_gen, dim=1) * torch.abs(target_full-avg_recon), dim=(0, 1, 2, 3))
                 var_loss = torch.mean(torch.var(disc_inputs_gen, dim=1), dim=(0, 1, 2, 3))
 
-                var_weight = 0.0075
+                var_weight = 0.01
                 adv_weight = 1e-6
                 mssim_weight = 0.84
 
@@ -463,7 +463,7 @@ def main(args):
                             plt.savefig('temp_gen_targ.png')
                             plt.close()
 
-                    if i == 100:
+                    if i == 75:
                         break
 
             psnr_loss = np.mean(losses['psnr'])
