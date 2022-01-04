@@ -58,11 +58,11 @@ class ConvDownBlock(nn.Module):
 
         if self.batch_norm:
             out = self.activation(self.bn(self.conv_1(input)))
-            skip_out = self.res(self.res(out))  # self.activation(self.bn(self.conv_2(out)))
+            skip_out = self.res(out)  # self.activation(self.bn(self.conv_2(out)))
             out = self.conv_3(skip_out)
         else:
             out = self.activation(self.conv_1(input))
-            skip_out = self.res(self.res(out))  # self.activation(self.conv_2(out))
+            skip_out = self.res(out)  # self.activation(self.conv_2(out))
             out = self.conv_3(skip_out)
 
         return out, skip_out
@@ -88,7 +88,6 @@ class ConvUpBlock(nn.Module):
             nn.Conv2d(in_chans, out_chans, kernel_size=3, padding=1),
             nn.BatchNorm2d(out_chans),
             nn.PReLU(),
-            ResidualBlock(out_chans),
             ResidualBlock(out_chans),
         )
 
