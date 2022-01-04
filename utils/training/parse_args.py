@@ -14,13 +14,13 @@ def create_arg_parser():
     # TODO: BACK TO 5
     parser.add_argument('--num-iters-discriminator', type=int, default=1,
                         help='Number of iterations of the discriminator')
-    parser.add_argument('--num-z', type=int, default=6,
+    parser.add_argument('--num-z', type=int, default=4,
                         help='Number of z values')
     parser.add_argument('--latent-size', type=int, default=512, help='Size of latent vector for z location 2')
     parser.add_argument('--z-location', type=int, required=True, help='Where to put code vector')
 
     # LEARNING ARGS
-    parser.add_argument('--batch-size', default=4, type=int, help='Mini batch size')
+    parser.add_argument('--batch-size', default=2, type=int, help='Mini batch size')
     parser.add_argument('--num-epochs', type=int, default=150, help='Number of training epochs')
     # TODO: LR BACK TO 1e-4 AND BETA_2 BACK TO 0.9
     parser.add_argument('--lr', type=float, default=1e-3, help='Learning rate')
