@@ -431,7 +431,7 @@ def main(args):
                             for val in gen_im_list:
                                 std_dev = std_dev + np.power((val - output), 2)
 
-                            std_dev = std_dev / 8
+                            std_dev = std_dev / args.num_z
                             std_dev = np.sqrt(std_dev)
 
                             fig = plt.figure()
