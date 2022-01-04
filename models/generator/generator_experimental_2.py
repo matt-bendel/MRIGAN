@@ -121,7 +121,7 @@ class GeneratorModel(nn.Module):
 
         self.in_chans = in_chans
         self.out_chans = out_chans
-        self.chans = 224
+        self.chans = 128
         self.num_pool_layers = 4
         self.latent_size = latent_size
 
@@ -138,6 +138,8 @@ class GeneratorModel(nn.Module):
             nn.Conv2d(ch * 2, ch, kernel_size=3, padding=1),
             nn.BatchNorm2d(ch),
             nn.PReLU(),
+            ResidualBlock(ch),
+            ResidualBlock(ch),
             ResidualBlock(ch),
             ResidualBlock(ch),
             nn.Conv2d(ch, ch, kernel_size=3, padding=1),
