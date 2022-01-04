@@ -20,7 +20,7 @@ def create_arg_parser():
     parser.add_argument('--z-location', type=int, required=True, help='Where to put code vector')
 
     # LEARNING ARGS
-    parser.add_argument('--batch-size', default=2, type=int, help='Mini batch size')
+    parser.add_argument('--batch-size', default=4, type=int, help='Mini batch size')
     parser.add_argument('--num-epochs', type=int, default=150, help='Number of training epochs')
     # TODO: LR BACK TO 1e-4 AND BETA_2 BACK TO 0.9
     parser.add_argument('--lr', type=float, default=1e-3, help='Learning rate')
