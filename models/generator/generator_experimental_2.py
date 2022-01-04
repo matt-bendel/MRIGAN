@@ -162,7 +162,7 @@ class GeneratorModel(nn.Module):
             nn.LeakyReLU(negative_slope=0.2),
             nn.Linear(latent_size // 4 * 3 * 3, latent_size // 4 * 6 * 6),
             nn.LeakyReLU(negative_slope=0.2),
-            nn.Linear(latent_size // 4 * 12 * 12, latent_size // 4 * 12 * 12),
+            nn.Linear(latent_size // 4 * 6 * 6, latent_size // 4 * 12 * 12),
             nn.LeakyReLU(negative_slope=0.2),
         )
 
