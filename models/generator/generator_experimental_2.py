@@ -131,7 +131,7 @@ class GeneratorModel(nn.Module):
 
         self.down_sample_layers = nn.ModuleList([ConvDownBlock(in_chans, ch, batch_norm=False)])
         for i in range(num_pool_layers - 1):
-            if i != 4:
+            if i != 3:
                 self.down_sample_layers += [ConvDownBlock(ch, ch * 2)]
                 ch *= 2
             else:
