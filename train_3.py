@@ -299,7 +299,7 @@ def main(args):
                     real_acc = real_pred[real_pred > 0].shape[0]
                     fake_acc = fake_pred[fake_pred <= 0].shape[0]
 
-                    batch_loss['d_acc'].append((real_acc + fake_acc) / real_pred.shape[0])
+                    batch_loss['d_acc'].append((real_acc + fake_acc) / (2*real_pred.shape[0]))
 
                     # Gradient penalty
                     gradient_penalty = compute_gradient_penalty(discriminator, disc_target_batch.data,
