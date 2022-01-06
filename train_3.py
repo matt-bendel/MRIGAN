@@ -362,7 +362,7 @@ def main(args):
                 var_loss = torch.mean(torch.var(disc_inputs_gen, dim=1), dim=(0, 1, 2, 3))
 
                 var_weight = 0.2
-                adv_weight = 1e-6
+                adv_weight = 1e-5
                 mssim_weight = 0.84
 
                 # TODO: BEST -0.001 adv and var_weight = 0.012
