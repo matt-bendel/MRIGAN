@@ -146,6 +146,8 @@ class GeneratorModel(nn.Module):
             ResidualBlock(ch),
             ResidualBlock(ch),
             ResidualBlock(ch),
+            ResidualBlock(ch),
+            ResidualBlock(ch),
             nn.Conv2d(ch, ch, kernel_size=3, padding=1),
             nn.BatchNorm2d(ch),
             nn.PReLU(),
