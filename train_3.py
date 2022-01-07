@@ -428,8 +428,8 @@ def main(args):
                 # var_loss = torch.mean(torch.var(disc_inputs_gen, dim=1) * torch.abs(target_full-avg_recon), dim=(0, 1, 2, 3))
                 var_loss = torch.mean(torch.var(disc_inputs_gen, dim=1), dim=(0, 1, 2, 3))
 
-                var_weight = 0.25
-                adv_weight = 1e-5
+                var_weight = 0.1
+                adv_weight = 1e-6
                 mssim_weight = 0.84
 
                 # TODO: BEST -0.001 adv and var_weight = 0.012
