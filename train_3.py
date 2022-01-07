@@ -504,7 +504,7 @@ def main(args):
                             std_dev = np.sqrt(std_dev)
 
                             place = 1
-                            for r, val in enumerate(gen_list):
+                            for r, val in enumerate(gen_im_list):
                                 gif_im(target, val, place, 'image')
                                 place += 1
 
@@ -539,7 +539,7 @@ def main(args):
                             plt.savefig('temp_gen_targ.png')
                             plt.close()
 
-                    if i == 75:
+                    if i == 80:
                         break
 
             psnr_loss = np.mean(losses['psnr'])
