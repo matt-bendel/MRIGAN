@@ -29,6 +29,7 @@ import pytorch_msssim
 import numpy as np
 import torch.autograd as autograd
 import matplotlib.pyplot as plt
+import imageio as iio
 
 from typing import Optional
 from data import transforms
@@ -67,6 +68,14 @@ def psnr(
     psnr_val = peak_signal_noise_ratio(gt, pred, data_range=maxval)
 
     return psnr_val
+
+
+def snr(gt: np.ndarray, pred: np.ndarray) -> np.ndarray:
+    """Compute the Signal to Noise Ratio metric (SNR)"""
+    noise_mse = np.mean((gt - pred) ** 2)
+    snr = 10 * np.log10(np.mean(gt ** 2) / noise_mse)
+
+    return snr
 
 
 def ssim(
@@ -134,41 +143,16 @@ def compute_gradient_penalty(D, real_samples, fake_samples, args, y):
     return gradient_penalty
 
 
-def generate_image(fig, target, image, title, image_ind):
-    # rows and cols are both previously defined ints
-    ax = fig.add_subplot(2, 3, image_ind)
-    ax.set_title(title)
-    ax.imshow(np.abs(image), cmap='gray', vmin=0, vmax=np.max(target))
-    ax.set_xticks([])
-    ax.set_yticks([])
-
-
-def generate_error_map(fig, target, recon, image_ind, k=5, max=1):
-    # Assume rows and cols are available globally
-    # rows and cols are both previously defined ints
-    ax = fig.add_subplot(2, 3, image_ind)  # Add to subplot
-
-    # Normalize error between target and reconstruction
-    error = np.abs(target - recon)
-    # normalized_error = error / error.max() if not relative else error
-    im = ax.imshow(k * error, cmap='jet', vmax=max)  # Plot image
-
-    # Remove axis ticks
-    ax.set_xticks([])
-    ax.set_yticks([])
-
-    # Return plotted image and its axis in the subplot
-    return im, ax
-
-
 def save_metrics(args):
-    with open(f'/home/bendel.8/Git_Repos/full_scale_mrigan/MRIGAN/saved_metrics/loss_{args.network_input}_{args.z_location}.pkl',
-              'wb') as f:
+    with open(
+            f'/home/bendel.8/Git_Repos/full_scale_mrigan/MRIGAN/saved_metrics/loss_{args.network_input}_{args.z_location}.pkl',
+            'wb') as f:
         pickle.dump(GLOBAL_LOSS_DICT, f, pickle.HIGHEST_PROTOCOL)
 
 
 def average(gen_tensor):
-    average_tensor = torch.zeros((gen_tensor.shape[0], gen_tensor.shape[2], gen_tensor.shape[3], gen_tensor.shape[4])).to(gen_tensor.device)
+    average_tensor = torch.zeros(
+        (gen_tensor.shape[0], gen_tensor.shape[2], gen_tensor.shape[3], gen_tensor.shape[4])).to(gen_tensor.device)
     for j in range(gen_tensor.shape[0]):
         for i in range(gen_tensor.shape[1]):
             average_tensor[j, :, :, :] = torch.add(gen_tensor[j, i, :, :, :], average_tensor[j, :, :, :])
@@ -188,12 +172,88 @@ def average_gen(generator, input_w_z, old_input, args, true_measures):
             # refined_out = output_gen + old_input[:, 0:16]
             refined_out = output_gen + old_input[:]
         else:
-            refined_out = readd_measures_im(output_gen, old_input, args, true_measures=true_measures) if not args.inpaint else output_gen
+            refined_out = readd_measures_im(output_gen, old_input, args,
+                                            true_measures=true_measures) if not args.inpaint else output_gen
 
         gen_list.append(refined_out)
         average_gen = torch.add(average_gen, refined_out)
 
     return torch.div(average_gen, 8), gen_list
+
+
+def generate_image(fig, target, image, method, image_ind, rows, cols, kspace=False, disc_num=False):
+    # rows and cols are both previously defined ints
+    ax = fig.add_subplot(rows, cols, image_ind)
+    if method != 'GT' and method != 'Std. Dev':
+        psnr_val = psnr(target, image)
+        snr_val = snr(target, image)
+        ssim_val = ssim(target, image)
+        if not kspace:
+            pred = disc_num
+            ax.set_title(
+                f'PSNR: {psnr_val:.2f}, SNR: {snr_val:.2f}\nSSIM: {ssim_val:.4f}, Pred: {pred * 100:.2f}% True') if disc_num else ax.set_title(
+                f'PSNR: {psnr_val:.2f}, SNR: {snr_val:.2f}\nSSIM: {ssim_val:.4f}')
+
+    if method == 'Std. Dev':
+        im = ax.imshow(image, cmap='viridis')
+        ax.set_xticks([])
+        ax.set_yticks([])
+    else:
+        if kspace:
+            image = image ** 0.4
+            target = target ** 0.4
+        im = ax.imshow(np.abs(image), cmap='gray', vmin=0, vmax=np.max(target))
+        ax.set_xticks([])
+        ax.set_yticks([])
+        ax.set_xlabel(method)
+
+    return im, ax
+
+
+def generate_error_map(fig, target, recon, method, image_ind, rows, cols, relative=False, k=1, kspace=False):
+    # Assume rows and cols are available globally
+    # rows and cols are both previously defined ints
+    ax = fig.add_subplot(rows, cols, image_ind)  # Add to subplot
+
+    # Normalize error between target and reconstruction
+    if kspace:
+        recon = recon ** 0.4
+        target = target ** 0.4
+
+    error = (target - recon) if relative else np.abs(target - recon)
+    # normalized_error = error / error.max() if not relative else error
+    if relative:
+        im = ax.imshow(k * error, cmap='bwr', origin='lower', vmin=-0.0001, vmax=0.0001)  # Plot image
+        plt.gca().invert_yaxis()
+    else:
+        im = ax.imshow(k * error, cmap='jet', vmax=1) if kspace else ax.imshow(k * error, cmap='jet', vmax=0.0001)
+
+    # Remove axis ticks
+    ax.set_xticks([])
+    ax.set_yticks([])
+
+    # Return plotted image and its axis in the subplot
+    return im, ax
+
+
+def gif_im(true, gen_im, index, type, disc_num=False):
+    fig = plt.figure()
+
+    generate_image(fig, true, gen_im, f'z {index}', 1, 2, 1, disc_num=False)
+    im, ax = generate_error_map(fig, true, gen_im, f'z {index}', 2, 2, 1)
+
+    plt.savefig(f'/home/bendel.8/Git_Repos/full_scale_mrigan/MRIGAN/gifs/gif_{type}_{index - 1}.png')
+
+
+def generate_gif(type):
+    images = []
+    for i in range(8):
+        images.append(iio.imread(f'/home/bendel.8/Git_Repos/full_scale_mrigan/MRIGAN/gifs/gif_{type}_{i}.png'))
+
+    iio.mimsave(f'variation_{type}_gif.gif', images, duration=0.25)
+
+    for i in range(8):
+        os.remove(f'/home/bendel.8/Git_Repos/full_scale_mrigan/MRIGAN/gifs/gif_{type}_{i}.png')
 
 
 def get_gen_supervised(args):
@@ -224,7 +284,8 @@ def get_gen_supervised(args):
     opt_dis = build_optim(args, discriminator.parameters())
     opt_dis.load_state_dict(checkpoint_dis['optimizer'])
 
-    return generator, opt_gen, discriminator, opt_dis, args, checkpoint_gen['best_dev_loss'], checkpoint_dis['best_dev_loss'], checkpoint_gen['epoch']
+    return generator, opt_gen, discriminator, opt_dis, args, checkpoint_gen['best_dev_loss'], checkpoint_dis[
+        'best_dev_loss'], checkpoint_gen['epoch']
 
 
 def main(args):
@@ -234,7 +295,8 @@ def main(args):
     args.out_chans = 16
 
     if args.resume:
-        generator, optimizer_G, discriminator, optimizer_D, args, best_loss_val, best_loss_dis, start_epoch = get_gen_supervised(args)
+        generator, optimizer_G, discriminator, optimizer_D, args, best_loss_val, best_loss_dis, start_epoch = get_gen_supervised(
+            args)
         start_epoch = start_epoch + 1
     else:
         generator, discriminator, best_dev_loss, start_epoch = fresh_start(args)
@@ -283,7 +345,8 @@ def main(args):
                         # refined_out = output_gen + old_input[:, 0:16]
                         refined_out = output_gen + old_input[:]
                     else:
-                        refined_out = readd_measures_im(output_gen, old_input, args, true_measures=true_measures) if not args.inpaint else output_gen
+                        refined_out = readd_measures_im(output_gen, old_input, args,
+                                                        true_measures=true_measures) if not args.inpaint else output_gen
 
                     # TURN OUTPUT INTO IMAGE FOR DISCRIMINATION AND GET REAL IMAGES FOR DISCRIMINATION
                     disc_target_batch = prep_input_2_chan(target_full, args.network_input, args, disc=True,
@@ -299,7 +362,7 @@ def main(args):
                     real_acc = real_pred[real_pred > 0].shape[0]
                     fake_acc = fake_pred[fake_pred <= 0].shape[0]
 
-                    batch_loss['d_acc'].append((real_acc + fake_acc) / (2*real_pred.shape[0]))
+                    batch_loss['d_acc'].append((real_acc + fake_acc) / (2 * real_pred.shape[0]))
 
                     # Gradient penalty
                     gradient_penalty = compute_gradient_penalty(discriminator, disc_target_batch.data,
@@ -318,7 +381,7 @@ def main(args):
                     np.random.normal(size=(args.num_z, input.shape[0], args.latent_size), scale=np.sqrt(1))).to(
                     args.device)
                 output_gen = torch.zeros(size=(
-                args.num_z, old_input.shape[0], old_input.shape[1], old_input.shape[2], old_input.shape[3])).to(
+                    args.num_z, old_input.shape[0], old_input.shape[1], old_input.shape[2], old_input.shape[3])).to(
                     args.device)
                 for k in range(args.num_z):
                     output_gen[k, :, :, :, :] = generator(input_w_z, z[k])
@@ -328,12 +391,16 @@ def main(args):
                 else:
                     refined_out = torch.zeros(size=output_gen.shape).to(args.device)
                     for k in range(args.num_z):
-                        refined_out[k, :, :, :, :] = readd_measures_im(output_gen[k], old_input, args, true_measures=true_measures) if not args.inpaint else output_gen[k]
+                        refined_out[k, :, :, :, :] = readd_measures_im(output_gen[k], old_input, args,
+                                                                       true_measures=true_measures) if not args.inpaint else \
+                        output_gen[k]
 
                 disc_output_batch = torch.zeros(size=refined_out.shape).to(args.device)
                 for k in range(args.num_z):
-                    disc_output_batch[k, :, :, :, :] = prep_input_2_chan(refined_out[k], args.network_input, args, disc=True,
-                                                             disc_image=not args.disc_kspace).to(args.device)
+                    disc_output_batch[k, :, :, :, :] = prep_input_2_chan(refined_out[k], args.network_input, args,
+                                                                         disc=True,
+                                                                         disc_image=not args.disc_kspace).to(
+                        args.device)
 
                 disc_inputs_gen = torch.zeros(
                     size=(old_input.shape[0], args.num_z, disc_output_batch.shape[2], disc_output_batch.shape[3],
@@ -343,7 +410,7 @@ def main(args):
                     for k in range(args.num_z):
                         disc_inputs_gen[l, k, :, :, :] = disc_output_batch[k, l, :, :, :]
 
-                avg_recon = torch.mean(disc_inputs_gen, dim=1) #average(disc_inputs_gen)
+                avg_recon = torch.mean(disc_inputs_gen, dim=1)  # average(disc_inputs_gen)
                 # Loss measures generator's ability to fool the discriminator
                 # Train on fake images
                 fake_pred = torch.zeros((old_input.shape[0], args.num_z)).to(args.device)
@@ -366,7 +433,8 @@ def main(args):
                 mssim_weight = 0.84
 
                 # TODO: BEST -0.001 adv and var_weight = 0.012
-                g_loss = -adv_weight*torch.mean(gen_pred_loss) + (1-mssim_weight) * F.l1_loss(target_full, avg_recon) - mssim_tensor(
+                g_loss = -adv_weight * torch.mean(gen_pred_loss) + (1 - mssim_weight) * F.l1_loss(target_full,
+                                                                                                  avg_recon) - mssim_tensor(
                     target_full, avg_recon) - var_weight * var_loss
 
                 g_loss.backward()
@@ -425,7 +493,8 @@ def main(args):
                                 val_rss = torch.zeros(8, output.shape[0], output.shape[0], 2).to(args.device)
                                 val_rss[:, :, :, 0] = val[k, 0:8, :, :]
                                 val_rss[:, :, :, 1] = val[k, 8:16, :, :]
-                                gen_im_list.append(transforms.root_sum_of_squares(complex_abs(val_rss * std[k] + mean[k])).cpu().numpy())
+                                gen_im_list.append(transforms.root_sum_of_squares(
+                                    complex_abs(val_rss * std[k] + mean[k])).cpu().numpy())
 
                             std_dev = np.zeros(output.shape)
                             for val in gen_im_list:
@@ -433,6 +502,13 @@ def main(args):
 
                             std_dev = std_dev / args.num_z
                             std_dev = np.sqrt(std_dev)
+
+                            place = 1
+                            for r, val in enumerate(gen_list):
+                                gif_im(target, val, place, 'image')
+                                place += 1
+
+                            generate_gif('image')
 
                             fig = plt.figure()
                             ax = fig.add_subplot(1, 1, 1)
@@ -474,7 +550,7 @@ def main(args):
             GLOBAL_LOSS_DICT['d_loss'].append(np.mean(batch_loss['d_loss']))
             GLOBAL_LOSS_DICT['d_acc'].append(np.mean(batch_loss['d_acc']))
 
-            save_str = f"END OF EPOCH {epoch + 1}: [Average D loss: {GLOBAL_LOSS_DICT['d_loss'][epoch-start_epoch]:.4f}] [Average D Acc: {GLOBAL_LOSS_DICT['d_acc'][epoch-start_epoch]:.4f}] [Average G loss: {GLOBAL_LOSS_DICT['g_loss'][epoch-start_epoch]:.4f}]\n"
+            save_str = f"END OF EPOCH {epoch + 1}: [Average D loss: {GLOBAL_LOSS_DICT['d_loss'][epoch - start_epoch]:.4f}] [Average D Acc: {GLOBAL_LOSS_DICT['d_acc'][epoch - start_epoch]:.4f}] [Average G loss: {GLOBAL_LOSS_DICT['g_loss'][epoch - start_epoch]:.4f}]\n"
             print(save_str)
             loss_file.write(save_str)
 
