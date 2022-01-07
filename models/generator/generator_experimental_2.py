@@ -143,6 +143,9 @@ class GeneratorModel(nn.Module):
             ResidualBlock(ch),
             ResidualBlock(ch),
             ResidualBlock(ch),
+            ResidualBlock(ch),
+            ResidualBlock(ch),
+            ResidualBlock(ch),
         )
 
         self.conv = nn.Sequential(
@@ -207,7 +210,6 @@ class GeneratorModel(nn.Module):
         output = self.res_layer(output)
         output = torch.cat([z_out, output], dim=1)
         output = self.conv(output)
-        output = self.res_layer(output)
 
         # Apply up-sampling layers
         for layer in self.up_sample_layers:
