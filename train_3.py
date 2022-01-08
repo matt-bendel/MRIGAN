@@ -422,7 +422,7 @@ def main(args):
                 temp = torch.zeros(old_input.shape[0], 8, 384, 384, 2)
                 temp[:, :, :, :, 0] = target_full[:, 0:8, :, :]
                 temp[:, :, :, :, 1] = target_full[:, 8:16, :, :]
-                target_full_real = torch.unqueeze(transforms.root_sum_of_squares(complex_abs(temp), dim=1), dim=1)
+                target_full_real = torch.unsqueeze(transforms.root_sum_of_squares(complex_abs(temp), dim=1), dim=1)
 
                 # avg_recon = torch.mean(disc_inputs_gen, dim=1)
                 # Loss measures generator's ability to fool the discriminator
