@@ -415,14 +415,14 @@ def main(args):
                         disc_inputs_gen[l, k, :, :, :] = val
                         temp = torch.zeros(8, disc_output_batch.shape[3], disc_output_batch.shape[4], 2)
                         temp[:, :, :, 0] = val[0:8, :, :]
-                        temp[:, :, :, 1] = val[8:18, :, :]
+                        temp[:, :, :, 1] = val[8:16, :, :]
                         real_gens[l, k, :, :] = transforms.root_sum_of_squares(complex_abs(temp))
 
                 avg_recon = torch.mean(real_gens, dim=1)
                 temp = torch.zeros(old_input.shape[0], 8, 384, 384, 2)
                 temp[:, :, :, :, 0] = target_full[:, 0:8, :, :]
                 temp[:, :, :, :, 1] = target_full[:, 8:16, :, :]
-                target_full_real = transforms.root_sum_of_squares(complex_abs(temp))
+                target_full_real = transforms.root_sum_of_squares(complex_abs(temp), dim=1)
 
                 # avg_recon = torch.mean(disc_inputs_gen, dim=1)
                 # Loss measures generator's ability to fool the discriminator
