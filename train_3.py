@@ -431,11 +431,10 @@ def main(args):
 
                 var_weight = 0.5
                 adv_weight = 1e-6
-                l1_weight = 1e-3
+                ssim_weight = 0.84
 
                 # TODO: BEST -0.001 adv and var_weight = 0.012
-                g_loss = -adv_weight * torch.mean(gen_pred_loss) + l1_weight * F.l1_loss(target_full,
-                                                                                                  avg_recon) - mssim_tensor(
+                g_loss = -adv_weight * torch.mean(gen_pred_loss) + (1 - ssim_weight) * F.l1_loss(target_full, avg_recon) - ssim_weight * mssim_tensor(
                     target_full, avg_recon) - var_weight * var_loss
 
                 g_loss.backward()
