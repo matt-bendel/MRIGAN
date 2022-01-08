@@ -407,24 +407,11 @@ def main(args):
                     size=(old_input.shape[0], args.num_z, disc_output_batch.shape[2], disc_output_batch.shape[3],
                           disc_output_batch.shape[4])
                 ).to(args.device)
-
-                real_gens = torch.zeros(old_input.shape[0], args.num_z, 384, 384)
                 for l in range(old_input.shape[0]):
                     for k in range(args.num_z):
-                        val = disc_output_batch[k, l, :, :, :]
-                        disc_inputs_gen[l, k, :, :, :] = val
-                        temp = torch.zeros(8, disc_output_batch.shape[3], disc_output_batch.shape[4], 2)
-                        temp[:, :, :, 0] = val[0:8, :, :]
-                        temp[:, :, :, 1] = val[8:16, :, :]
-                        real_gens[l, k, :, :] = transforms.root_sum_of_squares(complex_abs(temp))
+                        disc_inputs_gen[l, k, :, :, :] = disc_output_batch[k, l, :, :, :]
 
-                avg_recon = torch.unsqueeze(torch.mean(real_gens, dim=1), dim=1)
-                temp = torch.zeros(old_input.shape[0], 8, 384, 384, 2)
-                temp[:, :, :, :, 0] = target_full[:, 0:8, :, :]
-                temp[:, :, :, :, 1] = target_full[:, 8:16, :, :]
-                target_full_real = torch.unsqueeze(transforms.root_sum_of_squares(complex_abs(temp), dim=1), dim=1)
-
-                # avg_recon = torch.mean(disc_inputs_gen, dim=1)
+                avg_recon = torch.mean(disc_inputs_gen, dim=1)  # average(disc_inputs_gen)
                 # Loss measures generator's ability to fool the discriminator
                 # Train on fake images
                 fake_pred = torch.zeros((old_input.shape[0], args.num_z)).to(args.device)
@@ -440,16 +427,16 @@ def main(args):
                     gen_pred_loss += torch.mean(fake_pred[k + 1])
 
                 # var_loss = torch.mean(torch.var(disc_inputs_gen, dim=1) * torch.abs(target_full-avg_recon), dim=(0, 1, 2, 3))
-                var_loss = torch.mean(torch.var(real_gens, dim=1), dim=(0, 1, 2))
+                var_loss = torch.mean(torch.var(disc_inputs_gen, dim=1), dim=(0, 1, 2, 3))
 
-                var_weight = 0.1
+                var_weight = 0.5
                 adv_weight = 1e-6
                 l1_weight = 1e-3
 
                 # TODO: BEST -0.001 adv and var_weight = 0.012
-                g_loss = -adv_weight * torch.mean(gen_pred_loss) + l1_weight * F.l1_loss(target_full_real,
+                g_loss = -adv_weight * torch.mean(gen_pred_loss) + l1_weight * F.l1_loss(target_full,
                                                                                                   avg_recon) - mssim_tensor(
-                    target_full_real, avg_recon) - var_weight * var_loss
+                    target_full, avg_recon) - var_weight * var_loss
 
                 g_loss.backward()
                 optimizer_G.step()
