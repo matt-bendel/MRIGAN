@@ -122,7 +122,7 @@ class GeneratorModel(nn.Module):
         self.in_chans = in_chans
         self.out_chans = out_chans
         self.chans = 64
-        self.num_pool_layers = 5
+        self.num_pool_layers = 6
         self.latent_size = latent_size
 
         num_pool_layers = self.num_pool_layers
@@ -131,7 +131,7 @@ class GeneratorModel(nn.Module):
 
         self.down_sample_layers = nn.ModuleList([ConvDownBlock(in_chans, ch, batch_norm=False)])
         for i in range(num_pool_layers - 1):
-            if i != 3:
+            if i < 3:
                 self.down_sample_layers += [ConvDownBlock(ch, ch * 2)]
                 ch *= 2
             else:
@@ -140,21 +140,12 @@ class GeneratorModel(nn.Module):
         self.res_layer = nn.Sequential(
             ResidualBlock(ch),
             ResidualBlock(ch),
-            ResidualBlock(ch),
-            ResidualBlock(ch),
-            ResidualBlock(ch),
-            ResidualBlock(ch),
-            ResidualBlock(ch),
-            ResidualBlock(ch),
         )
 
         self.conv = nn.Sequential(
             nn.Conv2d(ch * 2, ch, kernel_size=3, padding=1),
             nn.BatchNorm2d(ch),
-            nn.PReLU(),
-            nn.Conv2d(ch, ch, kernel_size=3, padding=1),
-            nn.BatchNorm2d(ch),
-            nn.PReLU(),
+            nn.PReLU()
         )
 
         # Z LOCATION 2
@@ -168,14 +159,12 @@ class GeneratorModel(nn.Module):
             nn.Linear(latent_size, latent_size // 4 * 3 * 3),
             nn.LeakyReLU(negative_slope=0.2),
             nn.Linear(latent_size // 4 * 3 * 3, latent_size // 4 * 6 * 6),
-            nn.LeakyReLU(negative_slope=0.2),
-            nn.Linear(latent_size // 4 * 6 * 6, latent_size // 4 * 12 * 12),
-            nn.LeakyReLU(negative_slope=0.2),
+            nn.LeakyReLU(negative_slope=0.2)
         )
 
         self.up_sample_layers = nn.ModuleList()
         for i in range(num_pool_layers - 1):
-            if i > 0:
+            if i > 1:
                 self.up_sample_layers += [ConvUpBlock(ch * 2, ch // 2)]
                 ch //= 2
             else:
@@ -184,9 +173,7 @@ class GeneratorModel(nn.Module):
         self.up_sample_layers += [ConvUpBlock(ch * 2, ch)]
         self.conv2 = nn.Sequential(
             nn.Conv2d(ch, ch // 2, kernel_size=1),
-            # nn.PReLU(),
             nn.Conv2d(ch // 2, out_chans, kernel_size=1),
-            # nn.Tanh(),
         )
 
     def forward(self, input, z):
@@ -210,6 +197,7 @@ class GeneratorModel(nn.Module):
         output = self.res_layer(output)
         output = torch.cat([z_out, output], dim=1)
         output = self.conv(output)
+        output = self.res_layer(output)
 
         # Apply up-sampling layers
         for layer in self.up_sample_layers:
