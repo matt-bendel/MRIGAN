@@ -131,13 +131,19 @@ class GeneratorModel(nn.Module):
 
         self.down_sample_layers = nn.ModuleList([ConvDownBlock(in_chans, ch, batch_norm=False)])
         for i in range(num_pool_layers - 1):
-            # if i < 4:
-            self.down_sample_layers += [ConvDownBlock(ch, ch * 2)]
-            ch *= 2
-            # else:
-            #     self.down_sample_layers += [ConvDownBlock(ch, ch)]
+            if i < 4:
+                self.down_sample_layers += [ConvDownBlock(ch, ch * 2)]
+                ch *= 2
+            else:
+                self.down_sample_layers += [ConvDownBlock(ch, ch)]
 
-        self.res_layer = ResidualBlock(ch)
+        self.res_layer = nn.Sequential(
+            ResidualBlock(ch),
+            ResidualBlock(ch),
+            ResidualBlock(ch),
+            ResidualBlock(ch),
+            ResidualBlock(ch),
+        )
 
         self.conv = nn.Sequential(
             nn.Conv2d(ch * 2, ch, kernel_size=3, padding=1),
@@ -151,8 +157,6 @@ class GeneratorModel(nn.Module):
             nn.LeakyReLU(negative_slope=0.2),
             nn.Conv2d(latent_size, latent_size * 2, kernel_size=(3, 3), padding=1),
             nn.LeakyReLU(negative_slope=0.2),
-            nn.Conv2d(latent_size * 2, latent_size * 4, kernel_size=(3, 3), padding=1),
-            nn.LeakyReLU(negative_slope=0.2),
         )
         self.middle_z_grow_linear = nn.Sequential(
             nn.Linear(latent_size, latent_size // 4 * 3 * 3),
@@ -163,11 +167,11 @@ class GeneratorModel(nn.Module):
 
         self.up_sample_layers = nn.ModuleList()
         for i in range(num_pool_layers - 1):
-            # if i > 0:
-            self.up_sample_layers += [ConvUpBlock(ch * 2, ch // 2)]
-            ch //= 2
-            # else:
-            #     self.up_sample_layers += [ConvUpBlock(ch * 2, ch)]
+            if i > 0:
+                self.up_sample_layers += [ConvUpBlock(ch * 2, ch // 2)]
+                ch //= 2
+            else:
+                self.up_sample_layers += [ConvUpBlock(ch * 2, ch)]
 
         self.up_sample_layers += [ConvUpBlock(ch * 2, ch)]
         self.conv2 = nn.Sequential(
