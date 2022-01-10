@@ -148,9 +148,6 @@ class GeneratorModel(nn.Module):
         self.conv = nn.Sequential(
             nn.Conv2d(ch * 2, ch, kernel_size=3, padding=1),
             nn.BatchNorm2d(ch),
-            nn.PReLU(),
-            nn.Conv2d(ch, ch, kernel_size=3, padding=1),
-            nn.BatchNorm2d(ch),
             nn.PReLU()
         )
 
@@ -200,6 +197,7 @@ class GeneratorModel(nn.Module):
         z_out = self.middle_z_grow_linear(z)
         z_out = torch.reshape(z_out, (output.shape[0], self.latent_size // 4, 6, 6))
         z_out = self.middle_z_grow_conv(z_out)
+        output = self.res_layer(output)
         output = torch.cat([z_out, output], dim=1)
         output = self.conv(output)
 
@@ -207,4 +205,4 @@ class GeneratorModel(nn.Module):
         for layer in self.up_sample_layers:
             output = layer(output, stack.pop())
 
-        return (self.conv2(output) + input)
+        return self.conv2(output)
