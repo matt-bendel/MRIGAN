@@ -149,9 +149,9 @@ class GeneratorModel(nn.Module):
             nn.Conv2d(ch * 2, ch, kernel_size=3, padding=1),
             nn.BatchNorm2d(ch),
             nn.PReLU(),
-            # nn.Conv2d(ch, ch, kernel_size=3, padding=1),
-            # nn.BatchNorm2d(ch),
-            # nn.PReLU()
+            nn.Conv2d(ch, ch, kernel_size=3, padding=1),
+            nn.BatchNorm2d(ch),
+            nn.PReLU()
         )
 
         # Z LOCATION 2
