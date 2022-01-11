@@ -10,7 +10,7 @@ def build_model(args):
         in_chans=args.in_chans,
         out_chans=args.out_chans,
         z_location=args.z_location,
-        latent_size=512
+        latent_size=args.latent_size
     ).to(torch.device('cuda'))
     return model
 
