@@ -197,7 +197,7 @@ class GeneratorModel(nn.Module):
         z_out = self.middle_z_grow_linear(z)
         z_out = torch.reshape(z_out, (output.shape[0], self.latent_size // 4, 3, 3))
         z_out = self.middle_z_grow_conv(z_out)
-        output = self.res_layer(output)
+        # output = self.res_layer(output)
         output = torch.cat([z_out, output], dim=1)
         output = self.conv(output)
         # output = self.res_layer(output)
