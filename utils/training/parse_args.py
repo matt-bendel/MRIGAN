@@ -15,7 +15,7 @@ def create_arg_parser():
                         help='Number of iterations of the discriminator')
     parser.add_argument('--num-z', type=int, default=8,
                         help='Number of z values')
-    parser.add_argument('--latent-size', type=int, default=1024, help='Size of latent vector for z location 2')
+    parser.add_argument('--latent-size', type=int, default=512, help='Size of latent vector for z location 2')
     parser.add_argument('--z-location', type=int, required=True, help='Where to put code vector')
 
     # LEARNING ARGS
