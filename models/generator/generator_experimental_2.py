@@ -122,7 +122,7 @@ class GeneratorModel(nn.Module):
         self.in_chans = in_chans
         self.out_chans = out_chans
         self.chans = 64
-        self.num_pool_layers = 7
+        self.num_pool_layers = 5
         self.latent_size = latent_size
 
         num_pool_layers = self.num_pool_layers
@@ -138,6 +138,12 @@ class GeneratorModel(nn.Module):
                 self.down_sample_layers += [ConvDownBlock(ch, ch)]
 
         self.res_layer = nn.Sequential(
+            nn.Conv2d(ch * 2, ch, kernel_size=3, padding=1),
+            nn.BatchNorm2d(ch),
+            nn.PReLU(),
+            ResidualBlock(ch),
+            ResidualBlock(ch),
+            ResidualBlock(ch),
             ResidualBlock(ch),
             ResidualBlock(ch),
             ResidualBlock(ch)
@@ -161,6 +167,10 @@ class GeneratorModel(nn.Module):
         )
         self.middle_z_grow_linear = nn.Sequential(
             nn.Linear(latent_size, latent_size // 4 * 3 * 3),
+            nn.LeakyReLU(negative_slope=0.2),
+            nn.Linear(latent_size // 4 * 3 * 3, latent_size // 4 * 6 * 6),
+            nn.LeakyReLU(negative_slope=0.2),
+            nn.Linear(latent_size // 4 * 6 * 6, latent_size // 4 * 12 * 12),
             nn.LeakyReLU(negative_slope=0.2)
         )
 
@@ -195,9 +205,10 @@ class GeneratorModel(nn.Module):
             stack.append(skip_out)
 
         z_out = self.middle_z_grow_linear(z)
-        z_out = torch.reshape(z_out, (output.shape[0], self.latent_size // 4, 3, 3))
+        z_out = torch.reshape(z_out, (output.shape[0], self.latent_size // 4, 12, 12))
         z_out = self.middle_z_grow_conv(z_out)
-        # output = self.res_layer(output)
+        output = torch.cat([z_out, output], dim=1)
+        output = self.res_layer(output)
         output = torch.cat([z_out, output], dim=1)
         output = self.conv(output)
         # output = self.res_layer(output)
