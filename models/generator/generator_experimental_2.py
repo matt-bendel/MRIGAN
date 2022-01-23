@@ -153,8 +153,8 @@ class GeneratorModel(nn.Module):
             ResidualBlock(ch),
             ResidualBlock(ch),
             ResidualBlock(ch),
-            ResidualBlock(ch),
-            ResidualBlock(ch),
+            # ResidualBlock(ch),
+            # ResidualBlock(ch),
         )
 
         # self.res_layer_2 = nn.Sequential(
