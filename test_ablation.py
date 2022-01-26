@@ -64,15 +64,15 @@ def non_average_gen(generator, input_w_z, z, old_input, args, true_measures):
         # refined_out = output_gen + old_input[:, 0:16]
         refined_out = output_gen + old_input[:]
     else:
-        refined_out = readd_measures_im(output_gen, old_input, args, true_measures=true_measures) if not args.inpaint else output_gen
+        refined_out = readd_measures_im(output_gen, old_input, args,
+                                        true_measures=true_measures) if args.data_consistency else output_gen
 
     return refined_out, finish
 
 
 def average_gen(generator, input_w_z, z, old_input, args, true_measures):
     start = time.perf_counter()
-    average_gen = torch.zeros(input_w_z.shape).to(args.device)
-    gens = []
+    average_gen = torch.zeros((input_w_z.shape[0], 1024, 16, 128, 128)).to(args.device)
 
     for j in range(1024):
         z = torch.FloatTensor(np.random.normal(size=(input_w_z.shape[0], args.latent_size), scale=np.sqrt(1))).to(
@@ -83,14 +83,14 @@ def average_gen(generator, input_w_z, z, old_input, args, true_measures):
             # refined_out = output_gen + old_input[:, 0:16]
             refined_out = output_gen + old_input[:]
         else:
-            refined_out = readd_measures_im(output_gen, old_input, args, true_measures=true_measures) if not args.inpaint else output_gen
+            refined_out = readd_measures_im(output_gen, old_input, args,
+                                            true_measures=true_measures) if args.data_consistency else output_gen
 
-        gens.append(refined_out)
-        average_gen = torch.add(average_gen, refined_out)
+        average_gen[:, j, :, :, :] = refined_out
 
     finish = time.perf_counter() - start
 
-    return torch.div(average_gen, 1024), finish
+    return torch.mean(average_gen, dim=1), finish, torch.mean(torch.std(average_gen, dim=1), dim=(0, 1, 2, 3))
 
 
 def get_gen(args, type='image'):
@@ -123,6 +123,7 @@ def main(args):
             'ssim': [],
             'psnr': [],
             'snr': [],
+            'apsd': [],
             'time': []
         }
 
@@ -138,12 +139,13 @@ def main(args):
             with torch.no_grad():
                 input_w_z = input.to(args.device)
                 # refined_out, finish = non_average_gen(generator, input_w_z, z, old_input)
-                refined_out, finish = average_gen(generator, input_w_z, z, old_input, args, true_measures)
+                refined_out, finish, apsd = average_gen(generator, input_w_z, z, old_input, args, true_measures)
 
                 target_batch = prep_input_2_chan(target_full, args.network_input, args, disc=True).to(args.device)
                 output_batch = prep_input_2_chan(refined_out, args.network_input, args, disc=True).to(args.device)
 
                 metrics['time'] = finish / output_batch.shape[0]
+                metrics['apsd'] = apsd
 
                 batch_metrics = {
                     'psnr': [],
@@ -178,7 +180,7 @@ def main(args):
                     % (np.mean(batch_metrics['psnr']), np.mean(batch_metrics['snr']), np.mean(batch_metrics['ssim']))
                 )
 
-        save_str = f"[Avg. PSNR: {np.mean(metrics['psnr'])}] [Avg. SNR: {np.mean(metrics['snr'])}] [Avg. SSIM: {np.mean(metrics['ssim'])}], [Avg. Time: {np.mean(metrics['time'])}]"
+        save_str = f"[Avg. PSNR: {np.mean(metrics['psnr'])}] [Avg. SNR: {np.mean(metrics['snr'])}] [Avg. SSIM: {np.mean(metrics['ssim'])}], [Avg. APSD: {np.mean(metrics['apsd'])}], [Avg. Time: {np.mean(metrics['time'])}]"
         metric_file.write(save_str)
         print(f"[Median PSNR {np.median(metrics['psnr']):.2f}")
         print(f"[Median SNR {np.median(metrics['snr']):.2f}")
