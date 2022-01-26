@@ -7,6 +7,12 @@ def create_arg_parser():
     # CREATE THE PARSER
     parser = Args()
 
+    # ABLATION ARGS
+    parser.add_argument('--adv-only', action='store_true', help='Whether or not only loss is adversarial')
+    parser.add_argument('--supervised', action='store_true', help='Whether or not to use supervised loss')
+    parser.add_argument('--var-loss', action='store_true', help='Whether or not to use variation loss')
+    parser.add_argument('--data-consistency', action='store_true', help='Whether or not to use data consistency')
+
     # GAN ARGS
     parser.add_argument('--network-input', type=str, required=True, help='Image or K-Space U-Net')
     parser.add_argument('--disc-kspace', action='store_true', help='Image or K-Space Discriminator')
@@ -26,6 +32,8 @@ def create_arg_parser():
     parser.add_argument('--beta_2', type=float, default=0.99, help='Beta 2 for Adam')
 
     # DATA ARGS
+    parser.add_argument('--im-size', default=384, type=int,
+                        help='Image resolution')
     parser.add_argument('--data-parallel', required=True, action='store_true',
                         help='If set, use multiple GPUs using data parallelism')
     parser.add_argument('--num_of_top_slices', default=6, type=int,
