@@ -194,14 +194,14 @@ def create_data_loaders(args, val_only=False):
             dataset=train_data,
             batch_size=args.batch_size,
             shuffle=True,
-            num_workers=24,
+            num_workers=16,
             pin_memory=True,
         )
 
     dev_loader = DataLoader(
         dataset=dev_data,
         batch_size=args.batch_size,
-        num_workers=24,
+        num_workers=16,
         pin_memory=True,
     )
 
