@@ -121,7 +121,7 @@ class GeneratorModel(nn.Module):
 
         self.in_chans = in_chans
         self.out_chans = out_chans
-        self.chans = 128
+        self.chans = 64
         self.num_pool_layers = 5
         self.latent_size = latent_size
 
