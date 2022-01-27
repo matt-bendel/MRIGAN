@@ -147,6 +147,15 @@ class GeneratorModel(nn.Module):
             ResidualBlock(ch),
             ResidualBlock(ch),
             ResidualBlock(ch),
+            ResidualBlock(ch),
+            ResidualBlock(ch),
+            ResidualBlock(ch),
+            ResidualBlock(ch),
+            ResidualBlock(ch),
+            ResidualBlock(ch),
+            ResidualBlock(ch),
+            ResidualBlock(ch),
+            ResidualBlock(ch),
         )
 
         self.conv = nn.Sequential(
@@ -207,8 +216,6 @@ class GeneratorModel(nn.Module):
         z_out = self.middle_z_grow_linear(z)
         z_out = torch.reshape(z_out, (output.shape[0], self.latent_size // 4, 12, 12))
         z_out = self.middle_z_grow_conv(z_out)
-        output = torch.cat([z_out, output], dim=1)
-        output = self.res_layer_1(output)
         output = torch.cat([z_out, output], dim=1)
         output = self.res_layer_1(output)
         output = torch.cat([z_out, output], dim=1)
