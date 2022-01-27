@@ -153,9 +153,9 @@ class GeneratorModel(nn.Module):
             ResidualBlock(ch),
             ResidualBlock(ch),
             ResidualBlock(ch),
-            ResidualBlock(ch),
-            ResidualBlock(ch),
-            ResidualBlock(ch),
+            # ResidualBlock(ch),
+            # ResidualBlock(ch),
+            # ResidualBlock(ch),
         )
 
         self.conv = nn.Sequential(
