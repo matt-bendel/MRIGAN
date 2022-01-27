@@ -121,7 +121,7 @@ class GeneratorModel(nn.Module):
 
         self.in_chans = in_chans
         self.out_chans = out_chans
-        self.chans = 64
+        self.chans = 128
         self.num_pool_layers = 5
         self.latent_size = latent_size
 
@@ -141,15 +141,6 @@ class GeneratorModel(nn.Module):
             nn.Conv2d(ch * 2, ch, kernel_size=3, padding=1),
             nn.BatchNorm2d(ch),
             nn.PReLU(),
-            ResidualBlock(ch),
-            ResidualBlock(ch),
-            ResidualBlock(ch),
-            ResidualBlock(ch),
-            ResidualBlock(ch),
-            ResidualBlock(ch),
-            ResidualBlock(ch),
-            ResidualBlock(ch),
-            ResidualBlock(ch),
             ResidualBlock(ch),
             ResidualBlock(ch),
             ResidualBlock(ch),
@@ -216,6 +207,8 @@ class GeneratorModel(nn.Module):
         z_out = self.middle_z_grow_linear(z)
         z_out = torch.reshape(z_out, (output.shape[0], self.latent_size // 4, 12, 12))
         z_out = self.middle_z_grow_conv(z_out)
+        output = torch.cat([z_out, output], dim=1)
+        output = self.res_layer_1(output)
         output = torch.cat([z_out, output], dim=1)
         output = self.res_layer_1(output)
         output = torch.cat([z_out, output], dim=1)
