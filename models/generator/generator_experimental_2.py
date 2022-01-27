@@ -164,8 +164,6 @@ class GeneratorModel(nn.Module):
             nn.LeakyReLU(negative_slope=0.2),
             nn.Conv2d(latent_size // 2, latent_size, kernel_size=(3, 3), padding=1),
             nn.LeakyReLU(negative_slope=0.2),
-            nn.Conv2d(latent_size, latent_size*2, kernel_size=(3, 3), padding=1),
-            nn.LeakyReLU(negative_slope=0.2),
         )
         self.middle_z_grow_linear = nn.Sequential(
             nn.Linear(latent_size, latent_size // 4 * 3 * 3),
