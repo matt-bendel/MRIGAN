@@ -196,6 +196,7 @@ def create_data_loaders(args, val_only=False):
             shuffle=True,
             num_workers=16,
             pin_memory=True,
+            drop_last=True,
         )
 
     dev_loader = DataLoader(
@@ -203,6 +204,7 @@ def create_data_loaders(args, val_only=False):
         batch_size=args.batch_size,
         num_workers=16,
         pin_memory=True,
+        drop_last=True,
     )
 
     return train_loader if not val_only else None, dev_loader

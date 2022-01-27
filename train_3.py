@@ -338,7 +338,9 @@ def main(args):
                     # ---------------------
                     #  Train Discriminator
                     # ---------------------
-                    optimizer_D.zero_grad()
+                    # optimizer_D.zero_grad()
+                    for param in discriminator.parameters():
+                        param.grad = None
 
                     input_w_z = input_w_z.to(args.device)
                     output_gen = generator(input_w_z, z)
@@ -375,7 +377,9 @@ def main(args):
                     d_loss.backward()
                     optimizer_D.step()
 
-                optimizer_G.zero_grad()
+                # optimizer_G.zero_grad()
+                for param in generator.parameters():
+                    param.grad = None
 
                 # Generate a batch of images
                 z = torch.FloatTensor(
@@ -566,6 +570,7 @@ def main(args):
 
 if __name__ == '__main__':
     cuda = True if torch.cuda.is_available() else False
+    torch.backends.cudnn.benchmark = True
     Tensor = torch.FloatTensor
 
     args = create_arg_parser().parse_args()
