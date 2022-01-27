@@ -121,7 +121,7 @@ class GeneratorModel(nn.Module):
 
         self.in_chans = in_chans
         self.out_chans = out_chans
-        self.chans = 64
+        self.chans = 128
         self.num_pool_layers = 5
         self.latent_size = latent_size
 
@@ -131,7 +131,7 @@ class GeneratorModel(nn.Module):
 
         self.down_sample_layers = nn.ModuleList([ConvDownBlock(in_chans, ch, batch_norm=False)])
         for i in range(num_pool_layers - 1):
-            if i < 3:
+            if i < 2:
                 self.down_sample_layers += [ConvDownBlock(ch, ch * 2)]
                 ch *= 2
             else:
@@ -155,16 +155,16 @@ class GeneratorModel(nn.Module):
             ResidualBlock(ch),
             ResidualBlock(ch),
             ResidualBlock(ch),
-            # ResidualBlock(ch),
+            ResidualBlock(ch),
         )
 
         self.conv = nn.Sequential(
             nn.Conv2d(ch * 2, ch, kernel_size=3, padding=1),
             nn.BatchNorm2d(ch),
             nn.PReLU(),
-            nn.Conv2d(ch, ch, kernel_size=3, padding=1),
-            nn.BatchNorm2d(ch),
-            nn.PReLU()
+            # nn.Conv2d(ch, ch, kernel_size=3, padding=1),
+            # nn.BatchNorm2d(ch),
+            # nn.PReLU()
         )
 
         # Z LOCATION 2
@@ -185,7 +185,7 @@ class GeneratorModel(nn.Module):
 
         self.up_sample_layers = nn.ModuleList()
         for i in range(num_pool_layers - 1):
-            if i > 0:
+            if i > 1:
                 self.up_sample_layers += [ConvUpBlock(ch * 2, ch // 2)]
                 ch //= 2
             else:
