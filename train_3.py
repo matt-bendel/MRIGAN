@@ -154,7 +154,7 @@ def average_gen(generator, input_w_z, old_input, args, true_measures):
     average_gen = torch.zeros(input_w_z.shape, device=args.device)
     gen_list = []
     for j in range(8):
-        z = torch.FloatTensor(np.random.normal(size=(input_w_z.shape[0], args.latent_size), scale=np.sqrt(1)), device=args.device)
+        z = torch.cuda.FloatTensor(np.random.normal(size=(input_w_z.shape[0], args.latent_size), scale=np.sqrt(1)), device=args.device)
         output_gen = generator(input=input_w_z, z=z)
 
         if args.network_input == 'kspace':
@@ -372,7 +372,7 @@ def main(args):
                     param.grad = None
 
                 # Generate a batch of images
-                z = torch.FloatTensor(
+                z = torch.cuda.FloatTensor(
                     np.random.normal(size=(args.num_z, input.shape[0], args.latent_size), scale=np.sqrt(1)), device=args.device)
                 output_gen = torch.zeros(size=(
                     args.num_z, old_input.shape[0], old_input.shape[1], old_input.shape[2], old_input.shape[3]), device=args.device)
