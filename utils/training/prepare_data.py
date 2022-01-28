@@ -78,7 +78,7 @@ class DataTransform:
 
         coil_compressed_x = ImageCropandKspaceCompression(x)  # (384, 384, 8)
 
-        im_tensor = transforms.to_tensor(coil_compressed_x).permute(2, 0, 1, 3).to(self.args.device)
+        im_tensor = transforms.to_tensor(coil_compressed_x).permute(2, 0, 1, 3)
         # output_x = transforms.root_sum_of_squares(im_tensor)
         # # REMOVE BELOW TWO LINES TO GO BACK UP
         # output_x_r = cv2.resize(output_x[:, :, 0].numpy(), dsize=(96, 96), interpolation=cv2.INTER_LINEAR)
