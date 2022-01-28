@@ -325,7 +325,7 @@ def main(args):
                 input_w_z = input
 
                 for j in range(args.num_iters_discriminator):
-                    z = torch.FloatTensor(
+                    z = torch.cuda.FloatTensor(
                         np.random.normal(size=(input.shape[0], args.latent_size), scale=np.sqrt(0.001)), device=args.device)
                     # ---------------------
                     #  Train Discriminator
@@ -560,7 +560,7 @@ def main(args):
 if __name__ == '__main__':
     cuda = True if torch.cuda.is_available() else False
     torch.backends.cudnn.benchmark = True
-    Tensor = torch.FloatTensor
+    Tensor = torch.cuda.FloatTensor
 
     args = create_arg_parser().parse_args()
     # restrict visible cuda devices
