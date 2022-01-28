@@ -123,37 +123,37 @@ class DataTransform:
 
         ###################################
 
-        stacked_masked_zfr = torch.zeros((16, 384, 384), device=self.args.device)
+        stacked_masked_zfr = torch.zeros((16, 384, 384))
 
         stacked_masked_zfr[0:8, :, :] = torch.squeeze(zfr[:, :, :, 0])
         stacked_masked_zfr[8:16, :, :] = torch.squeeze(zfr[:, :, :, 1])
         stacked_masked_zfr, mean, std = transforms.normalize_instance(stacked_masked_zfr)
         # zfr, mean, std = transforms.normalize_instance(zfr)
 
-        stacked_image = torch.zeros((16, 384, 384), device=self.args.device)
+        stacked_image = torch.zeros((16, 384, 384))
         stacked_image[0:8, :, :] = torch.squeeze(true_image[:, :, :, 0])
         stacked_image[8:16, :, :] = torch.squeeze(true_image[:, :, :, 1])
         stacked_image = transforms.normalize(stacked_image, mean, std)
         # target = transforms.normalize(true_image, mean, std)
         true_me = transforms.normalize(ifft2c_new(true_measures), mean, std)
 
-        temp = torch.zeros((8, 384, 384, 2), device=self.args.device)
-        stacked_masked_kspace = torch.zeros((16, 384, 384), device=self.args.device)
+        temp = torch.zeros((8, 384, 384, 2))
+        stacked_masked_kspace = torch.zeros((16, 384, 384))
         temp[:, :, :, 0] = stacked_masked_zfr[0:8, :, :]
         temp[:, :, :, 1] = stacked_masked_zfr[8:16, :, :]
         masked_kspace_normalized = fft2c_new(temp)
         stacked_masked_kspace[0:8, :, :] = torch.squeeze(masked_kspace_normalized[:, :, :, 0])
         stacked_masked_kspace[8:16, :, :] = torch.squeeze(masked_kspace_normalized[:, :, :, 1])
 
-        temp = torch.zeros((8, 384, 384, 2), device=self.args.device)
-        stacked_kspace = torch.zeros((16, 384, 384), device=self.args.device)
+        temp = torch.zeros((8, 384, 384, 2))
+        stacked_kspace = torch.zeros((16, 384, 384))
         temp[:, :, :, 0] = stacked_image[0:8, :, :]
         temp[:, :, :, 1] = stacked_image[8:16, :, :]
         kspace_normalized = fft2c_new(temp)
         stacked_kspace[0:8, :, :] = torch.squeeze(kspace_normalized[:, :, :, 0])
         stacked_kspace[8:16, :, :] = torch.squeeze(kspace_normalized[:, :, :, 1])
 
-        temp = torch.zeros((8, 384, 384, 2), device=self.args.device)
+        temp = torch.zeros((8, 384, 384, 2))
         temp[:, :, :, 0] = stacked_masked_zfr[0:8, :, :]
         temp[:, :, :, 1] = stacked_masked_zfr[8:16, :, :]
         true_measures_normal = fft2c_new(temp)
