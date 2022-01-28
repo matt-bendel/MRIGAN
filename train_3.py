@@ -124,11 +124,11 @@ def save_model(args, epoch, model, optimizer, best_dev_loss, is_new_best, m_type
 def compute_gradient_penalty(D, real_samples, fake_samples, args, y):
     """Calculates the gradient penalty loss for WGAN GP"""
     # Random weight term for interpolation between real and fake samples
-    alpha = Tensor(np.random.random((real_samples.size(0), 1, 1, 1))).to(args.device)
+    alpha = Tensor(np.random.random((real_samples.size(0), 1, 1, 1)), device=args.device)
     # Get random interpolation between real and fake samples
     interpolates = (alpha * real_samples + ((1 - alpha) * fake_samples)).requires_grad_(True)
     d_interpolates = D(input=interpolates, y=y)
-    fake = Tensor(real_samples.shape[0], 1).fill_(1.0).to(args.device)
+    fake = Tensor(real_samples.shape[0], 1, device=args.device)
     # Get gradient w.r.t. interpolates
     gradients = autograd.grad(
         outputs=d_interpolates,
@@ -150,22 +150,11 @@ def save_metrics(args):
         pickle.dump(GLOBAL_LOSS_DICT, f, pickle.HIGHEST_PROTOCOL)
 
 
-def average(gen_tensor):
-    average_tensor = torch.zeros(
-        (gen_tensor.shape[0], gen_tensor.shape[2], gen_tensor.shape[3], gen_tensor.shape[4])).to(gen_tensor.device)
-    for j in range(gen_tensor.shape[0]):
-        for i in range(gen_tensor.shape[1]):
-            average_tensor[j, :, :, :] = torch.add(gen_tensor[j, i, :, :, :], average_tensor[j, :, :, :])
-
-    return torch.div(average_tensor, gen_tensor.shape[1])
-
-
 def average_gen(generator, input_w_z, old_input, args, true_measures):
-    average_gen = torch.zeros(input_w_z.shape).to(args.device)
+    average_gen = torch.zeros(input_w_z.shape, device=args.device)
     gen_list = []
     for j in range(8):
-        z = torch.FloatTensor(np.random.normal(size=(input_w_z.shape[0], args.latent_size), scale=np.sqrt(1))).to(
-            args.device)
+        z = torch.FloatTensor(np.random.normal(size=(input_w_z.shape[0], args.latent_size), scale=np.sqrt(1)), device=args.device)
         output_gen = generator(input=input_w_z, z=z)
 
         if args.network_input == 'kspace':
@@ -325,16 +314,15 @@ def main(args):
                 input, target_full, mean, std, true_measures = data
 
                 input = prep_input_2_chan(input, args.network_input, args)
-                target_full = prep_input_2_chan(target_full, args.network_input, args).to(args.device)
-                true_measures = true_measures.to(args.device)
+                target_full = prep_input_2_chan(target_full, args.network_input, args)
 
-                old_input = input.to(args.device)
+                old_input = input
 
-                input_w_z = input  # add_z_to_input(args, input)
+                input_w_z = input
 
                 for j in range(args.num_iters_discriminator):
                     z = torch.FloatTensor(
-                        np.random.normal(size=(input.shape[0], args.latent_size), scale=np.sqrt(0.001))).to(args.device)
+                        np.random.normal(size=(input.shape[0], args.latent_size), scale=np.sqrt(0.001)), device=args.device)
                     # ---------------------
                     #  Train Discriminator
                     # ---------------------
@@ -342,7 +330,6 @@ def main(args):
                     for param in discriminator.parameters():
                         param.grad = None
 
-                    input_w_z = input_w_z.to(args.device)
                     output_gen = generator(input_w_z, z)
                     if args.network_input == 'kspace':
                         # refined_out = output_gen + old_input[:, 0:16]
@@ -353,10 +340,9 @@ def main(args):
 
                     # TURN OUTPUT INTO IMAGE FOR DISCRIMINATION AND GET REAL IMAGES FOR DISCRIMINATION
                     disc_target_batch = prep_input_2_chan(target_full, args.network_input, args, disc=True,
-                                                          disc_image=not args.disc_kspace).to(
-                        args.device)
+                                                          disc_image=not args.disc_kspace)
                     disc_output_batch = prep_input_2_chan(refined_out, args.network_input, args, disc=True,
-                                                          disc_image=not args.disc_kspace).to(args.device)
+                                                          disc_image=not args.disc_kspace)
 
                     # MAKE PREDICTIONS
                     real_pred = discriminator(input=disc_target_batch, y=old_input)
@@ -383,34 +369,31 @@ def main(args):
 
                 # Generate a batch of images
                 z = torch.FloatTensor(
-                    np.random.normal(size=(args.num_z, input.shape[0], args.latent_size), scale=np.sqrt(1))).to(
-                    args.device)
+                    np.random.normal(size=(args.num_z, input.shape[0], args.latent_size), scale=np.sqrt(1)), device=args.device)
                 output_gen = torch.zeros(size=(
-                    args.num_z, old_input.shape[0], old_input.shape[1], old_input.shape[2], old_input.shape[3])).to(
-                    args.device)
+                    args.num_z, old_input.shape[0], old_input.shape[1], old_input.shape[2], old_input.shape[3]), device=args.device)
                 for k in range(args.num_z):
                     output_gen[k, :, :, :, :] = generator(input_w_z, z[k])
 
                 if args.network_input == 'kspace':
                     refined_out = output_gen + old_input[:]
                 else:
-                    refined_out = torch.zeros(size=output_gen.shape).to(args.device)
+                    refined_out = torch.zeros(size=output_gen.shape, device=args.device)
                     for k in range(args.num_z):
                         refined_out[k, :, :, :, :] = readd_measures_im(output_gen[k], old_input, args,
                                                                        true_measures=true_measures) if not args.inpaint else \
                         output_gen[k]
 
-                disc_output_batch = torch.zeros(size=refined_out.shape).to(args.device)
+                disc_output_batch = torch.zeros(size=refined_out.shape, device=args.device)
                 for k in range(args.num_z):
                     disc_output_batch[k, :, :, :, :] = prep_input_2_chan(refined_out[k], args.network_input, args,
                                                                          disc=True,
-                                                                         disc_image=not args.disc_kspace).to(
-                        args.device)
+                                                                         disc_image=not args.disc_kspace)
 
                 disc_inputs_gen = torch.zeros(
                     size=(old_input.shape[0], args.num_z, disc_output_batch.shape[2], disc_output_batch.shape[3],
-                          disc_output_batch.shape[4])
-                ).to(args.device)
+                          disc_output_batch.shape[4]), device=args.device
+                )
                 for l in range(old_input.shape[0]):
                     for k in range(args.num_z):
                         disc_inputs_gen[l, k, :, :, :] = disc_output_batch[k, l, :, :, :]
@@ -418,7 +401,7 @@ def main(args):
                 avg_recon = torch.mean(disc_inputs_gen, dim=1)  # average(disc_inputs_gen)
                 # Loss measures generator's ability to fool the discriminator
                 # Train on fake images
-                fake_pred = torch.zeros((old_input.shape[0], args.num_z)).to(args.device)
+                fake_pred = torch.zeros((old_input.shape[0], args.num_z), device=args.device)
                 for k in range(old_input.shape[0]):
                     cond = torch.zeros(1, disc_inputs_gen.shape[2], disc_inputs_gen.shape[3], disc_inputs_gen.shape[4])
                     cond[0, :, :, :] = old_input[k, :, :, :]
@@ -463,16 +446,14 @@ def main(args):
                 with torch.no_grad():
                     input, target_full, mean, std, true_measures = data
 
-                    input = prep_input_2_chan(input, args.network_input, args).to(args.device)
-                    target_full = prep_input_2_chan(target_full, args.network_input, args).to(args.device)
-                    true_measures = true_measures.to(args.device)
+                    input = prep_input_2_chan(input, args.network_input, args)
+                    target_full = prep_input_2_chan(target_full, args.network_input, args)
 
                     output_gen, gen_list = average_gen(generator, input, input, args, true_measures)
 
                     ims = prep_input_2_chan(output_gen, args.network_input, args, disc=True,
                                             disc_image=not args.disc_kspace)
-                    target_im = prep_input_2_chan(target_full, args.network_input, args, disc=True).to(
-                        args.device)
+                    target_im = prep_input_2_chan(target_full, args.network_input, args, disc=True)
 
                     for k in range(ims.shape[0]):
                         output_rss = torch.zeros(8, ims.shape[2], ims.shape[2], 2)
@@ -494,7 +475,7 @@ def main(args):
                         if i + 1 == 1 and k == 2:
                             gen_im_list = []
                             for r, val in enumerate(gen_list):
-                                val_rss = torch.zeros(8, output.shape[0], output.shape[0], 2).to(args.device)
+                                val_rss = torch.zeros((8, output.shape[0], output.shape[0], 2), device=args.device)
                                 val_rss[:, :, :, 0] = val[k, 0:8, :, :]
                                 val_rss[:, :, :, 1] = val[k, 8:16, :, :]
                                 gen_im_list.append(transforms.root_sum_of_squares(

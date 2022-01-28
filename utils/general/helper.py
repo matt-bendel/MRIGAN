@@ -33,16 +33,16 @@ def get_mask(im_size):
 
 def readd_measures_im(data_tensor, old, args, kspace=False, true_measures=False):
     im_size = args.im_size
-    disc_inp = torch.zeros(data_tensor.shape[0], 16, im_size, im_size).to(args.device)
-    kspace_no_ip = torch.zeros(data_tensor.shape[0], 16, im_size, im_size).to(args.device)
+    disc_inp = torch.zeros((data_tensor.shape[0], 16, im_size, im_size), device=args.device)
+    kspace_no_ip = torch.zeros((data_tensor.shape[0], 16, im_size, im_size), device=args.device)
 
     for k in range(data_tensor.shape[0]):
-        temp = torch.zeros(8, im_size, im_size, 2).to(args.device)
+        temp = torch.zeros((8, im_size, im_size, 2), device=args.device)
         temp[:, :, :, 0] = data_tensor[k, 0:8, :, :]
         temp[:, :, :, 1] = data_tensor[k, 8:16, :, :]
         output_tensor = fft2c_new(temp)
 
-        temp = torch.zeros(8, im_size, im_size, 2).to(args.device)
+        temp = torch.zeros((8, im_size, im_size, 2), device=args.device)
         temp[:, :, :, 0] = old[k, 0:8, :, :]
         temp[:, :, :, 1] = old[k, 8:16, :, :]
         old_out = fft2c_new(temp)
@@ -67,7 +67,7 @@ def readd_measures_im(data_tensor, old, args, kspace=False, true_measures=False)
         return disc_inp if not args.inpaint else kspace_no_ip
 
     for k in range(data_tensor.shape[0]):
-        temp = torch.zeros(8, im_size, im_size, 2).to(args.device)
+        temp = torch.zeros((8, im_size, im_size, 2), device=args.device)
         temp[:, :, :, 0] = disc_inp[k, 0:8, :, :]
         temp[:, :, :, 1] = disc_inp[k, 8:16, :, :]
         output_tensor = ifft2c_new(temp)
@@ -80,12 +80,12 @@ def readd_measures_im(data_tensor, old, args, kspace=False, true_measures=False)
 
 def prep_input_2_chan(data_tensor, unet_type, args, disc=False, disc_image=True):
     im_size = args.im_size
-    disc_inp = torch.zeros(data_tensor.shape[0], 16, im_size, im_size).to(args.device)
+    disc_inp = torch.zeros(data_tensor.shape[0], 16, im_size, im_size, device=args.device)
 
     if disc and disc_image:
         return data_tensor
 
-    temp = torch.zeros(data_tensor.shape[0], 8, im_size, im_size, 2).to(args.device)
+    temp = torch.zeros((data_tensor.shape[0], 8, im_size, im_size, 2), device=args.device)
     new_data = data_tensor.permute(0, 3, 1, 2)
     temp[:, :, :, :, 0] = new_data[:, 0:8, :, :]
     temp[:, :, :, :, 1] = new_data[:, 8:16, :, :]

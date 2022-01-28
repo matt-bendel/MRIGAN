@@ -70,7 +70,7 @@ class DataTransform:
         # samp = m
         numcoil = 8
         mask = transforms.to_tensor(np.tile(samp, (numcoil, 1, 1)).astype(np.float32))
-        mask = torch.unsqueeze(mask,-1).repeat(1,1,1,2)
+        mask = torch.unsqueeze(mask, -1).repeat(1, 1, 1, 2)
 
         kspace = kspace.transpose(1, 2, 0)
 
@@ -78,7 +78,7 @@ class DataTransform:
 
         coil_compressed_x = ImageCropandKspaceCompression(x)  # (384, 384, 8)
 
-        im_tensor = transforms.to_tensor(coil_compressed_x).permute(2, 0, 1, 3)
+        im_tensor = transforms.to_tensor(coil_compressed_x).permute(2, 0, 1, 3).to(self.args.device)
         # output_x = transforms.root_sum_of_squares(im_tensor)
         # # REMOVE BELOW TWO LINES TO GO BACK UP
         # output_x_r = cv2.resize(output_x[:, :, 0].numpy(), dsize=(96, 96), interpolation=cv2.INTER_LINEAR)
@@ -104,8 +104,8 @@ class DataTransform:
                 rand_start_col = randrange(0, end)
                 rand_start_row = randrange(0, end)
             else:
-                rand_start_col = 5*n//8
-                rand_start_row = 5*n//8
+                rand_start_col = 5 * n // 8
+                rand_start_row = 5 * n // 8
 
             image[rand_start_row:rand_start_row + square_length, rand_start_col:rand_start_col + square_length, :] = 0
 
@@ -123,42 +123,42 @@ class DataTransform:
 
         ###################################
 
-        stacked_masked_zfr = torch.zeros(16, 384, 384)
+        stacked_masked_zfr = torch.zeros((16, 384, 384), device=self.args.device)
 
         stacked_masked_zfr[0:8, :, :] = torch.squeeze(zfr[:, :, :, 0])
         stacked_masked_zfr[8:16, :, :] = torch.squeeze(zfr[:, :, :, 1])
         stacked_masked_zfr, mean, std = transforms.normalize_instance(stacked_masked_zfr)
         # zfr, mean, std = transforms.normalize_instance(zfr)
 
-        stacked_image = torch.zeros(16, 384, 384)
+        stacked_image = torch.zeros((16, 384, 384), device=self.args.device)
         stacked_image[0:8, :, :] = torch.squeeze(true_image[:, :, :, 0])
         stacked_image[8:16, :, :] = torch.squeeze(true_image[:, :, :, 1])
         stacked_image = transforms.normalize(stacked_image, mean, std)
         # target = transforms.normalize(true_image, mean, std)
         true_me = transforms.normalize(ifft2c_new(true_measures), mean, std)
 
-        temp = torch.zeros(8, 384, 384,2)
-        stacked_masked_kspace = torch.zeros(16, 384, 384)
+        temp = torch.zeros((8, 384, 384, 2), device=self.args.device)
+        stacked_masked_kspace = torch.zeros((16, 384, 384), device=self.args.device)
         temp[:, :, :, 0] = stacked_masked_zfr[0:8, :, :]
         temp[:, :, :, 1] = stacked_masked_zfr[8:16, :, :]
         masked_kspace_normalized = fft2c_new(temp)
         stacked_masked_kspace[0:8, :, :] = torch.squeeze(masked_kspace_normalized[:, :, :, 0])
         stacked_masked_kspace[8:16, :, :] = torch.squeeze(masked_kspace_normalized[:, :, :, 1])
 
-        temp = torch.zeros(8, 384, 384, 2)
-        stacked_kspace = torch.zeros(16, 384, 384)
+        temp = torch.zeros((8, 384, 384, 2), device=self.args.device)
+        stacked_kspace = torch.zeros((16, 384, 384), device=self.args.device)
         temp[:, :, :, 0] = stacked_image[0:8, :, :]
         temp[:, :, :, 1] = stacked_image[8:16, :, :]
         kspace_normalized = fft2c_new(temp)
         stacked_kspace[0:8, :, :] = torch.squeeze(kspace_normalized[:, :, :, 0])
         stacked_kspace[8:16, :, :] = torch.squeeze(kspace_normalized[:, :, :, 1])
 
-        temp = torch.zeros(8, 384, 384, 2)
+        temp = torch.zeros((8, 384, 384, 2), device=self.args.device)
         temp[:, :, :, 0] = stacked_masked_zfr[0:8, :, :]
         temp[:, :, :, 1] = stacked_masked_zfr[8:16, :, :]
         true_measures_normal = fft2c_new(temp)
 
-        return stacked_masked_kspace.permute(1,2,0), stacked_kspace.permute(1,2,0), mean, std, true_measures_normal
+        return stacked_masked_kspace.permute(1, 2, 0), stacked_kspace.permute(1, 2, 0), mean, std, true_measures_normal
 
 
 def create_datasets(args, val_only):
