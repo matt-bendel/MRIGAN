@@ -313,6 +313,10 @@ def main(args):
             for i, data in enumerate(train_loader):
                 input, target_full, mean, std, true_measures = data
 
+                input = input.to(args.device)
+                target_full = target_full.to(args.device)
+                true_measures = true_measures.to(args.device)
+
                 input = prep_input_2_chan(input, args.network_input, args)
                 target_full = prep_input_2_chan(target_full, args.network_input, args)
 
@@ -445,6 +449,10 @@ def main(args):
                 generator.eval()
                 with torch.no_grad():
                     input, target_full, mean, std, true_measures = data
+
+                    input = input.to(args.device)
+                    target_full = target_full.to(args.device)
+                    true_measures = true_measures.to(args.device)
 
                     input = prep_input_2_chan(input, args.network_input, args)
                     target_full = prep_input_2_chan(target_full, args.network_input, args)
