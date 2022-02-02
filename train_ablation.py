@@ -425,7 +425,7 @@ def main(args):
             for k in range(old_input.shape[0] - 1):
                 gen_pred_loss += torch.mean(fake_pred[k + 1])
 
-            var_weight = 0.01
+            var_weight = 0.02
             adv_weight = 1e-6
             ssim_weight = 0.84
             g_loss = -torch.mean(gen_pred_loss) if args.adv_only else -adv_weight * torch.mean(gen_pred_loss)
@@ -534,7 +534,7 @@ def main(args):
                         plt.savefig('temp_gen_targ_ablation.png')
                         plt.close()
 
-                if i == 80:
+                if i == 42:
                     break
 
         psnr_loss = np.mean(losses['psnr'])
