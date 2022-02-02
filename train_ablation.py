@@ -521,12 +521,12 @@ def main(args):
 
                         fig.colorbar(im, cax=cbar_ax)
 
-                        plt.savefig('std_dev_gen_ablation.png')
+                        plt.savefig(f'std_dev_gen_ablation_{args.z}.png')
                         plt.close()
 
                         plt.figure()
                         plt.imshow(np.abs(output), cmap='gray')
-                        plt.savefig('temp_gen_out_ablation.png')
+                        plt.savefig(f'temp_gen_out_ablation_{args.z}.png')
                         plt.close()
 
                         plt.figure()
