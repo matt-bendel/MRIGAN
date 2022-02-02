@@ -521,17 +521,17 @@ def main(args):
 
                         fig.colorbar(im, cax=cbar_ax)
 
-                        plt.savefig('std_dev_gen.png')
+                        plt.savefig('std_dev_gen_ablation.png')
                         plt.close()
 
                         plt.figure()
                         plt.imshow(np.abs(output), cmap='gray')
-                        plt.savefig('temp_gen_out.png')
+                        plt.savefig('temp_gen_out_ablation.png')
                         plt.close()
 
                         plt.figure()
                         plt.imshow(np.abs(target), cmap='gray')
-                        plt.savefig('temp_gen_targ.png')
+                        plt.savefig('temp_gen_targ_ablation.png')
                         plt.close()
 
                 if i == 80:
