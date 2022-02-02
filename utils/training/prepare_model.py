@@ -1,27 +1,47 @@
 import torch
 
 from models.generator.generator_experimental_2 import GeneratorModel
+from models.generator.generator_experimental_2_ablation import GeneratorModelLowRes
 from models.discriminator.discriminator import DiscriminatorModel
+from models.discriminator.discriminator_ablation import DiscriminatorModelLowRes
 from models.baseline_unet.unet_residual import UnetModelRes
 
 
 def build_model(args):
-    model = GeneratorModel(
-        in_chans=args.in_chans,
-        out_chans=args.out_chans,
-        z_location=args.z_location,
-        latent_size=args.latent_size
-    ).to(torch.device('cuda'))
+    if args.im_size == 384:
+        model = GeneratorModel(
+            in_chans=args.in_chans,
+            out_chans=args.out_chans,
+            z_location=args.z_location,
+            latent_size=args.latent_size
+        ).to(torch.device('cuda'))
+    else:
+        model = GeneratorModelLowRes(
+            in_chans=args.in_chans,
+            out_chans=args.out_chans,
+            z_location=args.z_location,
+            latent_size=args.latent_size
+        ).to(torch.device('cuda'))
+
     return model
 
 
 def build_discriminator(args):
-    model = DiscriminatorModel(
-        in_chans=args.in_chans,
-        out_chans=args.out_chans,
-        z_location=args.z_location,
-        model_type=args.network_input
-    ).to(torch.device('cuda'))
+    if args.im_size == 384:
+        model = DiscriminatorModel(
+            in_chans=args.in_chans,
+            out_chans=args.out_chans,
+            z_location=args.z_location,
+            model_type=args.network_input
+        ).to(torch.device('cuda'))
+    else:
+        model = DiscriminatorModelLowRes(
+            in_chans=args.in_chans,
+            out_chans=args.out_chans,
+            z_location=args.z_location,
+            model_type=args.network_input
+        ).to(torch.device('cuda'))
+
     return model
 
 
