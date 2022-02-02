@@ -181,14 +181,14 @@ def create_data_loaders(args, val_only=False):
 
 
 def reduce_resolution(im):
-    reduced_im = torch.zeros(8, 128, 128, 2)
+    reduced_im = np.zeros((8, 128, 128, 2))
     for i in range(im.shape[0] // 2):
         reduced_im[i, :, :, 0] = cv2.resize(im[i, :, :, 0].numpy(), dsize=(128, 128),
                                             interpolation=cv2.INTER_LINEAR)
         reduced_im[i, :, :, 1] = cv2.resize(im[i, :, :, 1].numpy(), dsize=(128, 128),
                                             interpolation=cv2.INTER_LINEAR)
 
-    return reduced_im
+    return transforms.to_tensor(reduced_im)
 
 
 # Helper functions for Transform
