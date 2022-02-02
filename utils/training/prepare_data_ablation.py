@@ -181,15 +181,11 @@ def create_data_loaders(args, val_only=False):
 
 
 def reduce_resolution(im):
-    stacked_im = torch.zeros(16, 384, 384)
-    stacked_im[0:8, :, :] = im[:, :, :, 0]
-    stacked_im[8:16, :, :] = im[:, :, :, 1]
-
     reduced_im = torch.zeros(8, 128, 128, 2)
-    for i in range(stacked_im.shape[0] // 2):
-        reduced_im[i, :, :, 0] = cv2.resize(stacked_im[i, :, :, 0].numpy(), dsize=(128, 128),
+    for i in range(im.shape[0] // 2):
+        reduced_im[i, :, :, 0] = cv2.resize(im[i, :, :, 0].numpy(), dsize=(128, 128),
                                             interpolation=cv2.INTER_LINEAR)
-        reduced_im[i, :, :, 1] = cv2.resize(stacked_im[i + 8, :, :, 1].numpy(), dsize=(128, 128),
+        reduced_im[i, :, :, 1] = cv2.resize(im[i, :, :, 1].numpy(), dsize=(128, 128),
                                             interpolation=cv2.INTER_LINEAR)
 
     return reduced_im
