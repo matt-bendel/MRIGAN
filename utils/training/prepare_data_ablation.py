@@ -88,6 +88,9 @@ class DataTransform:
             image[:, rand_start_row:rand_start_row + square_length, rand_start_col:rand_start_col + square_length,
             :] = 0
 
+        if self.args.half_brain:
+            poo = None
+
         kspace = fft2c_new(image)
         masked_kspace = kspace * mask
         zfr = ifft2c_new(masked_kspace)

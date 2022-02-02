@@ -171,9 +171,11 @@ def average_gen(generator, input_w_z, old_input, args, true_measures):
         if args.network_input == 'kspace':
             # refined_out = output_gen + old_input[:, 0:16]
             refined_out = output_gen + old_input[:]
-        else:
+        elif args.data_consistency:
             refined_out = readd_measures_im(output_gen, old_input, args,
                                             true_measures=true_measures) if args.data_consistency else output_gen
+        else:
+            refined_out = output_gen
 
         gen_list.append(refined_out)
         average_gen = torch.add(average_gen, refined_out)
@@ -344,9 +346,11 @@ def main(args):
                 if args.network_input == 'kspace':
                     # refined_out = output_gen + old_input[:, 0:16]
                     refined_out = output_gen + old_input[:]
-                else:
+                elif args.data_consistency:
                     refined_out = readd_measures_im(output_gen, old_input, args,
                                                     true_measures=true_measures) if args.data_consistency else output_gen
+                else:
+                    refined_out = output_gen
 
                 # TURN OUTPUT INTO IMAGE FOR DISCRIMINATION AND GET REAL IMAGES FOR DISCRIMINATION
                 disc_target_batch = prep_input_2_chan(target_full, args.network_input, args, disc=True,
@@ -388,12 +392,14 @@ def main(args):
 
             if args.network_input == 'kspace':
                 refined_out = output_gen + old_input[:]
-            else:
+            elif args.data_consistency:
                 refined_out = torch.zeros(size=output_gen.shape).to(args.device)
                 for k in range(args.num_z):
                     refined_out[k, :, :, :, :] = readd_measures_im(output_gen[k], old_input, args,
                                                                    true_measures=true_measures) if args.data_consistency else \
-                    output_gen[k]
+                        output_gen[k, :, :, :, :]
+            else:
+                refined_out = output_gen
 
             disc_output_batch = torch.zeros(size=refined_out.shape).to(args.device)
             for k in range(args.num_z):
@@ -429,8 +435,10 @@ def main(args):
             adv_weight = 1e-6
             ssim_weight = 0.84
             g_loss = -torch.mean(gen_pred_loss) if args.adv_only else -adv_weight * torch.mean(gen_pred_loss)
-            g_loss += (1 - ssim_weight) * F.l1_loss(target_full, avg_recon) - ssim_weight * mssim_tensor(target_full, avg_recon) if args.supervised else 0
-            g_loss += - var_weight * torch.mean(torch.var(disc_inputs_gen, dim=1), dim=(0, 1, 2, 3)) if args.var_loss else 0
+            g_loss += (1 - ssim_weight) * F.l1_loss(target_full, avg_recon) - ssim_weight * mssim_tensor(target_full,
+                                                                                                         avg_recon) if args.supervised else 0
+            g_loss += - var_weight * torch.mean(torch.var(disc_inputs_gen, dim=1),
+                                                dim=(0, 1, 2, 3)) if args.var_loss else 0
 
             g_loss.backward()
             optimizer_G.step()
