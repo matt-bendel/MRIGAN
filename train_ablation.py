@@ -348,7 +348,7 @@ def main(args):
                     refined_out = output_gen + old_input[:]
                 elif args.data_consistency:
                     refined_out = readd_measures_im(output_gen, old_input, args,
-                                                    true_measures=true_measures) if args.data_consistency else output_gen
+                                                    true_measures=true_measures)
                 else:
                     refined_out = output_gen
 
@@ -395,9 +395,7 @@ def main(args):
             elif args.data_consistency:
                 refined_out = torch.zeros(size=output_gen.shape).to(args.device)
                 for k in range(args.num_z):
-                    refined_out[k, :, :, :, :] = readd_measures_im(output_gen[k], old_input, args,
-                                                                   true_measures=true_measures) if args.data_consistency else \
-                        output_gen[k, :, :, :, :]
+                    refined_out[k, :, :, :, :] = readd_measures_im(output_gen[k], old_input, args, true_measures=true_measures)
             else:
                 refined_out = output_gen
 
