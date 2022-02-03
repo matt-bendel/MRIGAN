@@ -527,12 +527,12 @@ def main(args):
 
                         fig.colorbar(im, cax=cbar_ax)
 
-                        plt.savefig(f'std_dev_gen_ablation_{args.z}.png')
+                        plt.savefig(f'std_dev_gen_ablation_{args.z_location}.png')
                         plt.close()
 
                         plt.figure()
                         plt.imshow(np.abs(output), cmap='gray')
-                        plt.savefig(f'temp_gen_out_ablation_{args.z}.png')
+                        plt.savefig(f'temp_gen_out_ablation_{args.z_location}.png')
                         plt.close()
 
                         plt.figure()
@@ -540,7 +540,7 @@ def main(args):
                         plt.savefig('temp_gen_targ_ablation.png')
                         plt.close()
 
-                if i == 42:
+                if i == 10:
                     break
 
         psnr_loss = np.mean(losses['psnr'])
