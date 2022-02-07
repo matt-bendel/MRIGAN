@@ -11,7 +11,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 from utils.general.helper import readd_measures_im
-from utils.training.prepare_data_ablation import create_data_loaders
+from utils.training.prepare_data_fid import create_data_loaders
 from utils.training.parse_args import create_arg_parser
 from fjd_metric import FJDMetric
 from embeddings import InceptionEmbedding
