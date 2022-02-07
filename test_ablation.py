@@ -167,6 +167,8 @@ def main(args):
                     generated_im_np = output.cpu().numpy()
                     true_im_np = target.cpu().numpy()
 
+                    print(np.max(generated_im_np))
+
                     batch_metrics['psnr'].append(psnr(true_im_np, generated_im_np, np.max(true_im_np)))
                     batch_metrics['ssim'].append(ssim(true_im_np, generated_im_np, np.max(true_im_np)))
                     batch_metrics['snr'].append(snr(true_im_np, generated_im_np))
