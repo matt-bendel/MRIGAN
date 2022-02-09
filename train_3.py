@@ -334,7 +334,7 @@ def main(args):
 
                 for j in range(args.num_iters_discriminator):
                     z = torch.FloatTensor(
-                        np.random.normal(size=(input.shape[0], args.latent_size), scale=np.sqrt(0.001))).to(args.device)
+                        np.random.normal(size=(input.shape[0], args.latent_size), scale=np.sqrt(1))).to(args.device)
                     # ---------------------
                     #  Train Discriminator
                     # ---------------------
