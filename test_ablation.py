@@ -112,7 +112,7 @@ def get_gen(args, type='image'):
     return generator
 
 
-def main(args, num, network):
+def main(args, num, network, dev_loader):
     args.exp_dir.mkdir(parents=True, exist_ok=True)
 
     args.in_chans = 16
@@ -123,7 +123,6 @@ def main(args, num, network):
 
     generator = get_gen(args)
     generator.eval()
-    train_loader, dev_loader = create_data_loaders(args, val_only=True)
 
     with open(f'trained_models/{args.network_input}/metrics_{args.z_location}.txt', 'w') as metric_file:
         metrics = {
@@ -195,6 +194,8 @@ def main(args, num, network):
         print(f"[Median SSIM {np.median(metrics['ssim']):.4f}")
         print(save_str)
 
+        del generator
+
 
 if __name__ == '__main__':
     warnings.filterwarnings("ignore")
@@ -213,11 +214,12 @@ if __name__ == '__main__':
     random.seed(args.seed)
     np.random.seed(args.seed)
     torch.manual_seed(args.seed)
-
+    _, loader = create_data_loaders(args, val_only=True)
     for net in range(6):
-        print(f"VALIDATING ABLATION NETWORK {net+1}")
-        for number in range(11):
-            power = (2**number)//1
-            print(f"VALIDATING NUM CODE VECTORS: {power}")
-            main(args, power, net+1)
-        print("\n\n\n")
+        if net > 0:
+            print(f"VALIDATING ABLATION NETWORK {net+1}")
+            for number in range(11):
+                power = (2**number)//1
+                print(f"VALIDATING NUM CODE VECTORS: {power}")
+                main(args, power, net+1, loader)
+            print("\n\n\n")
