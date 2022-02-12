@@ -174,9 +174,9 @@ def main(args, num, network):
                     batch_metrics['ssim'].append(ssim(true_im_np, generated_im_np, np.max(true_im_np)))
                     batch_metrics['snr'].append(snr(true_im_np, generated_im_np))
 
-                metrics['psnr'].append(np.mean(batch_metrics['psnr']))
-                metrics['snr'].append(np.mean(batch_metrics['snr']))
-                metrics['ssim'].append(np.mean(batch_metrics['ssim']))
+                    metrics['psnr'].append(np.mean(batch_metrics['psnr']))
+                    metrics['snr'].append(np.mean(batch_metrics['snr']))
+                    metrics['ssim'].append(np.mean(batch_metrics['ssim']))
 
                 print(
                     "[Avg. Batch PSNR %.2f] [Avg. Batch SNR %.2f]  [Avg. Batch SSIM %.4f]"
@@ -211,8 +211,8 @@ if __name__ == '__main__':
 
     for net in range(6):
         print(f"VALIDATING ABLATION NETWORK {net+1}")
-        for num in range(11):
-            power = (2**num)//1
+        for number in range(11):
+            power = (2**number)//1
             print(f"VALIDATING NUM CODE VECTORS: {power}")
             main(args, power, net+1)
         print("\n\n\n")
