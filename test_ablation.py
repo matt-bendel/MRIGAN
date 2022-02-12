@@ -216,6 +216,6 @@ if __name__ == '__main__':
     torch.manual_seed(args.seed)
 
     for num in range(11):
-        power = 2**num//1
+        power = (2**num)//1
         print(power)
         main(args, power)
