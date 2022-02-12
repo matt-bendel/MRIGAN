@@ -108,11 +108,12 @@ def get_gen(args, type='image'):
     return generator
 
 
-def main(args, num):
+def main(args, num, network):
     args.exp_dir.mkdir(parents=True, exist_ok=True)
 
     args.in_chans = 16
     args.out_chans = 16
+    args.z_location = network
 
     generator = get_gen(args)
     generator.eval()
@@ -215,7 +216,9 @@ if __name__ == '__main__':
     np.random.seed(args.seed)
     torch.manual_seed(args.seed)
 
-    for num in range(11):
-        power = (2**num)//1
-        print(power)
-        main(args, power)
+    for net in range(6):
+        print(f"VALIDATING ABLATION NETWORK {net+1}")
+        for num in range(11):
+            power = (2**num)//1
+            print(power)
+            main(args, power, net+1)
