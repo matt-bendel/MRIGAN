@@ -89,8 +89,10 @@ def average_gen(generator, input_w_z, z, old_input, args, true_measures, num_cod
         average_gen[:, j, :, :, :] = refined_out
 
     finish = time.perf_counter() - start
+    apsd = torch.mean(torch.std(average_gen, dim=1), dim=(0, 1, 2, 3)).cpu().numpy()
+    apsd = 0 if math.isnan(apsd) else apsd
 
-    return torch.mean(average_gen, dim=1), finish, torch.mean(torch.std(average_gen, dim=1), dim=(0, 1, 2, 3)).cpu().numpy()
+    return torch.mean(average_gen, dim=1), finish, apsd
 
 
 def get_gen(args, type='image'):
@@ -148,7 +150,6 @@ def main(args, num, network):
                 output_batch = prep_input_2_chan(refined_out, args.network_input, args, disc=True).to(args.device)
 
                 metrics['time'].append(finish / output_batch.shape[0])
-                print(apsd)
                 metrics['apsd'].append(apsd)
 
                 batch_metrics = {
