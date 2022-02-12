@@ -74,7 +74,7 @@ def average_gen(generator, input_w_z, z, old_input, args, true_measures, num_cod
     start = time.perf_counter()
     average_gen = torch.zeros((input_w_z.shape[0], num_code, 16, 128, 128)).to(args.device)
 
-    for j in range(num):
+    for j in range(num_code):
         z = torch.FloatTensor(np.random.normal(size=(input_w_z.shape[0], args.latent_size), scale=np.sqrt(1))).to(
             args.device)
         output_gen = generator(input=input_w_z, z=z)
