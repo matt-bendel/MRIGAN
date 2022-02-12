@@ -70,9 +70,9 @@ def non_average_gen(generator, input_w_z, z, old_input, args, true_measures):
     return refined_out, finish
 
 
-def average_gen(generator, input_w_z, z, old_input, args, true_measures, num=1024):
+def average_gen(generator, input_w_z, z, old_input, args, true_measures, num_code=1024):
     start = time.perf_counter()
-    average_gen = torch.zeros((input_w_z.shape[0], num, 16, 128, 128)).to(args.device)
+    average_gen = torch.zeros((input_w_z.shape[0], num_code, 16, 128, 128)).to(args.device)
 
     for j in range(num):
         z = torch.FloatTensor(np.random.normal(size=(input_w_z.shape[0], args.latent_size), scale=np.sqrt(1))).to(
@@ -114,6 +114,8 @@ def main(args, num, network):
     args.in_chans = 16
     args.out_chans = 16
     args.z_location = network
+    if network == 3 or network == 4 or network == 6:
+        args.data_consistency = True
 
     generator = get_gen(args)
     generator.eval()
@@ -220,5 +222,6 @@ if __name__ == '__main__':
         print(f"VALIDATING ABLATION NETWORK {net+1}")
         for num in range(11):
             power = (2**num)//1
-            print(power)
+            print(f"VALIDATING NUM CODE VECTORS: {power}")
             main(args, power, net+1)
+        print("\n\n\n")
