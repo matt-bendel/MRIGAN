@@ -5,6 +5,7 @@ import os
 import torch
 import pathlib
 import math
+import warnings
 
 import numpy as np
 import matplotlib.pyplot as plt
@@ -196,6 +197,7 @@ def main(args, num, network):
 
 
 if __name__ == '__main__':
+    warnings.filterwarnings("ignore")
     cuda = True if torch.cuda.is_available() else False
     Tensor = torch.FloatTensor
 
