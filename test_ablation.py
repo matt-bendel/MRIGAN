@@ -170,15 +170,6 @@ def main(args, num, network):
                     generated_im_np = output.cpu().numpy()
                     true_im_np = target.cpu().numpy()
 
-                    if first:
-                        print("GEN")
-                        print(np.max(generated_im_np))
-                        print(np.min(generated_im_np))
-                        print("TRUE")
-                        print(np.max(true_im_np))
-                        print(np.min(true_im_np))
-                        first = False
-
                     batch_metrics['psnr'].append(psnr(true_im_np, generated_im_np, np.max(true_im_np)))
                     batch_metrics['ssim'].append(ssim(true_im_np, generated_im_np, np.max(true_im_np)))
                     batch_metrics['snr'].append(snr(true_im_np, generated_im_np))
@@ -187,10 +178,10 @@ def main(args, num, network):
                 metrics['snr'].append(np.mean(batch_metrics['snr']))
                 metrics['ssim'].append(np.mean(batch_metrics['ssim']))
 
-                # print(
-                #     "[Avg. Batch PSNR %.2f] [Avg. Batch SNR %.2f]  [Avg. Batch SSIM %.4f]"
-                #     % (np.mean(batch_metrics['psnr']), np.mean(batch_metrics['snr']), np.mean(batch_metrics['ssim']))
-                # )
+                print(
+                    "[Avg. Batch PSNR %.2f] [Avg. Batch SNR %.2f]  [Avg. Batch SSIM %.4f]"
+                    % (np.mean(batch_metrics['psnr']), np.mean(batch_metrics['snr']), np.mean(batch_metrics['ssim']))
+                )
 
         print(f"RESULTS FOR {num} CODE VECTORS")
         save_str = f"[Avg. PSNR: {np.mean(metrics['psnr']):.2f}] [Avg. SNR: {np.mean(metrics['snr']):.2f}] [Avg. SSIM: {np.mean(metrics['ssim']):.4f}], [Avg. APSD: {np.mean(metrics['apsd'])}], [Avg. Time: {np.mean(metrics['time']):.3f}]"
