@@ -129,7 +129,7 @@ def main(args, num, network):
             'apsd': [],
             'time': []
         }
-        first = True
+
         for i, data in enumerate(dev_loader):
             input, target_full, mean, std, true_measures = data
 
@@ -147,8 +147,8 @@ def main(args, num, network):
                 target_batch = prep_input_2_chan(target_full, args.network_input, args, disc=True).to(args.device)
                 output_batch = prep_input_2_chan(refined_out, args.network_input, args, disc=True).to(args.device)
 
-                metrics['time'] = finish / output_batch.shape[0]
-                metrics['apsd'] = apsd
+                metrics['time'].append(finish / output_batch.shape[0])
+                metrics['apsd'].append(apsd)
 
                 batch_metrics = {
                     'psnr': [],
@@ -174,14 +174,14 @@ def main(args, num, network):
                     batch_metrics['ssim'].append(ssim(true_im_np, generated_im_np, np.max(true_im_np)))
                     batch_metrics['snr'].append(snr(true_im_np, generated_im_np))
 
-                    metrics['psnr'].append(np.mean(batch_metrics['psnr']))
-                    metrics['snr'].append(np.mean(batch_metrics['snr']))
-                    metrics['ssim'].append(np.mean(batch_metrics['ssim']))
+                metrics['psnr'].append(np.mean(batch_metrics['psnr']))
+                metrics['snr'].append(np.mean(batch_metrics['snr']))
+                metrics['ssim'].append(np.mean(batch_metrics['ssim']))
 
-                print(
-                    "[Avg. Batch PSNR %.2f] [Avg. Batch SNR %.2f]  [Avg. Batch SSIM %.4f]"
-                    % (np.mean(batch_metrics['psnr']), np.mean(batch_metrics['snr']), np.mean(batch_metrics['ssim']))
-                )
+                # print(
+                #     "[Avg. Batch PSNR %.2f] [Avg. Batch SNR %.2f]  [Avg. Batch SSIM %.4f]"
+                #     % (np.mean(batch_metrics['psnr']), np.mean(batch_metrics['snr']), np.mean(batch_metrics['ssim']))
+                # )
 
         print(f"RESULTS FOR {num} CODE VECTORS")
         save_str = f"[Avg. PSNR: {np.mean(metrics['psnr']):.2f}] [Avg. SNR: {np.mean(metrics['snr']):.2f}] [Avg. SSIM: {np.mean(metrics['ssim']):.4f}], [Avg. APSD: {np.mean(metrics['apsd'])}], [Avg. Time: {np.mean(metrics['time']):.3f}]"
