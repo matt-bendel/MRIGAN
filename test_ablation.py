@@ -70,11 +70,11 @@ def non_average_gen(generator, input_w_z, z, old_input, args, true_measures):
     return refined_out, finish
 
 
-def average_gen(generator, input_w_z, z, old_input, args, true_measures):
+def average_gen(generator, input_w_z, z, old_input, args, true_measures, num=1024):
     start = time.perf_counter()
-    average_gen = torch.zeros((input_w_z.shape[0], 1024, 16, 128, 128)).to(args.device)
+    average_gen = torch.zeros((input_w_z.shape[0], num, 16, 128, 128)).to(args.device)
 
-    for j in range(1024):
+    for j in range(num):
         z = torch.FloatTensor(np.random.normal(size=(input_w_z.shape[0], args.latent_size), scale=np.sqrt(1))).to(
             args.device)
         output_gen = generator(input=input_w_z, z=z)
@@ -108,7 +108,7 @@ def get_gen(args, type='image'):
     return generator
 
 
-def main(args):
+def main(args, num):
     args.exp_dir.mkdir(parents=True, exist_ok=True)
 
     args.in_chans = 16
@@ -126,7 +126,7 @@ def main(args):
             'apsd': [],
             'time': []
         }
-
+        first = True
         for i, data in enumerate(dev_loader):
             input, target_full, mean, std, true_measures = data
 
@@ -139,7 +139,7 @@ def main(args):
             with torch.no_grad():
                 input_w_z = input.to(args.device)
                 # refined_out, finish = non_average_gen(generator, input_w_z, z, old_input)
-                refined_out, finish, apsd = average_gen(generator, input_w_z, z, old_input, args, true_measures)
+                refined_out, finish, apsd = average_gen(generator, input_w_z, z, old_input, args, true_measures, num_code=num)
 
                 target_batch = prep_input_2_chan(target_full, args.network_input, args, disc=True).to(args.device)
                 output_batch = prep_input_2_chan(refined_out, args.network_input, args, disc=True).to(args.device)
@@ -167,7 +167,14 @@ def main(args):
                     generated_im_np = output.cpu().numpy()
                     true_im_np = target.cpu().numpy()
 
-                    print(np.max(generated_im_np))
+                    if first:
+                        print("GEN")
+                        print(np.max(generated_im_np))
+                        print(np.min(generated_im_np))
+                        print("TRUE")
+                        print(np.max(true_im_np))
+                        print(np.min(true_im_np))
+                        first = False
 
                     batch_metrics['psnr'].append(psnr(true_im_np, generated_im_np, np.max(true_im_np)))
                     batch_metrics['ssim'].append(ssim(true_im_np, generated_im_np, np.max(true_im_np)))
@@ -177,12 +184,13 @@ def main(args):
                 metrics['snr'].append(np.mean(batch_metrics['snr']))
                 metrics['ssim'].append(np.mean(batch_metrics['ssim']))
 
-                print(
-                    "[Avg. Batch PSNR %.2f] [Avg. Batch SNR %.2f]  [Avg. Batch SSIM %.4f]"
-                    % (np.mean(batch_metrics['psnr']), np.mean(batch_metrics['snr']), np.mean(batch_metrics['ssim']))
-                )
+                # print(
+                #     "[Avg. Batch PSNR %.2f] [Avg. Batch SNR %.2f]  [Avg. Batch SSIM %.4f]"
+                #     % (np.mean(batch_metrics['psnr']), np.mean(batch_metrics['snr']), np.mean(batch_metrics['ssim']))
+                # )
 
-        save_str = f"[Avg. PSNR: {np.mean(metrics['psnr'])}] [Avg. SNR: {np.mean(metrics['snr'])}] [Avg. SSIM: {np.mean(metrics['ssim'])}], [Avg. APSD: {np.mean(metrics['apsd'])}], [Avg. Time: {np.mean(metrics['time'])}]"
+        print(f"RESULTS FOR {num} CODE VECTORS")
+        save_str = f"[Avg. PSNR: {np.mean(metrics['psnr']):.2f}] [Avg. SNR: {np.mean(metrics['snr']):.2f}] [Avg. SSIM: {np.mean(metrics['ssim']):.4f}], [Avg. APSD: {np.mean(metrics['apsd'])}], [Avg. Time: {np.mean(metrics['time']):.3f}]"
         metric_file.write(save_str)
         print(f"[Median PSNR {np.median(metrics['psnr']):.2f}")
         print(f"[Median SNR {np.median(metrics['snr']):.2f}")
@@ -207,4 +215,7 @@ if __name__ == '__main__':
     np.random.seed(args.seed)
     torch.manual_seed(args.seed)
 
-    main(args)
+    for num in range(11):
+        power = 2**num//1
+        print(power)
+        main(args, power)
