@@ -210,11 +210,12 @@ if __name__ == '__main__':
     torch.manual_seed(args.seed)
     _, loader = create_data_loaders(args, val_only=True)
     for net in range(6):
-        print(f"VALIDATING ABLATION NETWORK {net+1}")
+        net += 1
+        print(f"VALIDATING ABLATION NETWORK {net}")
         args.in_chans = 16
         args.out_chans = 16
         args.z_location = net+1
-        if network == 3 or network == 4 or network == 6:
+        if net == 3 or net == 4 or net == 6:
             args.data_consistency = True
 
         gen = get_gen(args)
