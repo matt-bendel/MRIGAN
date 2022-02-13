@@ -219,6 +219,7 @@ if __name__ == '__main__':
         if net > 0:
             print(f"VALIDATING ABLATION NETWORK {net+1}")
             for number in range(11):
+                number = -(number - 10)
                 power = (2**number)//1
                 print(f"VALIDATING NUM CODE VECTORS: {power}")
                 main(args, power, net+1, loader)
