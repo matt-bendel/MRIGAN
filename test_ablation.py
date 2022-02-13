@@ -214,7 +214,7 @@ if __name__ == '__main__':
         print(f"VALIDATING ABLATION NETWORK {net}")
         args.in_chans = 16
         args.out_chans = 16
-        args.z_location = net+1
+        args.z_location = net
         if net == 3 or net == 4 or net == 6:
             args.data_consistency = True
 
