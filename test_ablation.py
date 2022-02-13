@@ -94,7 +94,10 @@ def average_gen(generator, input_w_z, z, old_input, args, true_measures, num_cod
     apsd = torch.mean(torch.std(average_gen, dim=1), dim=(0, 1, 2, 3)).cpu().numpy()
     apsd = 0 if math.isnan(apsd) else apsd
 
-    return torch.mean(average_gen, dim=1), finish, apsd
+    ret = torch.mean(average_gen, dim=1)
+    del average_gen
+
+    return ret, finish, apsd
 
 
 def get_gen(args, type='image'):
@@ -112,17 +115,8 @@ def get_gen(args, type='image'):
     return generator
 
 
-def main(args, num, network, dev_loader):
+def main(args, num, generator, dev_loader):
     args.exp_dir.mkdir(parents=True, exist_ok=True)
-
-    args.in_chans = 16
-    args.out_chans = 16
-    args.z_location = network
-    if network == 3 or network == 4 or network == 6:
-        args.data_consistency = True
-
-    generator = get_gen(args)
-    generator.eval()
 
     with open(f'trained_models/{args.network_input}/metrics_{args.z_location}.txt', 'w') as metric_file:
         metrics = {
@@ -177,6 +171,8 @@ def main(args, num, network, dev_loader):
                     batch_metrics['ssim'].append(ssim(true_im_np, generated_im_np, np.max(true_im_np)))
                     batch_metrics['snr'].append(snr(true_im_np, generated_im_np))
 
+                del refined_out
+
                 metrics['psnr'].append(np.mean(batch_metrics['psnr']))
                 metrics['snr'].append(np.mean(batch_metrics['snr']))
                 metrics['ssim'].append(np.mean(batch_metrics['ssim']))
@@ -193,8 +189,6 @@ def main(args, num, network, dev_loader):
         print(f"[Median SNR {np.median(metrics['snr']):.2f}")
         print(f"[Median SSIM {np.median(metrics['ssim']):.4f}")
         print(save_str)
-
-        del generator
 
 
 if __name__ == '__main__':
@@ -216,11 +210,21 @@ if __name__ == '__main__':
     torch.manual_seed(args.seed)
     _, loader = create_data_loaders(args, val_only=True)
     for net in range(6):
-        if net > 0:
-            print(f"VALIDATING ABLATION NETWORK {net+1}")
-            for number in range(11):
-                number = -(number - 10)
-                power = (2**number)//1
-                print(f"VALIDATING NUM CODE VECTORS: {power}")
-                main(args, power, net+1, loader)
-            print("\n\n\n")
+        print(f"VALIDATING ABLATION NETWORK {net+1}")
+        args.in_chans = 16
+        args.out_chans = 16
+        args.z_location = network
+        if network == 3 or network == 4 or network == 6:
+            args.data_consistency = True
+
+        gen = get_gen(args)
+        gen.eval()
+
+        for number in range(11):
+            number = -(number - 10)
+            power = (2**number)//1
+            print(f"VALIDATING NUM CODE VECTORS: {power}")
+            main(args, power, gen, loader)
+
+        del gen
+        print("\n\n\n")
