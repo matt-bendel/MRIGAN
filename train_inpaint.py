@@ -267,6 +267,7 @@ def main(args):
 
     args.in_chans = 1
     args.out_chans = 1
+    args.batch_size = 32
 
     if args.resume:
         generator, optimizer_G, discriminator, optimizer_D, args, best_loss_val, best_loss_dis, start_epoch = get_gen_supervised(
@@ -305,9 +306,6 @@ def main(args):
                 #  Train Discriminator
                 # ---------------------
                 optimizer_D.zero_grad()
-
-                print(input.dtype)
-                print(z.dtype)
 
                 output_gen = generator(input, z)
 
