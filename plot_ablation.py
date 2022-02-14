@@ -339,7 +339,7 @@ if __name__ == '__main__':
     np.random.seed(args.seed)
     torch.manual_seed(args.seed)
     args.in_chans = 16
-    args.out_chabs = 16
+    args.out_chans = 16
     _, loader = create_data_loaders(args, val_only=True)
     gens = GANS(args)
     main(gens, loader)
