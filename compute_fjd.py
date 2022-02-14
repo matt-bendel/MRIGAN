@@ -125,10 +125,12 @@ cuda - If True, indicates that the GPU accelerated version of FJD should be
 def main(args):
     print("GETTING DATA LOADERS")
     ref_loader, cond_loader = get_dataloaders(args)
+    print("GETTING INCEPTION EMBEDDING")
     inception_embedding = InceptionEmbedding(parallel=True)
+    print("GETTING GENERATOR")
     gan = get_gen(args)
     gan = GANWrapper(gan, args)
-
+    print("COMPUTING METRIC")
     fjd_metric = FJDMetric(gan=gan,
                            reference_loader=ref_loader,
                            condition_loader=cond_loader,
