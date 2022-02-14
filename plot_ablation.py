@@ -129,9 +129,9 @@ def generate_image(fig, target, image, method, image_ind, rows, cols, kspace=Fal
         snr_val = snr(target, image)
         ssim_val = ssim(target, image)
         if method != None:
-            ax.set_xlabel(method)
+            ax.set_title(method)
 
-        ax.set_title(f'PSNR: {psnr_val:.2f}, SNR: {snr_val:.2f}\nSSIM: {ssim_val:.4f}')
+        ax.set_xlabel(f'PSNR: {psnr_val:.2f}, SNR: {snr_val:.2f}\nSSIM: {ssim_val:.4f}')
 
     if method == 'Std. Dev':
         im = ax.imshow(image, cmap='viridis', vmin=0, vmax=6e-5)
