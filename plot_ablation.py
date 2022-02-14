@@ -24,6 +24,43 @@ from utils.general.helper import readd_measures_im, prep_input_2_chan
 from skimage.metrics import peak_signal_noise_ratio, structural_similarity
 
 
+def psnr(
+        gt: np.ndarray, pred: np.ndarray, maxval: Optional[float] = None
+) -> np.ndarray:
+    """Compute Peak Signal to Noise Ratio metric (PSNR)"""
+    if maxval is None:
+        maxval = gt.max()
+    psnr_val = peak_signal_noise_ratio(gt, pred, data_range=maxval)
+
+    return psnr_val
+
+
+def snr(gt: np.ndarray, pred: np.ndarray) -> np.ndarray:
+    """Compute the Signal to Noise Ratio metric (SNR)"""
+    noise_mse = np.mean((gt - pred) ** 2)
+    snr = 10 * np.log10(np.mean(gt ** 2) / noise_mse)
+
+    return snr
+
+
+def ssim(
+        gt: np.ndarray, pred: np.ndarray, maxval: Optional[float] = None
+) -> np.ndarray:
+    """Compute Structural Similarity Index Metric (SSIM)"""
+    # if not gt.ndim == 3:
+    #   raise ValueError("Unexpected number of dimensions in ground truth.")
+    if not gt.ndim == pred.ndim:
+        raise ValueError("Ground truth dimensions does not match pred.")
+
+    maxval = gt.max() if maxval is None else maxval
+
+    ssim = structural_similarity(
+        gt, pred, data_range=maxval
+    )
+
+    return ssim
+
+
 class GANS:
     def __init__(self, args):
         self.args = args
@@ -130,7 +167,8 @@ def generate_image(fig, target, image, method, image_ind, rows, cols, kspace=Fal
         ssim_val = ssim(target, image)
         if method != None:
             ax.set_title(method, size=10)
-            ax.text(1, 1, f'PSNR: {psnr_val:.2f}\nSNR: {snr_val:.2f}\nSSIM: {ssim_val:.4f}', transform=ax.transAxes, horizontalalignment='right', verticalalignment='top', fontsize='xx-small', color='yellow')
+            ax.text(1, 0.9, f'PSNR: {psnr_val:.2f}\nSNR: {snr_val:.2f}\nSSIM: {ssim_val:.4f}', transform=ax.transAxes,
+                    horizontalalignment='right', verticalalignment='top', fontsize='x-small', color='yellow')
 
         # ax.set_xlabel(f'PSNR: {psnr_val:.2f}, SNR: {snr_val:.2f}\nSSIM: {ssim_val:.4f}')
 
@@ -147,43 +185,6 @@ def generate_image(fig, target, image, method, image_ind, rows, cols, kspace=Fal
         ax.set_yticks([])
 
     return im, ax
-
-
-def psnr(
-        gt: np.ndarray, pred: np.ndarray, maxval: Optional[float] = None
-) -> np.ndarray:
-    """Compute Peak Signal to Noise Ratio metric (PSNR)"""
-    if maxval is None:
-        maxval = gt.max()
-    psnr_val = peak_signal_noise_ratio(gt, pred, data_range=maxval)
-
-    return psnr_val
-
-
-def snr(gt: np.ndarray, pred: np.ndarray) -> np.ndarray:
-    """Compute the Signal to Noise Ratio metric (SNR)"""
-    noise_mse = np.mean((gt - pred) ** 2)
-    snr = 10 * np.log10(np.mean(gt ** 2) / noise_mse)
-
-    return snr
-
-
-def ssim(
-        gt: np.ndarray, pred: np.ndarray, maxval: Optional[float] = None
-) -> np.ndarray:
-    """Compute Structural Similarity Index Metric (SSIM)"""
-    # if not gt.ndim == 3:
-    #   raise ValueError("Unexpected number of dimensions in ground truth.")
-    if not gt.ndim == pred.ndim:
-        raise ValueError("Ground truth dimensions does not match pred.")
-
-    maxval = gt.max() if maxval is None else maxval
-
-    ssim = structural_similarity(
-        gt, pred, data_range=maxval
-    )
-
-    return ssim
 
 
 def generate_error_map(fig, target, recon, image_ind, rows, cols, relative=False, k=1, kspace=False):
@@ -220,10 +221,10 @@ def get_colorbar(fig, im, ax):
 
     # Appropriately rescale final axis so that colorbar does not effect formatting
     pad = 0.01
-    width = 0.02
+    width = 0.01
     cbar_ax = fig.add_axes([x11 + pad, y10, width, y11 - y10])
 
-    fig.colorbar(im, cax=cbar_ax)  # Generate colorbar
+    fig.colorbar(im, cax=cbar_ax, format='%.2f')  # Generate colorbar
 
 
 def create_mean_error_plots(avg, std_devs, gt):
@@ -231,7 +232,7 @@ def create_mean_error_plots(avg, std_devs, gt):
     num_cols = 7
 
     fig = plt.figure(figsize=(18, 6))
-    fig.subplots_adjust(wspace=0, hspace=0)
+    fig.subplots_adjust(wspace=0, hspace=0, left=0, right=0)
     generate_image(fig, gt, gt, 'GT', 1, num_rows, num_cols)
 
     labels = ['Adv. Only', '+Supervised', '+DC', '+Var Loss', '+DI - No DC', '+DI - w/ DC']
