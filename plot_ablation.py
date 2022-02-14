@@ -232,7 +232,7 @@ def create_mean_error_plots(avg, std_devs, gt):
     num_cols = 7
 
     fig = plt.figure(figsize=(5*2.33, 5))
-    fig.subplots_adjust(wspace=0, hspace=0)
+    fig.subplots_adjust(wspace=0, hspace=0.05)
     generate_image(fig, gt, gt, 'GT', 1, num_rows, num_cols)
 
     labels = ['Adv. Only', '+Supervised', '+DC', '+Var Loss', '+DI - No DC', '+DI - w/ DC']
@@ -272,7 +272,7 @@ def create_z_compare_plots(recons, gt):
 
 def gif_im(gt, gen_ims, index, type):
     fig = plt.figure(figsize=(12, 4))
-    fig.subplots_adjust(wspace=0, hspace=0)
+    fig.subplots_adjust(wspace=0, hspace=0.05)
     num_rows = 2
     num_cols = 6
 
@@ -284,7 +284,7 @@ def gif_im(gt, gen_ims, index, type):
         im_er, ax_er = generate_error_map(fig, gt, gen_ims[f'g{i + 1}'][index], i + 7, num_rows, num_cols)
 
     get_colorbar(fig, im_er, ax_er)
-    fig.title(f'Z - {index + 1}', size=8)
+    plt.title(f'Z - {index + 1}', size=8)
     plt.savefig(f'/home/bendel.8/Git_Repos/full_scale_mrigan/MRIGAN/gifs/gif_{type}_{index}.png')
 
 
