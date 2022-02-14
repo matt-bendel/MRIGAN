@@ -38,7 +38,7 @@ def get_gen(args):
     from utils.training.prepare_model import build_model, build_optim, build_discriminator
     string_for_file = '/ablation'  # if args.ablation else '/'
     checkpoint_file_gen = pathlib.Path(
-        f'/home/bendel.8/Git_Repos/full_scale_mrigan/MRIGAN/trained_models{string_for_file}/image/{args.z_location}/generator_model.pt')
+        f'/home/bendel.8/Git_Repos/full_scale_mrigan/MRIGAN/trained_models{string_for_file}/image/{args.z_location}/generator_best_model.pt')
     checkpoint_gen = torch.load(checkpoint_file_gen, map_location=torch.device('cuda'))
 
     generator = build_model(args)
@@ -60,10 +60,10 @@ set of generated samples.
 
 
 class GANWrapper:
-    def __init__(self, model, data_consistency):
+    def __init__(self, model, args):
         self.model = model
         self.model.eval()
-        self.data_consistency = data_consistency
+        self.data_consistency = True if args.z_location == 3 or args.z_location == 4 or args. z_location == 6 else False
 
     def get_noise(self, batch_size):
         # change the noise dimension as required
@@ -126,7 +126,7 @@ def main(args):
     ref_loader, cond_loader = get_dataloaders(args)
     inception_embedding = InceptionEmbedding(parallel=True)
     gan = get_gen(args)
-    gan = GANWrapper(gan, data_consistency=args.data_consistency)
+    gan = GANWrapper(gan, args)
 
     fjd_metric = FJDMetric(gan=gan,
                            reference_loader=ref_loader,
