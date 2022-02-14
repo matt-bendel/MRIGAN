@@ -368,7 +368,7 @@ def main(args):
             adv_weight = 1e-6
             ssim_weight = 0.84
             # g_loss = -adv_weight * torch.mean(gen_pred_loss)
-            g_loss = - ssim_weight * mssim_tensor(target, avg_recon)#(1 - ssim_weight) * F.l1_loss(target, avg_recon) - ssim_weight * mssim_tensor(target, avg_recon)
+            g_loss = (1 - ssim_weight) * F.l1_loss(target, avg_recon) #- ssim_weight * mssim_tensor(target, avg_recon)
             # g_loss += - var_weight * torch.mean(torch.var(disc_inputs_gen, dim=1), dim=(0, 1, 2, 3))
 
             g_loss.backward()
