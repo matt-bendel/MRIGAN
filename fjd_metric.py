@@ -36,7 +36,7 @@ class FJDMetric:
                  condition_loader,
                  image_embedding,
                  condition_embedding,
-                 reference_stats_path='',
+                 reference_stats_path='ref_stats.npz',
                  save_reference_stats=False,
                  samples_per_condition=1,
                  cuda=False,
