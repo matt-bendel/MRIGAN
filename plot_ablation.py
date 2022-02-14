@@ -223,7 +223,8 @@ def get_colorbar(fig, im, ax):
     width = 0.01
     cbar_ax = fig.add_axes([x11 + pad, y10, width, y11 - y10])
 
-    fig.colorbar(im, cax=cbar_ax, format='%.2e')  # Generate colorbar
+    cbar = fig.colorbar(im, cax=cbar_ax, format='%.2e')  # Generate colorbar
+    cbar.ax.tick_params(labelsize=8)
 
 
 def create_mean_error_plots(avg, std_devs, gt):
