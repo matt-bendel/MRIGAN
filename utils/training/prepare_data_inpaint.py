@@ -66,8 +66,6 @@ class DataTransform:
         normalized_input, mean, std = transforms.normalize_instance(input_tensor)
         normalized_gt = transforms.normalize(im_tensor, mean, std)
 
-        print(normalized_input.dtype)
-
         return normalized_input, normalized_gt, mean, std
 
 

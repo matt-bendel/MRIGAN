@@ -305,6 +305,10 @@ def main(args):
                 #  Train Discriminator
                 # ---------------------
                 optimizer_D.zero_grad()
+
+                print(input.dtype)
+                print(z.dtype)
+
                 output_gen = generator(input, z)
 
                 # MAKE PREDICTIONS
