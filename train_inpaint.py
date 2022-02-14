@@ -299,6 +299,9 @@ def main(args):
             input = input.to(device=args.device, dtype=torch.float)
             target = target.to(device=args.device, dtype=torch.float)
 
+            plt.imshow(target[2], cmap='gray')
+            plt.savefig('temp_plot.png')
+
             for j in range(args.num_iters_discriminator):
                 z = torch.FloatTensor(
                     np.random.normal(size=(input.shape[0], args.latent_size), scale=np.sqrt(1))).to(device=args.device, dtype=torch.float)
