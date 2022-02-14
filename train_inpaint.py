@@ -299,6 +299,16 @@ def main(args):
             input = input.to(device=args.device, dtype=torch.float64)
             target = target.to(device=args.device, dtype=torch.float64)
 
+            plt.figure()
+            plt.imshow(input[2, 0].cpu().numpy())
+            plt.savefig('temp_in.png')
+
+            plt.figure()
+            plt.imshow(target[2, 0].cpu().numpy())
+            plt.savefig('temp_target.png')
+
+            exit()
+
             for j in range(args.num_iters_discriminator):
                 z = torch.FloatTensor(
                     np.random.normal(size=(input.shape[0], args.latent_size), scale=np.sqrt(1))).to(device=args.device, dtype=torch.float64)
