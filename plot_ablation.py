@@ -118,7 +118,7 @@ class GANS:
 
             std_devs[f'g{gen_num}'] = self.compute_std_dev(recons[f'g{gen_num}'], avg[f'g{gen_num}'])
 
-        return recons, avg
+        return recons, avg, std_devs
 
 
 def generate_image(fig, target, image, method, image_ind, rows, cols, kspace=False, disc_num=False):
