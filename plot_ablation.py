@@ -130,12 +130,12 @@ def generate_image(fig, target, image, method, image_ind, rows, cols, kspace=Fal
         ssim_val = ssim(target, image)
         if method != None:
             ax.set_title(method)
-            ax.text(1.0, 1.0, f'PSNR: {psnr_val:.2f}\nSNR: {snr_val:.2f}\nSSIM: {ssim_val:.4f}', horizontalalignment='right', verticalalignment='top', fontsize='small', color='yellow')
+            ax.text(1.0, 1.0, f'PSNR: {psnr_val:.2f}\nSNR: {snr_val:.2f}\nSSIM: {ssim_val:.4f}', horizontalalignment='right', verticalalignment='top', fontsize='xx-small', color='yellow')
 
         # ax.set_xlabel(f'PSNR: {psnr_val:.2f}, SNR: {snr_val:.2f}\nSSIM: {ssim_val:.4f}')
 
     if method == 'Std. Dev':
-        im = ax.imshow(image, cmap='viridis', vmin=0, vmax=1e-4)
+        im = ax.imshow(image, cmap='viridis', vmin=0, vmax=4e-5)
         ax.set_xticks([])
         ax.set_yticks([])
     else:
@@ -230,7 +230,8 @@ def create_mean_error_plots(avg, std_devs, gt):
     num_rows = 3
     num_cols = 7
 
-    fig = plt.figure(figsize=(14, 6), dpi=200)
+    fig = plt.figure(figsize=(13, 4.5))
+    fig.set_dpi(300)
     generate_image(fig, gt, gt, 'GT', 1, num_rows, num_cols)
 
     labels = ['Adv. Only', '+Supervised', '+DC', '+Var Loss', '+DI - No DC', '+DI - w/ DC']
