@@ -137,52 +137,55 @@ def main(args):
     print("GETTING INCEPTION EMBEDDING")
     inception_embedding = InceptionEmbedding(parallel=True)
     print("GETTING GENERATOR")
-    gan = get_gen(args)
-    gan = GANWrapper(gan, args)
-    print("COMPUTING METRIC")
-    fjd_metric = FJDMetric(gan=gan,
-                           reference_loader=ref_loader,
-                           condition_loader=cond_loader,
-                           image_embedding=inception_embedding,
-                           condition_embedding=inception_embedding,
-                           save_reference_stats=True,
-                           samples_per_condition=8,
-                           cuda=True)
+    for i in range(6):
+        args.z_location = i+1
+        gan = get_gen(args)
+        gan = GANWrapper(gan, args)
+        print("COMPUTING METRIC")
+        fjd_metric = FJDMetric(gan=gan,
+                               reference_loader=ref_loader,
+                               condition_loader=cond_loader,
+                               image_embedding=inception_embedding,
+                               condition_embedding=inception_embedding,
+                               save_reference_stats=True,
+                               samples_per_condition=8,
+                               cuda=True)
 
-    '''
-    Once the FJD object is initialized, FID and FJD can be calculated by calling 
-    get_fid or get_fjd. By default, the alpha value used to weight the 
-    conditional component of FJD is selected to be the ratio between the 
-    average L2 norm of the image embedding and conditioning embedding.
-
-    We see in this example that even though our "GAN" gets a very good FID 
-    score due to the generated image distribution being very close to the 
-    reference image distribution, its FJD score is very bad, as the model lacks 
-    any conditional consistency.
-    '''
-
-    fid = fjd_metric.get_fid()
-    fjd = fjd_metric.get_fjd()
-    print('FID: ', fid)
-    print('FJD: ', fjd)
+        '''
+        Once the FJD object is initialized, FID and FJD can be calculated by calling 
+        get_fid or get_fjd. By default, the alpha value used to weight the 
+        conditional component of FJD is selected to be the ratio between the 
+        average L2 norm of the image embedding and conditioning embedding.
+    
+        We see in this example that even though our "GAN" gets a very good FID 
+        score due to the generated image distribution being very close to the 
+        reference image distribution, its FJD score is very bad, as the model lacks 
+        any conditional consistency.
+        '''
+        print(f"FID FOR NETWORK {args.z_location}")
+        fid = fjd_metric.get_fid()
+        fjd = fjd_metric.get_fjd(alpha=1.097)
+        print('FID: ', fid)
+        print('FJD: ', fjd)
+        del gan
 
     '''
     To visualize how FJD changes as we increase the weighting on the conditional 
     component, we can evaluate it at a range of alpha values using the 
     sweep_alpha function.
     '''
-    alpha = fjd_metric.alpha
-    alphas = [0, 1, 2, 4, 8, 16, 32]
-    fjds = fjd_metric.sweep_alpha(alphas)
-
-    plt.plot(alphas, fjds, label='FJD', linewidth=3)
-    plt.plot(alphas, [fid] * len(alphas), label='FID', linewidth=3)
-    plt.axvline(x=alpha, c='black', label=r'Suggested $\alpha$', linewidth=2)
-    plt.xlabel(r'$\alpha$')
-    plt.ylabel('Distance')
-    plt.legend()
-    plt.savefig('fjd_alphas')
-    print(alpha)
+    # alpha = fjd_metric.alpha
+    # alphas = [0, 1, 2, 4, 8, 16, 32]
+    # fjds = fjd_metric.sweep_alpha(alphas)
+    #
+    # plt.plot(alphas, fjds, label='FJD', linewidth=3)
+    # plt.plot(alphas, [fid] * len(alphas), label='FID', linewidth=3)
+    # plt.axvline(x=alpha, c='black', label=r'Suggested $\alpha$', linewidth=2)
+    # plt.xlabel(r'$\alpha$')
+    # plt.ylabel('Distance')
+    # plt.legend()
+    # plt.savefig('fjd_alphas')
+    # print(alpha)
 
 
 if __name__ == "__main__":
