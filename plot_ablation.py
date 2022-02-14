@@ -129,7 +129,7 @@ def generate_image(fig, target, image, method, image_ind, rows, cols, kspace=Fal
         snr_val = snr(target, image)
         ssim_val = ssim(target, image)
         if method != None:
-            ax.set_title(method)
+            ax.set_title(method, size=10)
             ax.annotate(f'PSNR: {psnr_val:.2f}\nSNR: {snr_val:.2f}\nSSIM: {ssim_val:.4f}', xy=(1, 1),
                         horizontalalignment='right', verticalalignment='top', fontsize='xx-small', color='yellow')
 
@@ -231,7 +231,7 @@ def create_mean_error_plots(avg, std_devs, gt):
     num_rows = 3
     num_cols = 7
 
-    fig = plt.figure(figsize=(13, 4.5))
+    fig = plt.figure(figsize=(13, 4))
     fig.set_dpi(300)
     generate_image(fig, gt, gt, 'GT', 1, num_rows, num_cols)
 
