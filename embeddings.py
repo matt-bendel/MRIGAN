@@ -6,8 +6,6 @@ import torch.nn.functional as F
 from torch.nn import Parameter as P
 from torchvision.models.inception import inception_v3
 
-from models.rae import RAE_SN
-
 
 class IdentityEmbedding:
     def __call__(self, y):
@@ -96,28 +94,3 @@ class WrapInception(nn.Module):
         pool = F.adaptive_avg_pool2d(x, 1).view(x.size(0), -1)
         # 1 x 1 x 2048
         return pool
-
-
-class AutoencoderEmbedding(object):
-    def __init__(self, n_classes, nef, ndf, latent_dim, weights_path):
-        self.embedding = RAE_SN(n_classes,
-                                nef=nef,
-                                ndf=ndf,
-                                latent_dim=latent_dim)
-        self.embedding = self.embedding.eval().cuda()
-        self.load_weights(weights_path)
-
-    def load_weights(self, weights_path):
-        if os.path.isfile(weights_path):
-            print("=> loading checkpoint '{}'".format(weights_path))
-            checkpoint = torch.load(weights_path)
-            self.embedding.load_state_dict(checkpoint['state_dict'])
-            print("=> loaded checkpoint '{}' (epoch {})"
-                  .format(weights_path, checkpoint['epoch']))
-        else:
-            print("=> no checkpoint found at '{}'".format(weights_path))
-            exit()
-
-    def __call__(self, x):
-        out = self.embedding.encode(x)
-        return out
