@@ -169,7 +169,7 @@ def generate_image(fig, target, image, method, image_ind, rows, cols, kspace=Fal
             ax.set_title(method, size=10)
 
         ax.text(1, 0.85, f'PSNR: {psnr_val:.2f}\nSNR: {snr_val:.2f}\nSSIM: {ssim_val:.4f}', transform=ax.transAxes,
-                horizontalalignment='right', verticalalignment='center', fontsize='x-small', color='yellow')
+                horizontalalignment='right', verticalalignment='center', fontsize='xx-small', color='yellow')
 
     if method == 'Std. Dev':
         im = ax.imshow(image, cmap='viridis', vmin=0, vmax=3e-5)
@@ -255,7 +255,7 @@ def create_z_compare_plots(recons, gt):
     num_cols = 7
 
     fig = plt.figure(figsize=(7*1.4, 7))
-    fig.subplots_adjust(wspace=0, hspace=0)
+    fig.subplots_adjust(wspace=0, hspace=0.05)
     generate_image(fig, gt, gt, 'GT', 1, num_rows, num_cols)
 
     labels = ['Adv. Only', '+Supervised', '+DC', '+Var Loss', '+DI - No DC', '+DI - w/ DC']
@@ -284,7 +284,7 @@ def gif_im(gt, gen_ims, index, type):
         im_er, ax_er = generate_error_map(fig, gt, gen_ims[f'g{i + 1}'][index], i + 7, num_rows, num_cols)
 
     get_colorbar(fig, im_er, ax_er)
-    plt.title(f'Z - {index + 1}')
+    fig.title(f'Z - {index + 1}', size=8)
     plt.savefig(f'/home/bendel.8/Git_Repos/full_scale_mrigan/MRIGAN/gifs/gif_{type}_{index}.png')
 
 
