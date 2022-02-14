@@ -128,9 +128,10 @@ def generate_image(fig, target, image, method, image_ind, rows, cols, kspace=Fal
         psnr_val = psnr(target, image)
         snr_val = snr(target, image)
         ssim_val = ssim(target, image)
-        if not kspace:
-            pred = disc_num
-            ax.set_title(f'PSNR: {psnr_val:.2f}, SNR: {snr_val:.2f}\nSSIM: {ssim_val:.4f}')
+        if method != None:
+            ax.set_xlabel(method)
+
+        ax.set_title(f'PSNR: {psnr_val:.2f}, SNR: {snr_val:.2f}\nSSIM: {ssim_val:.4f}')
 
     if method == 'Std. Dev':
         im = ax.imshow(image, cmap='viridis', vmin=0, vmax=6e-5)
@@ -143,8 +144,6 @@ def generate_image(fig, target, image, method, image_ind, rows, cols, kspace=Fal
         im = ax.imshow(np.abs(image), cmap='gray', vmin=0, vmax=np.max(target))
         ax.set_xticks([])
         ax.set_yticks([])
-        if method != None:
-            ax.set_xlabel(method)
 
     return im, ax
 
