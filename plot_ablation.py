@@ -245,6 +245,8 @@ def create_mean_error_plots(avg, std_devs, gt):
     get_colorbar(fig, im_er, ax_er)
     get_colorbar(fig, im_std, ax_std)
 
+    plt.savefig(f'/home/bendel.8/Git_Repos/full_scale_mrigan/MRIGAN/ablation_plots/mean_error.png')
+
 
 def create_z_compare_plots(recons, gt):
     num_rows = 5
@@ -261,6 +263,8 @@ def create_z_compare_plots(recons, gt):
         generate_image(fig, gt, recons[f'g{i + 1}'][2], None, i + 16, num_rows, num_cols)
         generate_image(fig, gt, recons[f'g{i + 1}'][3], None, i + 23, num_rows, num_cols)
         generate_image(fig, gt, recons[f'g{i + 1}'][4], None, i + 30, num_rows, num_cols)
+
+    plt.savefig(f'/home/bendel.8/Git_Repos/full_scale_mrigan/MRIGAN/ablation_plots/5_z.png')
 
 
 def gif_im(gt, gen_ims, index, type):
@@ -285,7 +289,7 @@ def generate_gif(type):
     for i in range(8):
         images.append(iio.imread(f'/home/bendel.8/Git_Repos/full_scale_mrigan/MRIGAN/gifs/gif_{type}_{i}.png'))
 
-    iio.mimsave(f'variation_gif.gif', images, duration=0.25)
+    iio.mimsave(f'/home/bendel.8/Git_Repos/full_scale_mrigan/MRIGAN/ablation_plots/variation_gif.gif', images, duration=0.25)
 
     for i in range(8):
         os.remove(f'/home/bendel.8/Git_Repos/full_scale_mrigan/MRIGAN/gifs/gif_{type}_{i}.png')
