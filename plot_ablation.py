@@ -167,10 +167,9 @@ def generate_image(fig, target, image, method, image_ind, rows, cols, kspace=Fal
         ssim_val = ssim(target, image)
         if method != None:
             ax.set_title(method, size=10)
-            ax.text(1, 0.9, f'PSNR: {psnr_val:.2f}\nSNR: {snr_val:.2f}\nSSIM: {ssim_val:.4f}', transform=ax.transAxes,
-                    horizontalalignment='right', verticalalignment='top', fontsize='x-small', color='yellow')
 
-        # ax.set_xlabel(f'PSNR: {psnr_val:.2f}, SNR: {snr_val:.2f}\nSSIM: {ssim_val:.4f}')
+        ax.text(1, 1, f'PSNR: {psnr_val:.2f}\nSNR: {snr_val:.2f}\nSSIM: {ssim_val:.4f}', transform=ax.transAxes,
+                horizontalalignment='right', verticalalignment='center', fontsize='x-small', color='yellow')
 
     if method == 'Std. Dev':
         im = ax.imshow(image, cmap='viridis', vmin=0, vmax=4e-5)
@@ -232,7 +231,7 @@ def create_mean_error_plots(avg, std_devs, gt):
     num_cols = 7
 
     fig = plt.figure(figsize=(16, 6))
-    fig.subplots_adjust(wspace=0, hspace=0)
+    fig.subplots_adjust(wspace=0, hspace=0.05)
     generate_image(fig, gt, gt, 'GT', 1, num_rows, num_cols)
 
     labels = ['Adv. Only', '+Supervised', '+DC', '+Var Loss', '+DI - No DC', '+DI - w/ DC']

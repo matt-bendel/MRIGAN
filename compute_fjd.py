@@ -36,7 +36,7 @@ def get_dataloaders(args):
 
 def get_gen(args):
     from utils.training.prepare_model import build_model, build_optim, build_discriminator
-    string_for_file = '/ablation' if args.ablation else '/'
+    string_for_file = '/ablation'  # if args.ablation else '/'
     checkpoint_file_gen = pathlib.Path(
         f'/home/bendel.8/Git_Repos/full_scale_mrigan/MRIGAN/trained_models{string_for_file}/image/{args.z_location}/generator_model.pt')
     checkpoint_gen = torch.load(checkpoint_file_gen, map_location=torch.device('cuda'))
@@ -134,7 +134,7 @@ def main(args):
                            image_embedding=inception_embedding,
                            condition_embedding=inception_embedding,
                            save_reference_stats=True,
-                           samples_per_condition=1024,
+                           samples_per_condition=8,
                            cuda=True)
 
     '''
@@ -169,7 +169,8 @@ def main(args):
     plt.xlabel(r'$\alpha$')
     plt.ylabel('Distance')
     plt.legend()
-    plt.show()
+    plt.savefig('fjd_alphas')
+    print(alpha)
 
 
 if __name__ == "__main__":
