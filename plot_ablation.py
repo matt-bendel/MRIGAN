@@ -168,7 +168,7 @@ def generate_image(fig, target, image, method, image_ind, rows, cols, kspace=Fal
         if method != None:
             ax.set_title(method, size=10)
 
-        ax.text(1, 0.95, f'PSNR: {psnr_val:.2f}\nSNR: {snr_val:.2f}\nSSIM: {ssim_val:.4f}', transform=ax.transAxes,
+        ax.text(1, 0.9, f'PSNR: {psnr_val:.2f}\nSNR: {snr_val:.2f}\nSSIM: {ssim_val:.4f}', transform=ax.transAxes,
                 horizontalalignment='right', verticalalignment='center', fontsize='x-small', color='yellow')
 
     if method == 'Std. Dev':
@@ -202,7 +202,7 @@ def generate_error_map(fig, target, recon, image_ind, rows, cols, relative=False
         im = ax.imshow(k * error, cmap='bwr', origin='lower', vmin=-0.0001, vmax=0.0001)  # Plot image
         plt.gca().invert_yaxis()
     else:
-        im = ax.imshow(k * error, cmap='jet', vmax=1) if kspace else ax.imshow(k * error, cmap='jet', vmax=0.001)
+        im = ax.imshow(k * error, cmap='jet', vmax=1) if kspace else ax.imshow(k * error, cmap='jet', vmax=0.0001)
 
     # Remove axis ticks
     ax.set_xticks([])
@@ -230,7 +230,7 @@ def create_mean_error_plots(avg, std_devs, gt):
     num_rows = 3
     num_cols = 7
 
-    fig = plt.figure(figsize=(15, 6))
+    fig = plt.figure(figsize=(6*2.33, 6))
     fig.subplots_adjust(wspace=0, hspace=0)
     generate_image(fig, gt, gt, 'GT', 1, num_rows, num_cols)
 
