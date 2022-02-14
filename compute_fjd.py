@@ -86,7 +86,7 @@ class GANWrapper:
             final_im[i, 1, :, :] = temp_im
             final_im[i, 2, :, :] = temp_im
 
-        return im
+        return final_im
 
     def __call__(self, y):
         batch_size = y.size(0)
