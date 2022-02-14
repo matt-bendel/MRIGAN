@@ -231,7 +231,7 @@ def create_mean_error_plots(avg, std_devs, gt):
     num_cols = 7
 
     fig = plt.figure()
-    generate_image(fig, gt, gt, 'Adversarial Only', 1, num_rows, num_cols)
+    generate_image(fig, gt, gt, 'GT', 1, num_rows, num_cols)
 
     labels = ['Adv. Only', '+Supervised', '+DC', '+Var Loss', '+DI - No DC', '+DI - w/ DC']
     im_er, ax_er = None, None
@@ -253,7 +253,7 @@ def create_z_compare_plots(recons, gt):
     num_cols = 7
 
     fig = plt.figure()
-    generate_image(fig, gt, gt, 'Adversarial Only', 1, num_rows, num_cols)
+    generate_image(fig, gt, gt, 'GT', 1, num_rows, num_cols)
 
     labels = ['Adv. Only', '+Supervised', '+DC', '+Var Loss', '+DI - No DC', '+DI - w/ DC']
 
