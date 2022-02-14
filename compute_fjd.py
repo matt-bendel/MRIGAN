@@ -62,6 +62,7 @@ set of generated samples.
 class GANWrapper:
     def __init__(self, model, args):
         self.model = model
+        self.device = args.device
         self.model.eval()
         self.data_consistency = True if args.z_location == 3 or args.z_location == 4 or args. z_location == 6 else False
 
@@ -72,12 +73,18 @@ class GANWrapper:
         return z
 
     def convert_to_im(self, samples):
-        temp = torch.zeros((samples.size(0), 8, 128, 128, 2))
+        temp = torch.zeros((samples.size(0), 8, 128, 128, 2)).to(self.device)
         temp[:, :, :, :, 0] = samples[:, 0:8, :, :]
         temp[:, :, :, :, 1] = samples[:, 8:16, :, :]
 
-        im = transforms.root_sum_of_squares(complex_abs(temp)).unsqueeze(0).repeat(3, 1, 1)
-        im = 2*(im - torch.min(im))/(torch.max(im) - torch.min(im)) - 1
+        im = transforms.root_sum_of_squares(complex_abs(temp))
+        final_im = torch.zeros(size=(samples.size(0), 3, 128, 128)).to(self.device)
+        for i in range(samples.size(0)):
+            temp_im = im[i, :, :]
+            temp_im = 2*(temp_im - torch.min(temp_im))/(torch.max(temp_im) - torch.min(temp_im)) - 1
+            final_im[i, 0, :, :] = temp_im
+            final_im[i, 1, :, :] = temp_im
+            final_im[i, 2, :, :] = temp_im
 
         return im
 
