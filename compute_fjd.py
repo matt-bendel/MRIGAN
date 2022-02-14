@@ -123,6 +123,7 @@ cuda - If True, indicates that the GPU accelerated version of FJD should be
 
 
 def main(args):
+    print("GETTING DATA LOADERS")
     ref_loader, cond_loader = get_dataloaders(args)
     inception_embedding = InceptionEmbedding(parallel=True)
     gan = get_gen(args)
@@ -175,4 +176,6 @@ def main(args):
 
 if __name__ == "__main__":
     args = create_arg_parser().parse_args()
+    args.in_chans = 16
+    args.out_chans = 16
     main(args)
