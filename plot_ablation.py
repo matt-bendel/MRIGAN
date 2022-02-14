@@ -131,10 +131,10 @@ def generate_image(fig, target, image, method, image_ind, rows, cols, kspace=Fal
         if method != None:
             ax.set_title(method)
 
-        ax.set_xlabel(f'PSNR: {psnr_val:.2f}, SNR: {snr_val:.2f}\nSSIM: {ssim_val:.4f}')
+        # ax.set_xlabel(f'PSNR: {psnr_val:.2f}, SNR: {snr_val:.2f}\nSSIM: {ssim_val:.4f}')
 
     if method == 'Std. Dev':
-        im = ax.imshow(image, cmap='viridis', vmin=0, vmax=6e-5)
+        im = ax.imshow(image, cmap='viridis', vmin=0, vmax=7e-5)
         ax.set_xticks([])
         ax.set_yticks([])
     else:
