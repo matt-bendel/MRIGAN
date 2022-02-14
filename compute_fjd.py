@@ -76,7 +76,10 @@ class GANWrapper:
         temp[:, :, :, :, 0] = samples[:, 0:8, :, :]
         temp[:, :, :, :, 1] = samples[:, 8:16, :, :]
 
-        return transforms.root_sum_of_squares(complex_abs(temp)).unsqueeze(0).repeat(3, 1, 1)
+        im = transforms.root_sum_of_squares(complex_abs(temp)).unsqueeze(0).repeat(3, 1, 1)
+        im = 2*(im - torch.min(im))/(torch.max(im) - torch.min(im)) - 1
+
+        return im
 
     def __call__(self, y):
         batch_size = y.size(0)

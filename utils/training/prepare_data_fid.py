@@ -102,14 +102,18 @@ class DataTransform:
         cond_im[:, :, :, 1] = stacked_masked_zfr[8:16, :, :]
         cond_im = transforms.root_sum_of_squares(complex_abs(cond_im)).unsqueeze(0).repeat(3, 1, 1)
 
-        ref_im = 2*(ref_im - torch.min(cond_im))/(torch.max(cond_im) - torch.min(cond_im)) - 1
-        cond_im = 2*(cond_im - torch.min(cond_im))/(torch.max(cond_im) - torch.min(cond_im)) - 1
+        ref_im = 2*(ref_im - torch.min(ref_im))/(torch.max(ref_im) - torch.min(ref_im)) - 1
+        cond_im = 2*(torch.clone(cond_im) - torch.min(cond_im))/(torch.max(cond_im) - torch.min(cond_im)) - 1
 
-        print(torch.max(ref_im))
-        print(torch.min(ref_im))
-
-        print(torch.max(cond_im))
+        print("COND")
         print(torch.min(cond_im))
+        print(torch.max(cond_im))
+
+        print("REF")
+        print(torch.min(ref_im))
+        print(torch.max(ref_im))
+
+        print(ref_im.shape)
 
         return stacked_masked_zfr, cond_im, ref_im
 
