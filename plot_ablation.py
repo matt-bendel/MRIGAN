@@ -134,14 +134,14 @@ def generate_image(fig, target, image, method, image_ind, rows, cols, kspace=Fal
         # ax.set_xlabel(f'PSNR: {psnr_val:.2f}, SNR: {snr_val:.2f}\nSSIM: {ssim_val:.4f}')
 
     if method == 'Std. Dev':
-        im = ax.imshow(image, cmap='viridis', vmin=0, vmax=7e-5)
+        im = ax.plot(image, cmap='viridis', vmin=0, vmax=7e-5)
         ax.set_xticks([])
         ax.set_yticks([])
     else:
         if kspace:
             image = image**0.4
             target = target**0.4
-        im = ax.imshow(np.abs(image), cmap='gray', vmin=0, vmax=np.max(target))
+        im = ax.plot(np.abs(image), cmap='gray', vmin=0, vmax=np.max(target))
         ax.set_xticks([])
         ax.set_yticks([])
 
@@ -198,10 +198,10 @@ def generate_error_map(fig, target, recon, image_ind, rows, cols, relative=False
     error = (target - recon) if relative else np.abs(target - recon)
     # normalized_error = error / error.max() if not relative else error
     if relative:
-        im = ax.imshow(k * error, cmap='bwr', origin='lower', vmin=-0.0001, vmax=0.0001)  # Plot image
+        im = ax.plot(k * error, cmap='bwr', origin='lower', vmin=-0.0001, vmax=0.0001)  # Plot image
         plt.gca().invert_yaxis()
     else:
-        im = ax.imshow(k * error, cmap='jet', vmax=1) if kspace else ax.imshow(k * error, cmap='jet', vmax=0.0001)
+        im = ax.plot(k * error, cmap='jet', vmax=1) if kspace else ax.plot(k * error, cmap='jet', vmax=0.0001)
 
     # Remove axis ticks
     ax.set_xticks([])
