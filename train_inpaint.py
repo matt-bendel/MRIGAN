@@ -295,12 +295,12 @@ def main(args):
         for i, data in enumerate(train_loader):
             input, target, mean, std = data
 
-            input = input.to(args.device)
-            target = target.to(args.device)
+            input = input.to(device=args.device, dtype=torch.float)
+            target = target.to(device=args.device, dtype=torch.float)
 
             for j in range(args.num_iters_discriminator):
                 z = torch.FloatTensor(
-                    np.random.normal(size=(input.shape[0], args.latent_size), scale=np.sqrt(1))).to(args.device)
+                    np.random.normal(size=(input.shape[0], args.latent_size), scale=np.sqrt(1))).to(device=args.device, dtype=torch.float)
                 # ---------------------
                 #  Train Discriminator
                 # ---------------------
