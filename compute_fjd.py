@@ -77,14 +77,13 @@ class GANWrapper:
         temp[:, :, :, :, 0] = samples[:, 0:8, :, :]
         temp[:, :, :, :, 1] = samples[:, 8:16, :, :]
 
-        im = transforms.root_sum_of_squares(complex_abs(temp))
         final_im = torch.zeros(size=(samples.size(0), 3, 128, 128)).to(self.device)
         for i in range(samples.size(0)):
-            temp_im = im[i, :, :]
-            temp_im = 2*(temp_im - torch.min(temp_im))/(torch.max(temp_im) - torch.min(temp_im)) - 1
-            final_im[i, 0, :, :] = temp_im
-            final_im[i, 1, :, :] = temp_im
-            final_im[i, 2, :, :] = temp_im
+            im = transforms.root_sum_of_squares(complex_abs(temp[i]))
+            im = 2*(im - torch.min(im))/(torch.max(im) - torch.min(im)) - 1
+            final_im[i, 0, :, :] = im
+            final_im[i, 1, :, :] = im
+            final_im[i, 2, :, :] = im
 
         return final_im
 
