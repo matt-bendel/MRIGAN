@@ -229,7 +229,7 @@ def create_mean_error_plots(avg, std_devs, gt):
     num_rows = 3
     num_cols = 7
 
-    fig = plt.figure(figsize=(18, 10))
+    fig = plt.figure(figsize=(16, 6))
     generate_image(fig, gt, gt, 'GT', 1, num_rows, num_cols)
 
     labels = ['Adv. Only', '+Supervised', '+DC', '+Var Loss', '+DI - No DC', '+DI - w/ DC']
