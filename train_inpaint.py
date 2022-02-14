@@ -96,10 +96,10 @@ def ssim(
     return ssim
 
 
-def mssim_tensor(gt, pred):
+def mssim_tensor(gt, pred, epoch):
     """ Compute Normalized Mean Squared Error (NMSE) """
     # ssim_loss = pytorch_ssim.SSIM()
-    return pytorch_msssim.msssim(gt, pred)
+    return pytorch_msssim.msssim(gt, pred, normalize=True) if epoch == 1 else pytorch_msssim.msssim(gt, pred)
 
 
 def save_model(args, epoch, model, optimizer, best_dev_loss, is_new_best, m_type):
@@ -367,9 +367,9 @@ def main(args):
             var_weight = 0.02
             adv_weight = 1e-6
             ssim_weight = 0.84
-            # g_loss = -adv_weight * torch.mean(gen_pred_loss)
-            g_loss = (1 - ssim_weight) * F.l1_loss(target, avg_recon) #- ssim_weight * mssim_tensor(target, avg_recon)
-            # g_loss += - var_weight * torch.mean(torch.var(disc_inputs_gen, dim=1), dim=(0, 1, 2, 3))
+            g_loss = -adv_weight * torch.mean(gen_pred_loss)
+            g_loss += (1 - ssim_weight) * F.l1_loss(target, avg_recon) - ssim_weight * mssim_tensor(target, avg_recon, epoch+1)
+            g_loss += - var_weight * torch.mean(torch.var(disc_inputs_gen, dim=1), dim=(0, 1, 2, 3))
 
             g_loss.backward()
             optimizer_G.step()
