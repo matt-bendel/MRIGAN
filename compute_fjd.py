@@ -168,6 +168,7 @@ def main(args):
         print('FID: ', fid)
         print('FJD: ', fjd)
         del gan
+        del fjd_metric
 
     '''
     To visualize how FJD changes as we increase the weighting on the conditional 
