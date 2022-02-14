@@ -105,16 +105,6 @@ class DataTransform:
         ref_im = 2*(ref_im - torch.min(ref_im))/(torch.max(ref_im) - torch.min(ref_im)) - 1
         cond_im = 2*(torch.clone(cond_im) - torch.min(cond_im))/(torch.max(cond_im) - torch.min(cond_im)) - 1
 
-        print("COND")
-        print(torch.min(cond_im))
-        print(torch.max(cond_im))
-
-        print("REF")
-        print(torch.min(ref_im))
-        print(torch.max(ref_im))
-
-        print(ref_im.shape)
-
         return stacked_masked_zfr, cond_im, ref_im
 
 
