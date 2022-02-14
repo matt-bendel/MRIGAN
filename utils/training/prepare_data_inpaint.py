@@ -61,7 +61,7 @@ class DataTransform:
         im_tensor = transforms.root_sum_of_squares(complex_abs(im_tensor)).unsqueeze(0)
 
         input_tensor = torch.clone(im_tensor)
-        input_tensor = input_tensor[:, :, 64:128] = 0
+        input_tensor[:, :, 64:128] = 0
 
         normalized_input, mean, std = transforms.normalize_instance(input_tensor)
         normalized_gt = transforms.normalize(im_tensor, mean, std)

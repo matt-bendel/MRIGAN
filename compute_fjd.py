@@ -65,11 +65,10 @@ class GANWrapper:
         self.model.eval()
         self.data_consistency = data_consistency
 
-
     def get_noise(self, batch_size):
         # change the noise dimension as required
         z = torch.cuda.FloatTensor(
-                    np.random.normal(size=(batch_size, 512), scale=np.sqrt(0.001)))
+            np.random.normal(size=(batch_size, 512), scale=np.sqrt(1)))
         return z
 
     def convert_to_im(self, samples):
