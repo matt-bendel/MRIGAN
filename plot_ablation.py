@@ -110,7 +110,7 @@ class GANS:
 
                 recons[f'g{gen_num}'].append(final_im)
 
-            mean_recon= torch.mean(avg_tensor, dim=0)
+            mean_recon = torch.mean(avg_tensor, dim=0)
             temp = torch.zeros(8, 128, 128, 2).to(self.args.device)
             temp[:, :, :, 0] = mean_recon[0:8, :, :]
             temp[:, :, :, 1] = mean_recon[8:16, :, :]
@@ -130,7 +130,8 @@ def generate_image(fig, target, image, method, image_ind, rows, cols, kspace=Fal
         ssim_val = ssim(target, image)
         if method != None:
             ax.set_title(method)
-            ax.text(1.0, 1.0, f'PSNR: {psnr_val:.2f}\nSNR: {snr_val:.2f}\nSSIM: {ssim_val:.4f}', horizontalalignment='right', verticalalignment='top', fontsize='xx-small', color='yellow')
+            ax.annotate(f'PSNR: {psnr_val:.2f}\nSNR: {snr_val:.2f}\nSSIM: {ssim_val:.4f}', xy=(1, 1),
+                        horizontalalignment='right', verticalalignment='top', fontsize='xx-small', color='yellow')
 
         # ax.set_xlabel(f'PSNR: {psnr_val:.2f}, SNR: {snr_val:.2f}\nSSIM: {ssim_val:.4f}')
 
@@ -140,8 +141,8 @@ def generate_image(fig, target, image, method, image_ind, rows, cols, kspace=Fal
         ax.set_yticks([])
     else:
         if kspace:
-            image = image**0.4
-            target = target**0.4
+            image = image ** 0.4
+            target = target ** 0.4
         im = ax.imshow(np.abs(image), cmap='gray', vmin=0, vmax=np.max(target))
         ax.set_xticks([])
         ax.set_yticks([])
@@ -238,9 +239,9 @@ def create_mean_error_plots(avg, std_devs, gt):
     im_er, ax_er = None, None
     im_std, ax_std = None, None
 
-    for i in range(num_cols-1):
-        generate_image(fig, gt, avg[f'g{i+1}'], labels[i], i+2, num_rows, num_cols)
-        im_er, ax_er = generate_error_map(fig, gt, avg[f'g{i+1}'], i+9, num_rows, num_cols)
+    for i in range(num_cols - 1):
+        generate_image(fig, gt, avg[f'g{i + 1}'], labels[i], i + 2, num_rows, num_cols)
+        im_er, ax_er = generate_error_map(fig, gt, avg[f'g{i + 1}'], i + 9, num_rows, num_cols)
         im_std, ax_std = generate_image(fig, gt, std_devs[f'g{i + 1}'], 'Std. Dev', i + 16, num_rows, num_cols)
 
     get_colorbar(fig, im_er, ax_er)
@@ -269,7 +270,7 @@ def create_z_compare_plots(recons, gt):
 
 
 def gif_im(gt, gen_ims, index, type):
-    fig = plt.figure(figsize=(12, 4))
+    fig = plt.figure(figsize=(10, 1.5))
     num_rows = 2
     num_cols = 6
 
@@ -281,7 +282,7 @@ def gif_im(gt, gen_ims, index, type):
         im_er, ax_er = generate_error_map(fig, gt, gen_ims[f'g{i + 1}'][index], i + 7, num_rows, num_cols)
 
     get_colorbar(fig, im_er, ax_er)
-    plt.title(f'Z - {index+1}')
+    plt.title(f'Z - {index + 1}')
     plt.savefig(f'/home/bendel.8/Git_Repos/full_scale_mrigan/MRIGAN/gifs/gif_{type}_{index}.png')
 
 
@@ -290,7 +291,8 @@ def generate_gif(type):
     for i in range(8):
         images.append(iio.imread(f'/home/bendel.8/Git_Repos/full_scale_mrigan/MRIGAN/gifs/gif_{type}_{i}.png'))
 
-    iio.mimsave(f'/home/bendel.8/Git_Repos/full_scale_mrigan/MRIGAN/ablation_plots/variation_gif.gif', images, duration=0.25)
+    iio.mimsave(f'/home/bendel.8/Git_Repos/full_scale_mrigan/MRIGAN/ablation_plots/variation_gif.gif', images,
+                duration=0.25)
 
     for i in range(8):
         os.remove(f'/home/bendel.8/Git_Repos/full_scale_mrigan/MRIGAN/gifs/gif_{type}_{i}.png')
