@@ -392,20 +392,16 @@ def main(args):
         for i, data in enumerate(dev_loader):
             generator.eval()
             with torch.no_grad():
-                input, target, mean, std = data
+                input, target_im, mean, std = data
 
                 input = input.to(device=args.device, dtype=torch.float)
-                target = target.to(device=args.device, dtype=torch.float)
+                target_im = target_im.to(device=args.device, dtype=torch.float)
 
                 output_gen, gen_list = average_gen(generator, input, args)
 
                 for k in range(input.shape[0]):
                     output = output_gen[k].squeeze(0).cpu().numpy()
-                    print("SHAPE")
-                    print(target.shape)
-                    print(target[k].shape)
-                    print("DONE")
-                    target = target[k].squeeze(0).cpu().numpy()
+                    target = target_im[k].squeeze(0).cpu().numpy()
 
                     losses['ssim'].append(ssim(target, output))
                     losses['psnr'].append(psnr(target, output))
