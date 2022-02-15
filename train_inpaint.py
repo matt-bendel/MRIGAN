@@ -144,10 +144,10 @@ def compute_gradient_penalty(D, real_samples, fake_samples, args, y):
 
 
 def average_gen(generator, input_w_z, args):
-    gens = torch.zeros(size=(input_w_z.shape[0], 8, input_w_z.shape[1], input_w_z.shape[2], input_w_z.shape[3]))
+    gens = torch.zeros(size=(input_w_z.shape[0], 8, input_w_z.shape[1], input_w_z.shape[2], input_w_z.shape[3])).to(device=args.device, dtype=torch.float)
     for j in range(8):
         z = torch.FloatTensor(np.random.normal(size=(input_w_z.shape[0], args.latent_size), scale=np.sqrt(1))).to(
-            args.device)
+            device=args.device, dtype=torch.float)
         output_gen = generator(input=input_w_z, z=z)
         gens[:, j, :, :, :] = output_gen
 
@@ -393,8 +393,8 @@ def main(args):
             with torch.no_grad():
                 input, target, mean, std = data
 
-                input = input.to(args.device)
-                target = target.to(args.device)
+                input = input.to(device=args.device, dtype=torch.float)
+                target = target.to(device=args.device, dtype=torch.float)
 
                 output_gen, gen_list = average_gen(generator, input, args)
 
