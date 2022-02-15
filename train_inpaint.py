@@ -294,6 +294,7 @@ def main(args):
         }
 
         for i, data in enumerate(train_loader):
+            break
             input, target, mean, std = data
 
             input = input.to(device=args.device, dtype=torch.float)
@@ -397,6 +398,8 @@ def main(args):
                 target = target.to(device=args.device, dtype=torch.float)
 
                 output_gen, gen_list = average_gen(generator, input, args)
+
+                print(output_gen.shape)
 
                 for k in range(input.shape[0]):
                     output = output_gen[k].squeeze(0).cpu().numpy()
