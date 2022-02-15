@@ -143,13 +143,14 @@ def compute_gradient_penalty(D, real_samples, fake_samples, args, y):
     return gradient_penalty
 
 
-def average_gen(generator, input_w_z, args):
+def average_gen(generator, input_w_z, args, target=None):
     gens = torch.zeros(size=(input_w_z.shape[0], 8, input_w_z.shape[1], input_w_z.shape[2], input_w_z.shape[3])).to(device=args.device, dtype=torch.float)
     for j in range(8):
         z = torch.FloatTensor(np.random.normal(size=(input_w_z.shape[0], args.latent_size), scale=np.sqrt(1))).to(
             device=args.device, dtype=torch.float)
         output_gen = generator(input=input_w_z, z=z)
         gens[:, j, :, :, :] = output_gen
+        gens[:, j, :, :, 0:64] = target[:, :, :,0:64]
 
     return torch.mean(gens, dim=1), gens
 
@@ -308,6 +309,7 @@ def main(args):
                 optimizer_D.zero_grad()
 
                 output_gen = generator(input, z)
+                output_gen[:, :, :, 0:64] = target[:, :, :, 0:64]
 
                 # MAKE PREDICTIONS
                 real_pred = discriminator(input=target, y=input)
@@ -339,6 +341,7 @@ def main(args):
                 args.device)
             for k in range(args.num_z):
                 output_gen[k, :, :, :, :] = generator(input, z[k])
+                output_gen[k, :, :, :, 0:64] = target[:, :, :, 0:64]
 
             disc_inputs_gen = torch.zeros(
                 size=(input.shape[0], args.num_z, output_gen.shape[2], output_gen.shape[3],
@@ -352,11 +355,10 @@ def main(args):
             # Loss measures generator's ability to fool the discriminator
             # Train on fake images
             fake_pred = torch.zeros((input.shape[0], args.num_z)).to(args.device)
-            cond = torch.zeros(1, disc_inputs_gen.shape[2], disc_inputs_gen.shape[3], disc_inputs_gen.shape[4]).to(args.device)
-            cond[0, :, :, :] = input[k, :, :, :]
-            cond = cond.repeat(args.num_z, 1, 1, 1)
-
             for k in range(input.shape[0]):
+                cond = torch.zeros(1, disc_inputs_gen.shape[2], disc_inputs_gen.shape[3], disc_inputs_gen.shape[4])
+                cond[0, :, :, :] = input[k, :, :, :]
+                cond = cond.repeat(args.num_z, 1, 1, 1)
                 temp = discriminator(input=disc_inputs_gen[k], y=cond)
                 fake_pred[k] = temp[:, 0]
 
@@ -364,7 +366,7 @@ def main(args):
             for k in range(input.shape[0] - 1):
                 gen_pred_loss += torch.mean(fake_pred[k + 1])
 
-            var_weight = 0.02
+            var_weight = 0.1
             adv_weight = 1e-6
             ssim_weight = 0.84
             g_loss = -adv_weight * torch.mean(gen_pred_loss)
@@ -396,7 +398,7 @@ def main(args):
                 input = input.to(device=args.device, dtype=torch.float)
                 target_im = target_im.to(device=args.device, dtype=torch.float)
 
-                output_gen, gen_list = average_gen(generator, input, args)
+                output_gen, gen_list = average_gen(generator, input, args, target=target_im)
 
                 for k in range(input.shape[0]):
                     output = output_gen[k].squeeze(0).cpu().numpy()
