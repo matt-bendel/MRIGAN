@@ -401,7 +401,10 @@ def main(args):
 
                 for k in range(input.shape[0]):
                     output = output_gen[k].squeeze(0).cpu().numpy()
+                    print("SHAPE")
+                    print(target.shape)
                     print(target[k].shape)
+                    print("DONE")
                     target = target[k].squeeze(0).cpu().numpy()
 
                     losses['ssim'].append(ssim(target, output))
