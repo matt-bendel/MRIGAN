@@ -6,6 +6,7 @@ from espirit import ifft, fft
 from torch.utils.data import DataLoader
 from data import transforms
 from utils.math import complex_abs
+from random import randrange
 
 from data.mri_data import SelectiveSliceData, SelectiveSliceData_Val
 from utils.fftc import ifft2c_new, fft2c_new
@@ -61,12 +62,21 @@ class DataTransform:
         im_tensor = transforms.root_sum_of_squares(complex_abs(im_tensor)).unsqueeze(0)
 
         input_tensor = torch.clone(im_tensor)
-        input_tensor[:, :, 64:128] = 0
+
+        n = input_tensor.shape[1]
+        square_length = n // 5
+        end = n - square_length
+
+        rand_start_col = randrange(0, end)
+        rand_start_row = randrange(0, end)
+
+        input_tensor[:, rand_start_row:rand_start_row + square_length, rand_start_col:rand_start_col + square_length] = 0
+        # input_tensor[:, :, 64:128] = 0
 
         normalized_input, mean, std = transforms.normalize_instance(input_tensor)
         normalized_gt = transforms.normalize(im_tensor, mean, std)
 
-        return normalized_input, normalized_gt, mean, std
+        return normalized_input, normalized_gt, mean, std, rand_start_row, rand_start_col, end
 
 
 def create_datasets(args, val_only):

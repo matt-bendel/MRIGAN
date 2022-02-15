@@ -143,14 +143,16 @@ def compute_gradient_penalty(D, real_samples, fake_samples, args, y):
     return gradient_penalty
 
 
-def average_gen(generator, input_w_z, args, target=None):
+def average_gen(generator, input_w_z, args, target=None, vals=None):
     gens = torch.zeros(size=(input_w_z.shape[0], 8, input_w_z.shape[1], input_w_z.shape[2], input_w_z.shape[3])).to(device=args.device, dtype=torch.float)
     for j in range(8):
         z = torch.FloatTensor(np.random.normal(size=(input_w_z.shape[0], args.latent_size), scale=np.sqrt(1))).to(
             device=args.device, dtype=torch.float)
         output_gen = generator(input=input_w_z, z=z)
         gens[:, j, :, :, :] = output_gen
-        gens[:, j, :, :, 0:64] = target[:, :, :,0:64]
+        rows = vals[0]
+        cols = vals[1]
+        gens[:, j, :, :rows, :cols] = target[:, :, :rows, :cols]
 
     return torch.mean(gens, dim=1), gens
 
@@ -295,7 +297,7 @@ def main(args):
         }
 
         for i, data in enumerate(train_loader):
-            input, target, mean, std = data
+            input, target, mean, std, row, col = data
 
             input = input.to(device=args.device, dtype=torch.float)
             target = target.to(device=args.device, dtype=torch.float)
@@ -309,7 +311,7 @@ def main(args):
                 optimizer_D.zero_grad()
 
                 output_gen = generator(input, z)
-                output_gen[:, :, :, 0:64] = target[:, :, :, 0:64]
+                output_gen[:, :, :row, :col] = target[:, :, :row, :col]
 
                 # MAKE PREDICTIONS
                 real_pred = discriminator(input=target, y=input)
@@ -341,7 +343,8 @@ def main(args):
                 args.device)
             for k in range(args.num_z):
                 output_gen[k, :, :, :, :] = generator(input, z[k])
-                output_gen[k, :, :, :, 0:64] = target[:, :, :, 0:64]
+                # output_gen[k, :, :, :, 0:64] = target[:, :, :, 0:64]
+                output_gen[:, :, :row, :col] = target[:, :, :row, :col]
 
             disc_inputs_gen = torch.zeros(
                 size=(input.shape[0], args.num_z, output_gen.shape[2], output_gen.shape[3],
@@ -393,12 +396,12 @@ def main(args):
         for i, data in enumerate(dev_loader):
             generator.eval()
             with torch.no_grad():
-                input, target_im, mean, std = data
+                input, target_im, mean, std, row, col = data
 
                 input = input.to(device=args.device, dtype=torch.float)
                 target_im = target_im.to(device=args.device, dtype=torch.float)
 
-                output_gen, gen_list = average_gen(generator, input, args, target=target_im)
+                output_gen, gen_list = average_gen(generator, input, args, target=target_im, vals=(row, col))
 
                 for k in range(input.shape[0]):
                     output = output_gen[k].squeeze(0).cpu().numpy()
