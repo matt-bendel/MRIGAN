@@ -69,8 +69,8 @@ class DataTransform:
 
         # rand_start_col = randrange(0, end)
         # rand_start_row = randrange(0, end)
-        rand_start_row = (n - square_length) / 2
-        rand_start_col = (n - square_length) / 2
+        rand_start_row = (n - square_length) // 2
+        rand_start_col = (n - square_length) // 2
 
         temp = torch.ones(1, n, n)
         temp[:, rand_start_row:rand_start_row+square_length, rand_start_col:rand_start_col+square_length] = 0
