@@ -294,7 +294,6 @@ def main(args):
         }
 
         for i, data in enumerate(train_loader):
-            break
             input, target, mean, std = data
 
             input = input.to(device=args.device, dtype=torch.float)
