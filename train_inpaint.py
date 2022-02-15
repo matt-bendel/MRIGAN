@@ -399,7 +399,7 @@ def main(args):
 
                 output_gen, gen_list = average_gen(generator, input, args)
 
-                print(output_gen.shape)
+                print(target.shape)
 
                 for k in range(input.shape[0]):
                     output = output_gen[k].squeeze(0).cpu().numpy()
