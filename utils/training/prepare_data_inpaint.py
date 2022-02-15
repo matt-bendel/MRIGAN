@@ -76,7 +76,7 @@ class DataTransform:
         normalized_input, mean, std = transforms.normalize_instance(input_tensor)
         normalized_gt = transforms.normalize(im_tensor, mean, std)
 
-        return normalized_input, normalized_gt, mean, std, rand_start_row, rand_start_col, end
+        return normalized_input, normalized_gt, mean, std, rand_start_row, rand_start_col
 
 
 def create_datasets(args, val_only):
