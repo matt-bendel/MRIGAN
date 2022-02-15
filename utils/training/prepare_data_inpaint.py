@@ -64,11 +64,16 @@ class DataTransform:
         input_tensor = torch.clone(im_tensor)
 
         n = input_tensor.shape[1]
-        square_length = n // 5
+        square_length = n // 4
         end = n - square_length
 
-        rand_start_col = randrange(0, end)
-        rand_start_row = randrange(0, end)
+        # rand_start_col = randrange(0, end)
+        # rand_start_row = randrange(0, end)
+        rand_start_row = (n - square_length) / 2
+        rand_start_col = (n - square_length) / 2
+
+        temp = torch.ones(1, n, n)
+        temp[:, rand_start_row:rand_start_row+square_length, rand_start_col:rand_start_col+square_length] = 0
 
         input_tensor[:, rand_start_row:rand_start_row + square_length, rand_start_col:rand_start_col + square_length] = 0
         # input_tensor[:, :, 64:128] = 0
@@ -76,7 +81,7 @@ class DataTransform:
         normalized_input, mean, std = transforms.normalize_instance(input_tensor)
         normalized_gt = transforms.normalize(im_tensor, mean, std)
 
-        return normalized_input, normalized_gt, mean, std, rand_start_row, rand_start_col
+        return normalized_input, normalized_gt, mean, std
 
 
 def create_datasets(args, val_only):
