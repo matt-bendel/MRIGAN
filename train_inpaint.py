@@ -399,10 +399,9 @@ def main(args):
 
                 output_gen, gen_list = average_gen(generator, input, args)
 
-                print(target.shape)
-
                 for k in range(input.shape[0]):
                     output = output_gen[k].squeeze(0).cpu().numpy()
+                    print(target[k].shape)
                     target = target[k].squeeze(0).cpu().numpy()
 
                     losses['ssim'].append(ssim(target, output))
