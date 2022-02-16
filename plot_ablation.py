@@ -226,11 +226,8 @@ def get_colorbar(fig, im, ax, left=False):
     width = 0.01
     cbar_ax = fig.add_axes([x11 + pad, y10, width, y11 - y10]) if not left else fig.add_axes([x10 - 2*pad, y10, width, y11 - y10])
 
-    cbar = fig.colorbar(im, cax=cbar_ax, format='%.2e')  # Generate colorbar
+    cbar = fig.colorbar(im, cax=cbar_ax, format='%.2e', location='left' if left else 'right')  # Generate colorbar
     cbar.ax.tick_params(labelsize=8)
-
-    if left:
-        cbar.ax.yaxis.set_label_position('left')
 
 
 def create_mean_error_plots(avg, std_devs, gt):
