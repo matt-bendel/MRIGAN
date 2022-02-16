@@ -150,7 +150,7 @@ def average_gen(generator, input_w_z, args, target=None, inds=None):
         z = torch.FloatTensor(np.random.normal(size=(input_w_z.shape[0], args.latent_size), scale=np.sqrt(1))).to(
             device=args.device, dtype=torch.float)
         output_gen = generator(input=input_w_z, z=z)
-        output_gen[inds] = target[inds]
+        output_gen[:, :, 0:64, 0:64] = target[:, :, 0:64, 0:64]
         gens[:, j, :, :, :] = output_gen
 
     return torch.mean(gens, dim=1), gens
@@ -313,7 +313,8 @@ def main(args):
                 optimizer_D.zero_grad()
 
                 output_gen = generator(input, z)
-                output_gen[inds] = target[inds]
+                output_gen[:, :, 0:64, 0:64] = target[:, :, 0:64, 0:64]
+                # output_gen[inds] = target[inds]
 
                 # MAKE PREDICTIONS
                 real_pred = discriminator(input=target, y=input)
@@ -345,8 +346,8 @@ def main(args):
                 args.device)
             for k in range(args.num_z):
                 output_gen[k, :, :, :, :] = generator(input, z[k])
-                # output_gen[k, :, :, :, 0:64] = target[:, :, :, 0:64]
-                output_gen[k, inds] = target[inds]
+                output_gen[k, :, :, 0:64, 0:64] = target[:, :, 0:64, 0:64]
+                # output_gen[k, inds] = target[inds]
 
             disc_inputs_gen = torch.zeros(
                 size=(input.shape[0], args.num_z, output_gen.shape[2], output_gen.shape[3],
