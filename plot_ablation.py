@@ -250,6 +250,9 @@ def create_mean_error_plots(avg, std_devs, gt):
         if i == 0:
             im_er, ax_er = generate_error_map(fig, gt, avg[f'g{i + 1}'], i + 9, num_rows, num_cols)
             im_std, ax_std = generate_image(fig, gt, std_devs[f'g{i + 1}'], 'Std. Dev', i + 16, num_rows, num_cols)
+        else:
+            im_er, ax_er = generate_error_map(fig, gt, avg[f'g{i + 1}'], i + 9, num_rows, num_cols)
+            im_std, ax_std = generate_image(fig, gt, std_devs[f'g{i + 1}'], 'Std. Dev', i + 16, num_rows, num_cols)
 
     get_colorbar(fig, im_er, ax_er, left=True)
     get_colorbar(fig, im_std, ax_std, left=True)
