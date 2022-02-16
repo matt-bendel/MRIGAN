@@ -235,11 +235,11 @@ def get_gen_supervised(args):
     from utils.training.prepare_model import build_model, build_optim, build_discriminator
 
     checkpoint_file_gen = pathlib.Path(
-        f'/home/bendel.8/Git_Repos/full_scale_mrigan/MRIGAN/trained_models/inpaint/ours/generator_model.pt')
+        f'/home/bendel.8/Git_Repos/full_scale_mrigan/MRIGAN/trained_models/inpaint/generator_model.pt')
     checkpoint_gen = torch.load(checkpoint_file_gen, map_location=torch.device('cuda'))
 
     checkpoint_file_dis = pathlib.Path(
-        f'/home/bendel.8/Git_Repos/full_scale_mrigan/MRIGAN/trained_models/inpaint/ours/discriminator_model.pt')
+        f'/home/bendel.8/Git_Repos/full_scale_mrigan/MRIGAN/trained_models/inpaint/discriminator_model.pt')
     checkpoint_dis = torch.load(checkpoint_file_dis, map_location=torch.device('cuda'))
 
     generator = build_model(args)
