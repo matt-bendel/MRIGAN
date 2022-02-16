@@ -64,7 +64,7 @@ class DataTransform:
         input_tensor = torch.clone(im_tensor)
 
         n = input_tensor.shape[1]
-        square_length = n // 4
+        square_length = n // 3
         end = n - square_length
 
         # rand_start_col = randrange(0, end)
