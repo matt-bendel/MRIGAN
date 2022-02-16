@@ -227,7 +227,7 @@ def get_colorbar(fig, im, ax, left=False):
     cbar_ax = fig.add_axes([x11 + pad, y10, width, y11 - y10]) if not left else fig.add_axes([x10 - 2*pad, y10, width, y11 - y10])
 
     if left:
-        cbar = fig.colorbar(im, cax=cbar_ax, format='%.2e', location='left' if left else 'right')  # Generate colorbar
+        cbar = fig.colorbar(im, cax=cbar_ax, format='%.2e', location='left')  # Generate colorbar
     else:
         cbar = fig.colorbar(im, cax=cbar_ax, format='%.2e')  # Generate colorbar
 
