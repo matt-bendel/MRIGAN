@@ -417,7 +417,7 @@ def main(args):
 
                         place = 1
                         for r in range(8):
-                            val = gen_list[k, r, 0, :, :].cpu().numpy()
+                            val = gen_list[k, r, 0, :, :].cpu().numpy() * std[k].numpy() + mean[k].numpy()
                             gif_im(target, val, place, 'image')
                             place += 1
 
