@@ -227,7 +227,7 @@ def get_colorbar(fig, im, ax, left=False):
     cbar_ax = fig.add_axes([x11 + pad, y10, width, y11 - y10]) if not left else fig.add_axes([x10 - 2*pad, y10, width, y11 - y10])
 
     if left:
-        cbar_ax.yaxis.set_ticks_position('left')
+        cbar_ax.yaxis.set_label_position('left')
 
     cbar = fig.colorbar(im, cax=cbar_ax, format='%.2e')  # Generate colorbar
     cbar.ax.tick_params(labelsize=8)
@@ -251,8 +251,8 @@ def create_mean_error_plots(avg, std_devs, gt):
             im_er, ax_er = generate_error_map(fig, gt, avg[f'g{i + 1}'], i + 9, num_rows, num_cols)
             im_std, ax_std = generate_image(fig, gt, std_devs[f'g{i + 1}'], 'Std. Dev', i + 16, num_rows, num_cols)
         else:
-            im_er, ax_er = generate_error_map(fig, gt, avg[f'g{i + 1}'], i + 9, num_rows, num_cols)
-            im_std, ax_std = generate_image(fig, gt, std_devs[f'g{i + 1}'], 'Std. Dev', i + 16, num_rows, num_cols)
+            generate_error_map(fig, gt, avg[f'g{i + 1}'], i + 9, num_rows, num_cols)
+            generate_image(fig, gt, std_devs[f'g{i + 1}'], 'Std. Dev', i + 16, num_rows, num_cols)
 
     get_colorbar(fig, im_er, ax_er, left=True)
     get_colorbar(fig, im_std, ax_std, left=True)
