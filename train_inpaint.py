@@ -144,13 +144,12 @@ def compute_gradient_penalty(D, real_samples, fake_samples, args, y):
 
 
 def average_gen(generator, input_w_z, args, target=None, inds=None):
-    gens = torch.zeros(size=(input_w_z.shape[0], 8, input_w_z.shape[1], input_w_z.shape[2], input_w_z.shape[3])).to(
-        device=args.device, dtype=torch.float)
+    gens = torch.zeros(size=(input_w_z.shape[0], 8, input_w_z.shape[1], input_w_z.shape[2], input_w_z.shape[3])).to(device=args.device, dtype=torch.float)
     for j in range(8):
         z = torch.FloatTensor(np.random.normal(size=(input_w_z.shape[0], args.latent_size), scale=np.sqrt(1))).to(
             device=args.device, dtype=torch.float)
         output_gen = generator(input=input_w_z, z=z)
-        output_gen[:, :, 0:64, 0:64] = target[:, :, 0:64, 0:64]
+        output_gen[inds] = target[inds]
         gens[:, j, :, :, :] = output_gen
 
     return torch.mean(gens, dim=1), gens
@@ -298,23 +297,21 @@ def main(args):
         for i, data in enumerate(train_loader):
             input, target, mean, std = data
 
-            inds = torch.nonzero(input == 0)
+            inds = torch.nonzero(input==0)
 
             input = input.to(device=args.device, dtype=torch.float)
             target = target.to(device=args.device, dtype=torch.float)
 
             for j in range(args.num_iters_discriminator):
                 z = torch.FloatTensor(
-                    np.random.normal(size=(input.shape[0], args.latent_size), scale=np.sqrt(1))).to(device=args.device,
-                                                                                                    dtype=torch.float)
+                    np.random.normal(size=(input.shape[0], args.latent_size), scale=np.sqrt(1))).to(device=args.device, dtype=torch.float)
                 # ---------------------
                 #  Train Discriminator
                 # ---------------------
                 optimizer_D.zero_grad()
 
                 output_gen = generator(input, z)
-                output_gen[:, :, 0:64, 0:64] = target[:, :, 0:64, 0:64]
-                # output_gen[inds] = target[inds]
+                output_gen[inds] = target[inds]
 
                 # MAKE PREDICTIONS
                 real_pred = discriminator(input=target, y=input)
@@ -346,8 +343,8 @@ def main(args):
                 args.device)
             for k in range(args.num_z):
                 output_gen[k, :, :, :, :] = generator(input, z[k])
-                output_gen[k, :, :, 0:64, 0:64] = target[:, :, 0:64, 0:64]
-                # output_gen[k, inds] = target[inds]
+                # output_gen[k, :, :, :, 0:64] = target[:, :, :, 0:64]
+                output_gen[k, inds] = target[inds]
 
             disc_inputs_gen = torch.zeros(
                 size=(input.shape[0], args.num_z, output_gen.shape[2], output_gen.shape[3],
@@ -376,8 +373,7 @@ def main(args):
             adv_weight = 1e-6
             ssim_weight = 0.84
             g_loss = -adv_weight * torch.mean(gen_pred_loss)
-            g_loss += (1 - ssim_weight) * F.l1_loss(target, avg_recon) - ssim_weight * mssim_tensor(target, avg_recon,
-                                                                                                    epoch + 1)
+            g_loss += (1 - ssim_weight) * F.l1_loss(target, avg_recon) - ssim_weight * mssim_tensor(target, avg_recon, epoch+1)
             g_loss += - var_weight * torch.mean(torch.var(disc_inputs_gen, dim=1), dim=(0, 1, 2, 3))
 
             g_loss.backward()
@@ -402,7 +398,7 @@ def main(args):
             with torch.no_grad():
                 input, target_im, mean, std = data
 
-                inds = torch.nonzero(input == 0)
+                inds = torch.nonzero(input==0)
 
                 input = input.to(device=args.device, dtype=torch.float)
                 target_im = target_im.to(device=args.device, dtype=torch.float)
@@ -410,8 +406,8 @@ def main(args):
                 output_gen, gen_list = average_gen(generator, input, args, target=target_im, inds=inds)
 
                 for k in range(input.shape[0]):
-                    output = output_gen[k].squeeze(0).cpu().numpy()
-                    target = target_im[k].squeeze(0).cpu().numpy()
+                    output = output_gen[k].squeeze(0).cpu().numpy() * std[k].numpy() + mean[k].numpy()
+                    target = target_im[k].squeeze(0).cpu().numpy() * std[k].numpy() + mean[k].numpy()
 
                     losses['ssim'].append(ssim(target, output))
                     losses['psnr'].append(psnr(target, output))
