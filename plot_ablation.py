@@ -179,6 +179,7 @@ def generate_image(fig, target, image, method, image_ind, rows, cols, kspace=Fal
         if kspace:
             image = image ** 0.4
             target = target ** 0.4
+        ax.set_title(method, size=10)
         im = ax.imshow(np.abs(image), cmap='gray', vmin=0, vmax=np.max(target))
         ax.set_xticks([])
         ax.set_yticks([])
@@ -186,7 +187,7 @@ def generate_image(fig, target, image, method, image_ind, rows, cols, kspace=Fal
     return im, ax
 
 
-def generate_error_map(fig, target, recon, image_ind, rows, cols, relative=False, k=1, kspace=False):
+def generate_error_map(fig, target, recon, image_ind, rows, cols, relative=False, k=1, kspace=False, title=None):
     # Assume rows and cols are available globally
     # rows and cols are both previously defined ints
     ax = fig.add_subplot(rows, cols, image_ind)  # Add to subplot
@@ -204,6 +205,8 @@ def generate_error_map(fig, target, recon, image_ind, rows, cols, relative=False
     else:
         im = ax.imshow(k * error, cmap='jet', vmax=1) if kspace else ax.imshow(k * error, cmap='jet', vmax=0.0001)
 
+    if title != None:
+        ax.set_title(title, size=10)
     # Remove axis ticks
     ax.set_xticks([])
     ax.set_yticks([])
@@ -212,7 +215,7 @@ def generate_error_map(fig, target, recon, image_ind, rows, cols, relative=False
     return im, ax
 
 
-def get_colorbar(fig, im, ax):
+def get_colorbar(fig, im, ax, left=False):
     fig.subplots_adjust(right=0.85)  # Make room for colorbar
 
     # Get position of final error map axis
@@ -221,7 +224,7 @@ def get_colorbar(fig, im, ax):
     # Appropriately rescale final axis so that colorbar does not effect formatting
     pad = 0.01
     width = 0.01
-    cbar_ax = fig.add_axes([x11 + pad, y10, width, y11 - y10])
+    cbar_ax = fig.add_axes([x11 + pad, y10, width, y11 - y10]) if not left else fig.add_axes([x10 - pad, y10, width, y11 - y10])
 
     cbar = fig.colorbar(im, cax=cbar_ax, format='%.2e')  # Generate colorbar
     cbar.ax.tick_params(labelsize=8)
@@ -241,11 +244,12 @@ def create_mean_error_plots(avg, std_devs, gt):
 
     for i in range(num_cols - 1):
         generate_image(fig, gt, avg[f'g{i + 1}'], labels[i], i + 2, num_rows, num_cols)
-        im_er, ax_er = generate_error_map(fig, gt, avg[f'g{i + 1}'], i + 9, num_rows, num_cols)
-        im_std, ax_std = generate_image(fig, gt, std_devs[f'g{i + 1}'], 'Std. Dev', i + 16, num_rows, num_cols)
+        if i == 0:
+            im_er, ax_er = generate_error_map(fig, gt, avg[f'g{i + 1}'], i + 9, num_rows, num_cols)
+            im_std, ax_std = generate_image(fig, gt, std_devs[f'g{i + 1}'], 'Std. Dev', i + 16, num_rows, num_cols)
 
-    get_colorbar(fig, im_er, ax_er)
-    get_colorbar(fig, im_std, ax_std)
+    get_colorbar(fig, im_er, ax_er, left=True)
+    get_colorbar(fig, im_std, ax_std, left=True)
 
     plt.savefig(f'/home/bendel.8/Git_Repos/full_scale_mrigan/MRIGAN/ablation_plots/mean_error.png')
 
@@ -261,11 +265,11 @@ def create_z_compare_plots(recons, gt):
     labels = ['Adv. Only', '+Supervised', '+DC', '+Var Loss', '+DI - No DC', '+DI - w/ DC']
 
     for i in range(num_cols - 1):
-        generate_image(fig, gt, recons[f'g{i + 1}'][0], labels[i], i + 2, num_rows, num_cols)
-        generate_image(fig, gt, recons[f'g{i + 1}'][1], None, i + 9, num_rows, num_cols)
-        generate_image(fig, gt, recons[f'g{i + 1}'][2], None, i + 16, num_rows, num_cols)
-        generate_image(fig, gt, recons[f'g{i + 1}'][3], None, i + 23, num_rows, num_cols)
-        generate_image(fig, gt, recons[f'g{i + 1}'][4], None, i + 30, num_rows, num_cols)
+        generate_error_map(fig, gt, recons[f'g{i + 1}'][0], i + 2, num_rows, num_cols, title=labels[i])
+        generate_error_map(fig, gt, recons[f'g{i + 1}'][1], i + 9, num_rows, num_cols)
+        generate_error_map(fig, gt, recons[f'g{i + 1}'][2], i + 16, num_rows, num_cols)
+        generate_error_map(fig, gt, recons[f'g{i + 1}'][3], i + 23, num_rows, num_cols)
+        generate_error_map(fig, gt, recons[f'g{i + 1}'][4], i + 30, num_rows, num_cols)
 
     plt.savefig(f'/home/bendel.8/Git_Repos/full_scale_mrigan/MRIGAN/ablation_plots/5_z.png')
 
