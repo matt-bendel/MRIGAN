@@ -432,7 +432,7 @@ def main(args):
             var_weight = 0.02
             adv_weight = 1e-6
             ssim_weight = 0.84
-            g_loss = -torch.mean(gen_pred_loss) if args.adv_only else -adv_weight * torch.mean(gen_pred_loss)
+            g_loss = -1e-3*torch.mean(gen_pred_loss) if args.adv_only else -adv_weight * torch.mean(gen_pred_loss)
             g_loss += (1 - ssim_weight) * F.l1_loss(target_full, avg_recon) - ssim_weight * mssim_tensor(target_full,
                                                                                                          avg_recon) if args.supervised else 0
             g_loss += - var_weight * torch.mean(torch.var(disc_inputs_gen, dim=1),
