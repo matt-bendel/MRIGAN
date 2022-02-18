@@ -70,7 +70,7 @@ class DataTransform:
 
         # rand_start_col = randrange(0, end)
         # rand_start_row = randrange(0, end)
-        rand_start_row = (n - width) // 2 + 30
+        rand_start_row = (n - width) // 2 + 35
         rand_start_col = (n - height) // 2
 
         input_tensor[:, rand_start_row:rand_start_row + width, rand_start_col:rand_start_col + height] = 0
