@@ -64,16 +64,15 @@ class DataTransform:
         input_tensor = torch.clone(im_tensor)
 
         n = input_tensor.shape[1]
-        width = n // 4
-        height = n // 2
-
+        square_length = n // 3
+        end = n - square_length
 
         # rand_start_col = randrange(0, end)
         # rand_start_row = randrange(0, end)
-        rand_start_row = (n - width) // 2 + 35
-        rand_start_col = (n - height) // 2
+        rand_start_row = (n - square_length) // 2
+        rand_start_col = (n - square_length) // 2
 
-        input_tensor[:, rand_start_row:rand_start_row + width, rand_start_col:rand_start_col + height] = 0
+        input_tensor[:, rand_start_row:rand_start_row + square_length, rand_start_col:rand_start_col + square_length] = 0
         # input_tensor[:, :, 64:128] = 0
 
         normalized_input, mean, std = transforms.normalize_instance(input_tensor)
