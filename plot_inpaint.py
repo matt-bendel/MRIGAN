@@ -308,7 +308,7 @@ def generate_gif(type):
 
 def main(generator, dev_loader):
     for i, data in enumerate(dev_loader):
-        input, target_full, mean, std, true_measures = data
+        input, target_full, mean, std = data
 
         input = input.to(args.device)
         target = target_full.to(args.device)
