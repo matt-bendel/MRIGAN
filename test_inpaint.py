@@ -83,15 +83,12 @@ def get_gen(args, type='image'):
 
     generator.load_state_dict(checkpoint_gen['model'])
 
+    print(checkpoint_gen['epoch'])
+
     return generator
 
 
 def main(args, power_num, generator, dev_loader):
-    args.exp_dir.mkdir(parents=True, exist_ok=True)
-
-    args.in_chans = 1
-    args.out_chans = 1
-
     # generator = get_gen(args)
     # generator.eval()
     # _, dev_loader = create_data_loaders(args, val_only=True)
@@ -153,6 +150,10 @@ if __name__ == '__main__':
     Tensor = torch.FloatTensor
 
     args = create_arg_parser().parse_args()
+    args.exp_dir.mkdir(parents=True, exist_ok=True)
+
+    args.in_chans = 1
+    args.out_chans = 1
     # restrict visible cuda devices
     if args.data_parallel or (args.device >= 0):
         if not args.data_parallel:
@@ -165,6 +166,7 @@ if __name__ == '__main__':
     np.random.seed(args.seed)
     torch.manual_seed(args.seed)
     _, loader = create_data_loaders(args, val_only=True)
+
     gen = get_gen(args)
     gen.eval()
 
