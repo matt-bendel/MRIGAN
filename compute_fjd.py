@@ -88,7 +88,7 @@ class GANWrapper:
 
         final_im = torch.zeros(size=(samples.size(0), 3, 128, 128)).to(self.device)
         for i in range(samples.size(0)):
-            im = transforms.root_sum_of_squares(complex_abs(temp[i])) if not self.inpaint else temp
+            im = transforms.root_sum_of_squares(complex_abs(temp[i])) if not self.args.inpaint else temp
             im = 2*(im - torch.min(im))/(torch.max(im) - torch.min(im)) - 1
             final_im[i, 0, :, :] = im
             final_im[i, 1, :, :] = im

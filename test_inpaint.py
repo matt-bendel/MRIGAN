@@ -61,7 +61,7 @@ def average_gen(generator, input_w_z, args, target=None, inds=None, power_num=10
 
     for j in range(power_num):
         z = torch.FloatTensor(np.random.normal(size=(input_w_z.shape[0], args.latent_size), scale=np.sqrt(1))).to(
-            args.device)
+            args.device, dtype=torch.float)
         output_gen = generator(input=input_w_z, z=z)
         output_gen[inds] = target[inds]
         average_gen[:, j, :, :, :] = output_gen
@@ -104,9 +104,9 @@ def main(args, power_num, generator, dev_loader):
     for i, data in enumerate(dev_loader):
         input, target, mean, std = data
 
-        input = input.to(args.device)
-        target = target.to(args.device)
         inds = torch.nonzero(input == 0)
+        input = input.to(args.device, dtype=torch.float)
+        target = target.to(args.device, dtype=torch.float)
 
         with torch.no_grad():
             # refined_out, finish = non_average_gen(generator, input_w_z, z, old_input)
