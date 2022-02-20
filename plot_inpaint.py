@@ -17,7 +17,7 @@ import imageio as iio
 from data import transforms
 from typing import Optional
 from utils.math import complex_abs
-from utils.training.prepare_data_ablation import create_data_loaders
+from utils.training.prepare_data_inpaint import create_data_loaders
 from utils.training.parse_args import create_arg_parser
 from utils.training.prepare_model import resume_train, fresh_start, build_model
 from utils.general.helper import readd_measures_im, prep_input_2_chan
@@ -98,8 +98,6 @@ class GANS:
 
     def __call__(self, y, target, mean, std, plot_num):
         recons = []
-        avg = None
-        std_dev = None
         inds = torch.nonzero(y == 0)
 
         batch_size = y.size(0)
@@ -110,7 +108,7 @@ class GANS:
             samples[inds] = target[inds]
             avg_tensor[j, :, :] = samples[plot_num, :, :, :].squeeze(0) * std[plot_num] + mean[plot_num]
 
-            recons.append(avg_tensor[j, :, :])
+            recons.append(avg_tensor[j, :, :].cpu().numpy())
 
         avg = torch.mean(avg_tensor, dim=0)
         std_dev = self.compute_std_dev(recons, avg)
@@ -184,7 +182,8 @@ def get_colorbar(fig, im, ax, left=False):
     # Appropriately rescale final axis so that colorbar does not effect formatting
     pad = 0.01
     width = 0.01
-    cbar_ax = fig.add_axes([x11 + pad, y10, width, y11 - y10]) if not left else fig.add_axes([x10 - 2*pad, y10, width, y11 - y10])
+    cbar_ax = fig.add_axes([x11 + pad, y10, width, y11 - y10]) if not left else fig.add_axes(
+        [x10 - 2 * pad, y10, width, y11 - y10])
 
     cbar = fig.colorbar(im, cax=cbar_ax, format='%.2e')  # Generate colorbar
     cbar.ax.tick_params(labelsize=8)
@@ -193,73 +192,102 @@ def get_colorbar(fig, im, ax, left=False):
         cbar_ax.yaxis.tick_left()
         cbar_ax.yaxis.set_label_position('left')
 
+
 # TODO: UPDATE ALL PLOTTING SCRIPTS W/ APPROPRIATE STUFF
-def create_mean_error_plots(generator, input, target):
+def create_mean_error_plots(generator, input, target, mean, std):
     num_rows = 3
-    num_cols = 7
+    num_cols = 8
 
-    fig = plt.figure(figsize=(5*2.33, 5))
+    inds = [2, 3, 4, 5]
+    avg = []
+    std_devs = []
+    gts = []
+    recons = []
+    for i in inds:
+        recon, temp, std_dev = generator(input, target, mean, std, i)
+        recons.append(recon)
+        avg.append(temp.cpu().numpy())
+        std_devs.append(std_dev.cpu().numpy())
+        gts.append(target[i].squeeze(0).cpu().numpy() * std[i].numpy() + mean[i].numpy())
+
+    fig = plt.figure(figsize=(5 * 2.67, 5))
     fig.subplots_adjust(wspace=0, hspace=0.05)
-    generate_image(fig, gt, gt, 'GT', 1, num_rows, num_cols)
-
-    labels = ['Adv. Only', '+Supervised', '+DC', '+Var Loss', '+DI - No DC', '+DI - w/ DC']
     im_er, ax_er = None, None
     im_std, ax_std = None, None
-
-    for i in range(num_cols - 1):
-        generate_image(fig, gt, avg[f'g{i + 1}'], labels[i], i + 2, num_rows, num_cols)
+    for i, data in enumerate(avg):
+        gt = gts[i]
+        gt_ind = 1 if i == 0 else (3 if i == 1 else (5 if i == 2 else 7))
+        recon_ind = 2 if i == 0 else (4 if i == 1 else (6 if i == 2 else 8))
+        generate_image(fig, gt, gt, 'GT', gt_ind, num_rows, num_cols)
+        generate_image(fig, gt, data, 'Recon', recon_ind, num_rows, num_cols)
         if i == 0:
-            im_er, ax_er = generate_error_map(fig, gt, avg[f'g{i + 1}'], i + 9, num_rows, num_cols)
-            im_std, ax_std = generate_image(fig, gt, std_devs[f'g{i + 1}'], 'Std. Dev', i + 16, num_rows, num_cols)
+            im_er, ax_er = generate_error_map(fig, gt, data, recon_ind + 8, num_rows, num_cols)
+            im_std, ax_std = generate_image(fig, gt, std_devs[i], 'Std. Dev', recon_ind + 16, num_rows, num_cols)
         else:
-            generate_error_map(fig, gt, avg[f'g{i + 1}'], i + 9, num_rows, num_cols)
-            generate_image(fig, gt, std_devs[f'g{i + 1}'], 'Std. Dev', i + 16, num_rows, num_cols)
+            generate_error_map(fig, gt, data, recon_ind + 8, num_rows, num_cols)
+            generate_image(fig, gt, std_devs[i], 'Std. Dev', recon_ind + 16, num_rows, num_cols)
 
     get_colorbar(fig, im_er, ax_er, left=True)
     get_colorbar(fig, im_std, ax_std, left=True)
 
-    plt.savefig(f'/home/bendel.8/Git_Repos/full_scale_mrigan/MRIGAN/ablation_plots/mean_error.png')
+    plt.savefig(f'/home/bendel.8/Git_Repos/full_scale_mrigan/MRIGAN/inpaint_plots/mean_error.png')
+
+    return recons, gts
 
 
-def create_z_compare_plots(generator, input, target):
-    num_rows = 5
-    num_cols = 7
+# def create_z_compare_plots(generator, input, target):
+#     num_rows = 5
+#     num_cols = 7
+#
+#     fig = plt.figure(figsize=(7 * 1.4, 7))
+#     fig.subplots_adjust(wspace=0, hspace=0.05)
+#     generate_image(fig, gt, gt, 'GT', 1, num_rows, num_cols)
+#
+#     labels = ['Adv. Only', '+Supervised', '+DC', '+Var Loss', '+DI - No DC', '+DI - w/ DC']
+#
+#     for i in range(num_cols - 1):
+#         generate_error_map(fig, gt, recons[f'g{i + 1}'][0], i + 2, num_rows, num_cols, title=labels[i])
+#         generate_error_map(fig, gt, recons[f'g{i + 1}'][1], i + 9, num_rows, num_cols)
+#         generate_error_map(fig, gt, recons[f'g{i + 1}'][2], i + 16, num_rows, num_cols)
+#         generate_error_map(fig, gt, recons[f'g{i + 1}'][3], i + 23, num_rows, num_cols)
+#         generate_error_map(fig, gt, recons[f'g{i + 1}'][4], i + 30, num_rows, num_cols)
+#
+#     plt.savefig(f'/home/bendel.8/Git_Repos/full_scale_mrigan/MRIGAN/ablation_plots/5_z.png')
 
-    fig = plt.figure(figsize=(7*1.4, 7))
-    fig.subplots_adjust(wspace=0, hspace=0.05)
-    generate_image(fig, gt, gt, 'GT', 1, num_rows, num_cols)
 
-    labels = ['Adv. Only', '+Supervised', '+DC', '+Var Loss', '+DI - No DC', '+DI - w/ DC']
+def generate_gifs(recons, gts):
+    reformatted_recons = {
+        'z1': [],
+        'z2': [],
+        'z3': [],
+        'z4': [],
+        'z5': [],
+        'z6': [],
+        'z7': [],
+        'z8': [],
+    }
+    for j in range(len(recons[0])):
+        reformatted_recons[f'z{j+1}'].append(recons[0][j])
+        reformatted_recons[f'z{j+1}'].append(recons[1][j])
+        reformatted_recons[f'z{j+1}'].append(recons[2][j])
+        reformatted_recons[f'z{j+1}'].append(recons[3][j])
 
-    for i in range(num_cols - 1):
-        generate_error_map(fig, gt, recons[f'g{i + 1}'][0], i + 2, num_rows, num_cols, title=labels[i])
-        generate_error_map(fig, gt, recons[f'g{i + 1}'][1], i + 9, num_rows, num_cols)
-        generate_error_map(fig, gt, recons[f'g{i + 1}'][2], i + 16, num_rows, num_cols)
-        generate_error_map(fig, gt, recons[f'g{i + 1}'][3], i + 23, num_rows, num_cols)
-        generate_error_map(fig, gt, recons[f'g{i + 1}'][4], i + 30, num_rows, num_cols)
-
-    plt.savefig(f'/home/bendel.8/Git_Repos/full_scale_mrigan/MRIGAN/ablation_plots/5_z.png')
-
-
-def generate_gifs(generator, input, target):
     for r in range(8):
-        gif_im(gt, recons, r, 'image')
+        gif_im(reformatted_recons[f'z{j+1}'], gts, r, 'image')
 
     generate_gif('image')
 
 
-def gif_im(gt, gen_ims, index, type):
-    fig = plt.figure(figsize=(12, 4))
+def gif_im(gen_ims, gts, index, type):
+    fig = plt.figure(figsize=(8, 4))
     fig.subplots_adjust(wspace=0, hspace=0.05)
     num_rows = 2
-    num_cols = 6
-
-    labels = ['Adv. Only', '+Supervised', '+DC', '+Var Loss', '+DI - No DC', '+DI - w/ DC']
+    num_cols = 4
 
     im_er, ax_er = None, None
     for i in range(num_cols):
-        generate_image(fig, gt, gen_ims[f'g{i + 1}'][index], labels[i], i + 1, num_rows, num_cols)
-        im_er, ax_er = generate_error_map(fig, gt, gen_ims[f'g{i + 1}'][index], i + 7, num_rows, num_cols)
+        generate_image(fig, gts[i], gen_ims[index], '', i + 1, num_rows, num_cols)
+        im_er, ax_er = generate_error_map(fig, gts[i], gen_ims[index], i + 5, num_rows, num_cols)
 
     get_colorbar(fig, im_er, ax_er)
     plt.title(f'Z - {index + 1}', size=8)
@@ -286,9 +314,9 @@ def main(generator, dev_loader):
         target = target_full.to(args.device)
 
         with torch.no_grad():
-            create_mean_error_plots(generator, input, target)
-            create_z_compare_plots(generator, input, target)
-            generate_gifs(generator, input, target)
+            recons, gts = create_mean_error_plots(generator, input, target, mean, std)
+            # create_z_compare_plots(generator, input, target)
+            generate_gifs(recons, gts)
 
         if i + 1 == 1:
             exit()
