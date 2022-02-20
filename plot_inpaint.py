@@ -310,8 +310,8 @@ def main(generator, dev_loader):
     for i, data in enumerate(dev_loader):
         input, target_full, mean, std = data
 
-        input = input.to(args.device)
-        target = target_full.to(args.device)
+        input = input.to(args.device, dtype=torch.float)
+        target = target_full.to(args.device, dtype=torch.float)
 
         with torch.no_grad():
             recons, gts = create_mean_error_plots(generator, input, target, mean, std)
