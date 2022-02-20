@@ -69,7 +69,7 @@ class GANS:
 
     def get_gen(self, args):
         checkpoint_file_gen = pathlib.Path(
-            f'/home/bendel.8/Git_Repos/full_scale_mrigan/MRIGAN/trained_models/inpaint/generator_model.pt')
+            f'/home/bendel.8/Git_Repos/full_scale_mrigan/MRIGAN/trained_models/inpaint/generator_best_model.pt')
         checkpoint_gen = torch.load(checkpoint_file_gen, map_location=torch.device('cuda'))
 
         generator = build_model(args)
@@ -273,7 +273,7 @@ def generate_gifs(recons, gts):
         reformatted_recons[f'z{j+1}'].append(recons[3][j])
 
     for r in range(8):
-        gif_im(reformatted_recons[f'z{j+1}'], gts, r, 'image')
+        gif_im(reformatted_recons[f'z{r+1}'], gts, r, 'image')
 
     generate_gif('image')
 
