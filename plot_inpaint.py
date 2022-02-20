@@ -111,7 +111,7 @@ class GANS:
             recons.append(avg_tensor[j, :, :].cpu().numpy())
 
         avg = torch.mean(avg_tensor, dim=0)
-        std_dev = self.compute_std_dev(recons, avg)
+        std_dev = self.compute_std_dev(recons, avg.cpu().numpy())
 
         return recons, avg, std_dev
 
