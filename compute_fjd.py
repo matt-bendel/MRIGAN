@@ -37,8 +37,13 @@ def get_dataloaders(args):
 def get_gen(args):
     from utils.training.prepare_model import build_model, build_optim, build_discriminator
     string_for_file = '/ablation'  # if args.ablation else '/'
-    checkpoint_file_gen = pathlib.Path(
-        f'/home/bendel.8/Git_Repos/full_scale_mrigan/MRIGAN/trained_models{string_for_file}/image/{args.z_location}/generator_best_model.pt')
+    if args.inpaint:
+        checkpoint_file_gen = pathlib.Path(
+            f'/home/bendel.8/Git_Repos/full_scale_mrigan/MRIGAN/trained_models/inpaint/generator_best_model.pt')
+    else:
+        checkpoint_file_gen = pathlib.Path(
+            f'/home/bendel.8/Git_Repos/full_scale_mrigan/MRIGAN/trained_models{string_for_file}/image/{args.z_location}/generator_best_model.pt')
+
     checkpoint_gen = torch.load(checkpoint_file_gen, map_location=torch.device('cuda'))
 
     generator = build_model(args)
@@ -61,6 +66,7 @@ set of generated samples.
 
 class GANWrapper:
     def __init__(self, model, args):
+        self.args = args
         self.model = model
         self.device = args.device
         self.model.eval()
@@ -73,13 +79,16 @@ class GANWrapper:
         return z
 
     def convert_to_im(self, samples):
-        temp = torch.zeros((samples.size(0), 8, 128, 128, 2)).to(self.device)
-        temp[:, :, :, :, 0] = samples[:, 0:8, :, :]
-        temp[:, :, :, :, 1] = samples[:, 8:16, :, :]
+        if self.args.inpaint:
+            temp = samples.squeeze(1)
+        else:
+            temp = torch.zeros((samples.size(0), 8, 128, 128, 2)).to(self.device)
+            temp[:, :, :, :, 0] = samples[:, 0:8, :, :]
+            temp[:, :, :, :, 1] = samples[:, 8:16, :, :]
 
         final_im = torch.zeros(size=(samples.size(0), 3, 128, 128)).to(self.device)
         for i in range(samples.size(0)):
-            im = transforms.root_sum_of_squares(complex_abs(temp[i]))
+            im = transforms.root_sum_of_squares(complex_abs(temp[i])) if not self.inpaint else temp
             im = 2*(im - torch.min(im))/(torch.max(im) - torch.min(im)) - 1
             final_im[i, 0, :, :] = im
             final_im[i, 1, :, :] = im
@@ -87,12 +96,17 @@ class GANWrapper:
 
         return final_im
 
-    def __call__(self, y):
+    def __call__(self, y, target=None):
         batch_size = y.size(0)
+        inds = torch.nonzero(y == 0) if self.args.inpaint else None
         z = self.get_noise(batch_size)
         samples = self.model(y, z)
-        samples = readd_measures_im(samples, y, args, true_measures=y) if self.data_consistency else samples
-        im = self.convert_to_im(samples)
+        if self.args.inpaint:
+            samples[inds] = target[inds]
+            im = self.convert_to_im(samples)
+        else:
+            samples = readd_measures_im(samples, y, args, true_measures=y) if self.data_consistency else samples
+            im = self.convert_to_im(samples)
         return im
 
 
@@ -149,7 +163,8 @@ def main(args):
                                condition_embedding=inception_embedding,
                                save_reference_stats=True,
                                samples_per_condition=128,
-                               cuda=True)
+                               cuda=True,
+                               args=args)
 
         '''
         Once the FJD object is initialized, FID and FJD can be calculated by calling 

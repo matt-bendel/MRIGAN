@@ -11,7 +11,7 @@ import matplotlib.pyplot as plt
 from data import transforms
 from typing import Optional
 from utils.math import complex_abs
-from utils.training.prepare_data_ablation import create_data_loaders
+from utils.training.prepare_data_inpaint import create_data_loaders
 from utils.training.parse_args import create_arg_parser
 from utils.training.prepare_model import resume_train, fresh_start, build_model
 from utils.general.helper import readd_measures_im, prep_input_2_chan
@@ -55,14 +55,15 @@ def ssim(
     return ssim
 
 
-def average_gen(generator, input_w_z, args):
+def average_gen(generator, input_w_z, args, target=None, inds=None, power_num=1024):
     start = time.perf_counter()
-    average_gen = torch.zeros((input_w_z.shape[0], 1024, 1, 128, 128)).to(args.device)
+    average_gen = torch.zeros((input_w_z.shape[0], power_num, 1, 128, 128)).to(args.device)
 
-    for j in range(1024):
+    for j in range(power_num):
         z = torch.FloatTensor(np.random.normal(size=(input_w_z.shape[0], args.latent_size), scale=np.sqrt(1))).to(
             args.device)
         output_gen = generator(input=input_w_z, z=z)
+        output_gen[inds] = target[inds]
         average_gen[:, j, :, :, :] = output_gen
 
     finish = time.perf_counter() - start
@@ -72,7 +73,7 @@ def average_gen(generator, input_w_z, args):
 
 def get_gen(args, type='image'):
     checkpoint_file_gen = pathlib.Path(
-        f'/home/bendel.8/Git_Repos/full_scale_mrigan/MRIGAN/trained_models/inpaint/ours/generator_best_model.pt')
+        f'/home/bendel.8/Git_Repos/full_scale_mrigan/MRIGAN/trained_models/inpaint/generator_best_model.pt')
     checkpoint_gen = torch.load(checkpoint_file_gen, map_location=torch.device('cuda'))
 
     generator = build_model(args)
@@ -85,15 +86,15 @@ def get_gen(args, type='image'):
     return generator
 
 
-def main(args):
+def main(args, power_num, generator, dev_loader):
     args.exp_dir.mkdir(parents=True, exist_ok=True)
 
     args.in_chans = 1
     args.out_chans = 1
 
-    generator = get_gen(args)
-    generator.eval()
-    train_loader, dev_loader = create_data_loaders(args, val_only=True)
+    # generator = get_gen(args)
+    # generator.eval()
+    # _, dev_loader = create_data_loaders(args, val_only=True)
 
     metrics = {
         'ssim': [],
@@ -106,14 +107,13 @@ def main(args):
     for i, data in enumerate(dev_loader):
         input, target, mean, std = data
 
-        z = torch.FloatTensor(np.random.normal(size=(input.shape[0], args.latent_size), scale=np.sqrt(1))).to(
-            args.device)
         input = input.to(args.device)
         target = target.to(args.device)
+        inds = torch.nonzero(input == 0)
 
         with torch.no_grad():
             # refined_out, finish = non_average_gen(generator, input_w_z, z, old_input)
-            output, finish, apsd = average_gen(generator, input, args)
+            output, finish, apsd = average_gen(generator, input, args, target=target, inds=inds, power_num=power_num)
 
             metrics['time'] = finish / target.shape[0]
             metrics['apsd'] = apsd
@@ -125,8 +125,8 @@ def main(args):
             }
 
             for j in range(output.shape[0]):
-                generated_im_np = output[j].squeeze(0).cpu().numpy()
-                true_im_np = target[j].squeeze(0).cpu().numpy()
+                generated_im_np = output[j].squeeze(0).cpu().numpy() * std[j].numpy() + mean[j].numpy()
+                true_im_np = target[j].squeeze(0).cpu().numpy() * std[j].numpy() + mean[j].numpy()
 
                 batch_metrics['psnr'].append(psnr(true_im_np, generated_im_np, np.max(true_im_np)))
                 batch_metrics['ssim'].append(ssim(true_im_np, generated_im_np, np.max(true_im_np)))
@@ -164,5 +164,14 @@ if __name__ == '__main__':
     random.seed(args.seed)
     np.random.seed(args.seed)
     torch.manual_seed(args.seed)
+    _, loader = create_data_loaders(args, val_only=True)
+    gen = get_gen(args)
+    gen.eval()
 
-    main(args)
+    for number in range(11):
+        number = -(number - 10)
+        power = (2 ** number) // 1
+        print(f"VALIDATING NUM CODE VECTORS: {power}")
+        main(args, power, gen, loader)
+
+    # main(args)

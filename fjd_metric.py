@@ -40,9 +40,11 @@ class FJDMetric:
                  save_reference_stats=False,
                  samples_per_condition=1,
                  cuda=False,
+                 args=None,
                  eps=1e-6):
 
         self.gan = gan
+        self.args = args
         self.reference_loader = reference_loader
         self.condition_loader = condition_loader
         self.image_embedding = image_embedding
@@ -75,13 +77,19 @@ class FJDMetric:
         for i, data in tqdm(enumerate(self.condition_loader),
                             desc='Computing generated distribution',
                             total=len(self.condition_loader)):
-            condition, condition_im, _ = data  # it is assumed data contains (image, condition)
-            condition = condition.cuda()
-            condition_im = condition_im.cuda()
+            if self.args.inpaint:
+                condition, gt, condition_im, _ = data  # it is assumed data contains (image, condition)
+                gt = gt.cuda()
+                condition = condition.cuda()
+                condition_im = condition_im.cuda()
+            else:
+                condition, condition_im, _ = data  # it is assumed data contains (image, condition)
+                condition = condition.cuda()
+                condition_im = condition_im.cuda()
 
             with torch.no_grad():
                 for n in range(self.samples_per_condition):
-                    image = self.gan(condition)
+                    image = self.gan(condition) if not self.args.inpaint else self.gan(condition, gt)
 
                     img_e = self.image_embedding(image)
                     cond_e = self.condition_embedding(condition_im)
@@ -129,9 +137,14 @@ class FJDMetric:
 
         for data in tqdm(self.reference_loader,
                          desc='Computing reference distribution'):
-            _, condition, image = data
-            image = image.cuda()
-            condition = condition.cuda()
+            if self.args.inpaint:
+                _, _, condition_im, image = data  # it is assumed data contains (image, condition)
+                condition = condition.cuda()
+                image = image.cuda()
+            else:
+                _, condition, image = data
+                image = image.cuda()
+                condition = condition.cuda()
 
             with torch.no_grad():
                 image = self.image_embedding(image)

@@ -73,6 +73,35 @@ class DataTransform:
 
         im_tensor = reduce_resolution(complex_coil_im) if self.args.im_size != 384 else complex_coil_im
 
+        if self.args.inpaint:
+            im_tensor = transforms.root_sum_of_squares(complex_abs(im_tensor)).unsqueeze(0)
+
+            input_tensor = torch.clone(im_tensor)
+
+            n = input_tensor.shape[1]
+            square_length = n // 3
+            end = n - square_length
+
+            # rand_start_col = randrange(0, end)
+            # rand_start_row = randrange(0, end)
+            rand_start_row = (n - square_length) // 2
+            rand_start_col = (n - square_length) // 2
+
+            input_tensor[:, rand_start_row:rand_start_row + square_length,
+            rand_start_col:rand_start_col + square_length] = 0
+            # input_tensor[:, :, 64:128] = 0
+
+            normalized_input, mean, std = transforms.normalize_instance(input_tensor)
+            normalized_gt = transforms.normalize(im_tensor, mean, std)
+
+            ref_im = normalized_gt.repeat(3, 1, 1)
+            cond_im = normalized_input.repeat(3, 1, 1)
+
+            ref_im  = 2 * (ref_im - torch.min(ref_im)) / (torch.max(ref_im) - torch.min(ref_im)) - 1
+            cond_im = 2 * (torch.clone(cond_im) - torch.min(cond_im)) / (torch.max(cond_im) - torch.min(cond_im)) - 1
+
+            return normalized_input, normalized_gt, cond_im, ref_im
+
         true_image = torch.clone(im_tensor)
         image = im_tensor
 
