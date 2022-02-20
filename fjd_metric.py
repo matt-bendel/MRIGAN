@@ -138,7 +138,7 @@ class FJDMetric:
         for data in tqdm(self.reference_loader,
                          desc='Computing reference distribution'):
             if self.args.inpaint:
-                _, _, condition_im, image = data  # it is assumed data contains (image, condition)
+                _, _, condition, image = data  # it is assumed data contains (image, condition)
                 condition = condition.cuda()
                 image = image.cuda()
             else:
