@@ -4,6 +4,7 @@ import random
 import os
 import torch
 import pathlib
+import math
 
 import numpy as np
 import matplotlib.pyplot as plt
@@ -68,7 +69,7 @@ def average_gen(generator, input_w_z, args, target=None, inds=None, power_num=10
 
     finish = time.perf_counter() - start
 
-    return torch.mean(average_gen, dim=1), finish, torch.mean(torch.std(average_gen, dim=1), dim=(0, 1, 2, 3))
+    return torch.mean(average_gen, dim=1), finish, torch.mean(torch.std(average_gen, dim=1), dim=(0, 1, 2, 3)).cpu().numpy()
 
 
 def get_gen(args, type='image'):
@@ -113,6 +114,7 @@ def main(args, power_num, generator, dev_loader):
             output, finish, apsd = average_gen(generator, input, args, target=target, inds=inds, power_num=power_num)
 
             metrics['time'] = finish / target.shape[0]
+            apsd = 0 if math.isnan(apsd) else apsd
             metrics['apsd'] = apsd
 
             batch_metrics = {
