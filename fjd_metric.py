@@ -79,9 +79,9 @@ class FJDMetric:
                             total=len(self.condition_loader)):
             if self.args.inpaint:
                 condition, gt, condition_im, _ = data  # it is assumed data contains (image, condition)
-                gt = gt.cuda()
-                condition = condition.cuda()
-                condition_im = condition_im.cuda()
+                gt = gt.to(self.args.device, dtype=torch.float)
+                condition = condition.to(self.args.device, dtype=torch.float)
+                condition_im = condition_im.to(self.args.device, dtype=torch.float)
             else:
                 condition, condition_im, _ = data  # it is assumed data contains (image, condition)
                 condition = condition.cuda()
@@ -139,8 +139,8 @@ class FJDMetric:
                          desc='Computing reference distribution'):
             if self.args.inpaint:
                 _, _, condition, image = data  # it is assumed data contains (image, condition)
-                condition = condition.cuda()
-                image = image.cuda()
+                condition = condition.to(self.args.device, dtype=torch.float)
+                image = image.to(self.args.device, dtype=torch.float)
             else:
                 _, condition, image = data
                 image = image.cuda()
