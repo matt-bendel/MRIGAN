@@ -207,7 +207,7 @@ def create_mean_error_plots(generator, input, target, mean, std):
         recon, temp, std_dev = generator(input, target, mean, std, i)
         recons.append(recon)
         avg.append(temp.cpu().numpy())
-        std_devs.append(std_dev.cpu().numpy())
+        std_devs.append(std_dev)
         gts.append(target[i].squeeze(0).cpu().numpy() * std[i].numpy() + mean[i].numpy())
 
     fig = plt.figure(figsize=(5 * 2.67, 5))
