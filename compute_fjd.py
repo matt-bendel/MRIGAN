@@ -151,8 +151,9 @@ def main(args):
     print("GETTING INCEPTION EMBEDDING")
     inception_embedding = InceptionEmbedding(parallel=True)
     print("GETTING GENERATOR")
-    for i in range(6):
-        args.z_location = i+1
+    max = 6 if not args.inpaint else 1
+    for i in range(max):
+        args.z_location = i+1 if not args.inpaint else 0
         gan = get_gen(args)
         gan = GANWrapper(gan, args)
         print("COMPUTING METRIC")
@@ -206,6 +207,6 @@ def main(args):
 
 if __name__ == "__main__":
     args = create_arg_parser().parse_args()
-    args.in_chans = 16
-    args.out_chans = 16
+    args.in_chans = 16 if not args.inpaint else 1
+    args.out_chans = 16 if not args.inpaint else 1
     main(args)
