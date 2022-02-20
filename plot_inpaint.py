@@ -299,11 +299,11 @@ def generate_gif(type):
     for i in range(8):
         images.append(iio.imread(f'/home/bendel.8/Git_Repos/full_scale_mrigan/MRIGAN/gifs/gif_{type}_{i}.png'))
 
-    iio.mimsave(f'/home/bendel.8/Git_Repos/full_scale_mrigan/MRIGAN/ablation_plots/variation_gif.gif', images,
+    iio.mimsave(f'/home/bendel.8/Git_Repos/full_scale_mrigan/MRIGAN/inpaint_plots/variation_gif.gif', images,
                 duration=0.25)
 
     for i in range(8):
-        os.remove(f'/home/bendel.8/Git_Repos/full_scale_mrigan/MRIGAN/gifs/gif_{type}_{i}.png')
+        os.remove(f'/home/bendel.8/Git_Repos/full_scale_mrigan/MRIGAN/gifs/gif_inpaint.png')
 
 
 def main(generator, dev_loader):
