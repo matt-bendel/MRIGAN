@@ -151,7 +151,7 @@ def main(args):
     print("GETTING INCEPTION EMBEDDING")
     inception_embedding = InceptionEmbedding(parallel=True)
     print("GETTING GENERATOR")
-    max = 6 if not args.inpaint else 1
+    max = 3 if not args.inpaint else 1
     for i in range(max):
         args.z_location = i+1 if not args.inpaint else 0
         gan = get_gen(args)

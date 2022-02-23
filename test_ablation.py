@@ -209,14 +209,13 @@ if __name__ == '__main__':
     np.random.seed(args.seed)
     torch.manual_seed(args.seed)
     _, loader = create_data_loaders(args, val_only=True)
-    for net in range(6):
+    for net in range(3):
         net += 1
         print(f"VALIDATING ABLATION NETWORK {net}")
         args.in_chans = 16
         args.out_chans = 16
         args.z_location = net
-        if net == 3 or net == 4 or net == 6:
-            args.data_consistency = True
+        args.data_consistency = True
 
         gen = get_gen(args)
         gen.eval()
