@@ -112,12 +112,12 @@ def save_model(args, epoch, model, optimizer, best_dev_loss, is_new_best, m_type
             'best_dev_loss': best_dev_loss,
             'exp_dir': args.exp_dir
         },
-        f=args.exp_dir / 'ablation' / args.network_input / str(args.z_location) / f'{m_type}_model.pt'
+        f=args.exp_dir / 'adler' / f'{m_type}_model.pt'
     )
 
     if is_new_best:
-        shutil.copyfile(args.exp_dir / 'ablation' / args.network_input / str(args.z_location) / f'{m_type}_model.pt',
-                        args.exp_dir / 'ablation' / args.network_input / str(args.z_location) / f'{m_type}_best_model.pt'
+        shutil.copyfile(args.exp_dir / 'adler' / f'{m_type}_model.pt',
+                        args.exp_dir / 'adler' / f'{m_type}_best_model.pt'
                         )
 
 

@@ -97,7 +97,7 @@ def average_gen(generator, input_w_z, z, old_input, args, true_measures, num_cod
 
 def get_gen(args, type='image'):
     checkpoint_file_gen = pathlib.Path(
-        f'/home/bendel.8/Git_Repos/full_scale_mrigan/MRIGAN/trained_models/ablation/{type}/{args.z_location}/generator_best_model.pt')
+        f'/home/bendel.8/Git_Repos/full_scale_mrigan/MRIGAN/trained_models/adler/generator_best_model.pt')
     checkpoint_gen = torch.load(checkpoint_file_gen, map_location=torch.device('cuda'))
 
     generator = build_model(args)
@@ -204,22 +204,17 @@ if __name__ == '__main__':
     np.random.seed(args.seed)
     torch.manual_seed(args.seed)
     _, loader = create_data_loaders(args, val_only=True)
-    for net in range(3):
-        net += 1
-        print(f"VALIDATING ABLATION NETWORK {net}")
-        args.in_chans = 16
-        args.out_chans = 16
-        args.z_location = net
-        args.data_consistency = True
+    args.in_chans = 16
+    args.out_chans = 16
+    args.z_location = -1
+    args.adler = True
+    args.data_consistency = True
 
-        gen = get_gen(args)
-        gen.eval()
+    gen = get_gen(args)
+    gen.eval()
 
-        for number in range(11):
-            number = -(number - 10)
-            power = (2**number)//1
-            print(f"VALIDATING NUM CODE VECTORS: {power}")
-            main(args, power, gen, loader)
-
-        del gen
-        print("\n\n\n")
+    for number in range(11):
+        number = -(number - 10)
+        power = (2**number)//1
+        print(f"VALIDATING NUM CODE VECTORS: {power}")
+        main(args, power, gen, loader)
