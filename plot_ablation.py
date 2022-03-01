@@ -242,7 +242,7 @@ def create_mean_error_plots(avg, std_devs, gt):
     fig.subplots_adjust(wspace=0, hspace=0.05)
     generate_image(fig, gt, gt, 'GT', 1, num_rows, num_cols)
 
-    labels = ['Adv. Only', '+Supervised', '+DC', '+Var Loss', '+DI - No DC', '+DI - w/ DC']
+    labels = ['Full', '-Adversarial', '-Supervised', '-Variance Reward', '-DC', '-DI']
     im_er, ax_er = None, None
     im_std, ax_std = None, None
 
@@ -269,7 +269,7 @@ def create_z_compare_plots(recons, gt):
     fig.subplots_adjust(wspace=0, hspace=0.05)
     generate_image(fig, gt, gt, 'GT', 1, num_rows, num_cols)
 
-    labels = ['Adv. Only', '+Supervised', '+DC', '+Var Loss', '+DI - No DC', '+DI - w/ DC']
+    labels = ['Full', '-Adversarial', '-Supervised', '-Variance Reward', '-DC', '-DI']
 
     for i in range(num_cols - 1):
         generate_error_map(fig, gt, recons[f'g{i + 1}'][0], i + 2, num_rows, num_cols, title=labels[i])
@@ -287,7 +287,7 @@ def gif_im(gt, gen_ims, index, type):
     num_rows = 2
     num_cols = 6
 
-    labels = ['Adv. Only', '+Supervised', '+DC', '+Var Loss', '+DI - No DC', '+DI - w/ DC']
+    labels = ['Full', '-Adversarial', '-Supervised', '-Variance Reward', '-DC', '-DI']
 
     im_er, ax_er = None, None
     for i in range(num_cols):
