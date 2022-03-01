@@ -186,6 +186,25 @@ def main(args):
                                    cuda=True,
                                    args=args)
 
+            '''
+                    Once the FJD object is initialized, FID and FJD can be calculated by calling 
+                    get_fid or get_fjd. By default, the alpha value used to weight the 
+                    conditional component of FJD is selected to be the ratio between the 
+                    average L2 norm of the image embedding and conditioning embedding.
+
+                    We see in this example that even though our "GAN" gets a very good FID 
+                    score due to the generated image distribution being very close to the 
+                    reference image distribution, its FJD score is very bad, as the model lacks 
+                    any conditional consistency.
+                    '''
+            print(f"FID FOR NETWORK {args.z_location}")
+            fid = fjd_metric.get_fid()
+            fjd = fjd_metric.get_fjd(alpha=1.097)
+            print('FID: ', fid)
+            print('FJD: ', fjd)
+            del gan
+            del fjd_metric
+
     else:
         for i in range(max):
             args.z_location = i + 1 if not args.inpaint else 0
@@ -202,24 +221,24 @@ def main(args):
                                    cuda=True,
                                    args=args)
 
-        '''
-        Once the FJD object is initialized, FID and FJD can be calculated by calling 
-        get_fid or get_fjd. By default, the alpha value used to weight the 
-        conditional component of FJD is selected to be the ratio between the 
-        average L2 norm of the image embedding and conditioning embedding.
-    
-        We see in this example that even though our "GAN" gets a very good FID 
-        score due to the generated image distribution being very close to the 
-        reference image distribution, its FJD score is very bad, as the model lacks 
-        any conditional consistency.
-        '''
-        print(f"FID FOR NETWORK {args.z_location}")
-        fid = fjd_metric.get_fid()
-        fjd = fjd_metric.get_fjd(alpha=1.097)
-        print('FID: ', fid)
-        print('FJD: ', fjd)
-        del gan
-        del fjd_metric
+            '''
+                    Once the FJD object is initialized, FID and FJD can be calculated by calling 
+                    get_fid or get_fjd. By default, the alpha value used to weight the 
+                    conditional component of FJD is selected to be the ratio between the 
+                    average L2 norm of the image embedding and conditioning embedding.
+
+                    We see in this example that even though our "GAN" gets a very good FID 
+                    score due to the generated image distribution being very close to the 
+                    reference image distribution, its FJD score is very bad, as the model lacks 
+                    any conditional consistency.
+                    '''
+            print(f"FID FOR NETWORK {args.z_location}")
+            fid = fjd_metric.get_fid()
+            fjd = fjd_metric.get_fjd(alpha=1.097)
+            print('FID: ', fid)
+            print('FJD: ', fjd)
+            del gan
+            del fjd_metric
 
     '''
     To visualize how FJD changes as we increase the weighting on the conditional 
