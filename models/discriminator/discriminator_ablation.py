@@ -152,7 +152,7 @@ class DiscriminatorModelLowRes(nn.Module):
 
         # CHANGE BACK TO 16 FOR MORE
         self.initial_layers = nn.Sequential(
-            nn.Conv2d(self.in_chans*2, 32, kernel_size=(3, 3), padding=1),  # 384x384
+            nn.Conv2d(self.in_chans, 32, kernel_size=(3, 3), padding=1),  # 384x384
             nn.LeakyReLU()
         )
 
