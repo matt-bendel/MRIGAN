@@ -83,13 +83,16 @@ class FJDMetric:
                 condition = condition.to(self.args.device, dtype=torch.float)
                 condition_im = condition_im.to(self.args.device, dtype=torch.float)
             else:
-                condition, condition_im, _ = data  # it is assumed data contains (image, condition)
+                condition, condition_im, true_im = data  # it is assumed data contains (image, condition)
                 condition = condition.cuda()
                 condition_im = condition_im.cuda()
 
             with torch.no_grad():
                 for n in range(self.samples_per_condition):
-                    image = self.gan(condition) if not self.args.inpaint else self.gan(condition, gt)
+                    if self.args.noise_v_fjd:
+                        image = self.gan(true_im)
+                    else:
+                        image = self.gan(condition) if not self.args.inpaint else self.gan(condition, gt)
 
                     img_e = self.image_embedding(image)
                     cond_e = self.condition_embedding(condition_im)

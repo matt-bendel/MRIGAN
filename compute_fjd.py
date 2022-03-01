@@ -69,12 +69,14 @@ set of generated samples.
 
 
 class GANWrapper:
-    def __init__(self, model, args):
+    def __init__(self, model, args, noise_var=None):
         self.args = args
         self.model = model
         self.device = args.device
-        self.model.eval()
-        self.data_consistency = True if args.z_location == 3 or args.z_location == 4 or args. z_location == 6 else False
+        self.noise_var = noise_var
+        if not args.noise_v_fjd:
+            self.model.eval()
+        self.data_consistency = True if args.z_location == 3 or args.z_location == 4 or args.z_location == 6 else False
 
     def get_noise(self, batch_size):
         # change the noise dimension as required
@@ -97,14 +99,20 @@ class GANWrapper:
         final_im = torch.zeros(size=(samples.size(0), 3, 128, 128)).to(self.device)
         for i in range(samples.size(0)):
             im = transforms.root_sum_of_squares(complex_abs(temp[i])) if not self.args.inpaint else temp[i]
-            im = 2*(im - torch.min(im))/(torch.max(im) - torch.min(im)) - 1
+            im = 2 * (im - torch.min(im)) / (torch.max(im) - torch.min(im)) - 1
             final_im[i, 0, :, :] = im
             final_im[i, 1, :, :] = im
             final_im[i, 2, :, :] = im
 
         return final_im
 
+    def add_noise(self, im):
+        return im + torch.empty((im.size(0), 2, 128, 128)).normal_(mean=0, std=torch.sqrt(self.noise_var)).cuda()
+
     def __call__(self, y, target=None):
+        if self.args.noise_v_fjd:
+            return self.add_noise(y)
+
         batch_size = y.size(0)
         inds = torch.nonzero(y == 0) if self.args.inpaint else None
         z = self.get_noise(batch_size)
@@ -160,20 +168,39 @@ def main(args):
     inception_embedding = InceptionEmbedding(parallel=True)
     print("GETTING GENERATOR")
     max = 6 if not args.inpaint and not args.adler else 1
-    for i in range(max):
-        args.z_location = i+1 if not args.inpaint else 0
-        gan = get_gen(args)
-        gan = GANWrapper(gan, args)
-        print("COMPUTING METRIC")
-        fjd_metric = FJDMetric(gan=gan,
-                               reference_loader=ref_loader,
-                               condition_loader=cond_loader,
-                               image_embedding=inception_embedding,
-                               condition_embedding=inception_embedding,
-                               save_reference_stats=True,
-                               samples_per_condition=128,
-                               cuda=True,
-                               args=args)
+
+    if args.noise_v_fjd:
+        for i in range(6):
+            power = i - 3
+            exponent = 10 ** power
+            gan = None
+            gan = GANWrapper(gan, args)
+            print("COMPUTING METRIC")
+            fjd_metric = FJDMetric(gan=gan,
+                                   reference_loader=ref_loader,
+                                   condition_loader=cond_loader,
+                                   image_embedding=inception_embedding,
+                                   condition_embedding=inception_embedding,
+                                   save_reference_stats=True,
+                                   samples_per_condition=128,
+                                   cuda=True,
+                                   args=args)
+
+    else:
+        for i in range(max):
+            args.z_location = i + 1 if not args.inpaint else 0
+            gan = get_gen(args)
+            gan = GANWrapper(gan, args)
+            print("COMPUTING METRIC")
+            fjd_metric = FJDMetric(gan=gan,
+                                   reference_loader=ref_loader,
+                                   condition_loader=cond_loader,
+                                   image_embedding=inception_embedding,
+                                   condition_embedding=inception_embedding,
+                                   save_reference_stats=True,
+                                   samples_per_condition=128,
+                                   cuda=True,
+                                   args=args)
 
         '''
         Once the FJD object is initialized, FID and FJD can be calculated by calling 
