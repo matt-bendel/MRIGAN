@@ -44,6 +44,10 @@ def get_gen(args):
         checkpoint_file_gen = pathlib.Path(
             f'/home/bendel.8/Git_Repos/full_scale_mrigan/MRIGAN/trained_models{string_for_file}/image/{args.z_location}/generator_best_model.pt')
 
+    if args.adler:
+        checkpoint_file_gen = pathlib.Path(
+            f'/home/bendel.8/Git_Repos/full_scale_mrigan/MRIGAN/trained_models/adler/generator_best_model.pt')
+
     checkpoint_gen = torch.load(checkpoint_file_gen, map_location=torch.device('cuda'))
 
     generator = build_model(args)
@@ -74,8 +78,12 @@ class GANWrapper:
 
     def get_noise(self, batch_size):
         # change the noise dimension as required
-        z = torch.cuda.FloatTensor(
-            np.random.normal(size=(batch_size, 512), scale=np.sqrt(1)))
+        if not self.args.adler:
+            z = torch.cuda.FloatTensor(
+                np.random.normal(size=(batch_size, 512), scale=np.sqrt(1)))
+        else:
+            z = torch.rand((batch_size, 2, 128, 128)).cuda()
+
         return z
 
     def convert_to_im(self, samples):
@@ -100,7 +108,7 @@ class GANWrapper:
         batch_size = y.size(0)
         inds = torch.nonzero(y == 0) if self.args.inpaint else None
         z = self.get_noise(batch_size)
-        samples = self.model(y, z)
+        samples = self.model(y, z) if not self.args.adler else self.model(torch.cat([y, z], dim=1))
         if self.args.inpaint:
             samples[inds] = target[inds]
             im = self.convert_to_im(samples)
@@ -151,7 +159,7 @@ def main(args):
     print("GETTING INCEPTION EMBEDDING")
     inception_embedding = InceptionEmbedding(parallel=True)
     print("GETTING GENERATOR")
-    max = 3 if not args.inpaint else 1
+    max = 6 if not args.inpaint and not args.adler else 1
     for i in range(max):
         args.z_location = i+1 if not args.inpaint else 0
         gan = get_gen(args)
