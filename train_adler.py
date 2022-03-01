@@ -368,6 +368,16 @@ def main(args):
 
             optimizer_G.zero_grad()
 
+            output_gen_1 = generator(torch.cat([input_w_z, z1], dim=1))
+            output_gen_2 = generator(torch.cat([input_w_z, z2], dim=1))
+
+            refined_out_1 = readd_measures_im(output_gen_1, old_input, args, true_measures=true_measures)
+            refined_out_2 = readd_measures_im(output_gen_2, old_input, args, true_measures=true_measures)
+
+            x_posterior_concat = torch.cat([refined_out_1, refined_out_2], 1)
+
+            fake_pred = discriminator(input=x_posterior_concat, y=old_input)
+
             g_loss = -torch.mean(fake_pred)
 
             g_loss.backward()
@@ -510,6 +520,7 @@ if __name__ == '__main__':
     args = create_arg_parser().parse_args()
     args.data_consistency = True
     args.adler = True
+    args.num_iter_disc = 5
     # restrict visible cuda devices
     if args.data_parallel or (args.device >= 0):
         if not args.data_parallel:
