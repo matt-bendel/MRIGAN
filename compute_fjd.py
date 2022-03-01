@@ -174,7 +174,7 @@ def main(args):
             power = i - 3
             exponent = 10 ** power
             gan = None
-            gan = GANWrapper(gan, args)
+            gan = GANWrapper(gan, args, noise_var=exponent)
             print("COMPUTING METRIC")
             fjd_metric = FJDMetric(gan=gan,
                                    reference_loader=ref_loader,
