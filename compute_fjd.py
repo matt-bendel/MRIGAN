@@ -170,8 +170,8 @@ def main(args):
     max = 6 if not args.inpaint and not args.adler else 1
 
     if args.noise_v_fjd:
-        for i in range(6):
-            power = i - 3
+        for i in range(1):
+            power = 3
             exponent = 10 ** power
             gan = None
             gan = GANWrapper(gan, args, noise_var=exponent)
