@@ -84,6 +84,7 @@ class FJDMetric:
                 condition_im = condition_im.to(self.args.device, dtype=torch.float)
             else:
                 condition, condition_im, true_im = data  # it is assumed data contains (image, condition)
+                true_im = true_im.cuda()
                 condition = condition.cuda()
                 condition_im = condition_im.cuda()
 
