@@ -64,14 +64,33 @@ def ssim(
 class GANS:
     def __init__(self, args):
         self.args = args
+        self.adler = False
         self.gens = {
             'gens': [],
             'dc': [],
         }
-        for i in range(6):
-            num = i + 1
-            self.gens['gens'].append(self.get_gen(args, num))
-            self.gens['dc'].append(True if num == 3 or num == 4 or num == 6 else False)
+        for i in range(7):
+            if i == 6:
+                self.gens['gens'].append(self.get_adler(args))
+                self.gens['dc'].append(True)
+            else:
+                num = i + 1
+                self.gens['gens'].append(self.get_gen(args, num))
+                self.gens['dc'].append(False if num != 5 else True)
+
+    def get_adler(self, args):
+        checkpoint_file_gen = pathlib.Path(
+            f'/home/bendel.8/Git_Repos/full_scale_mrigan/MRIGAN/trained_models/adler/generator_best_model.pt')
+        checkpoint_gen = torch.load(checkpoint_file_gen, map_location=torch.device('cuda'))
+        args.adler = True
+        generator = build_model(args)
+
+        if args.data_parallel:
+            generator = torch.nn.DataParallel(generator)
+
+        generator.load_state_dict(checkpoint_gen['model'])
+
+        return generator
 
     def get_gen(self, args, num, type='image'):
         checkpoint_file_gen = pathlib.Path(
@@ -90,8 +109,12 @@ class GANS:
 
     def get_noise(self, batch_size):
         # change the noise dimension as required
-        z = torch.FloatTensor(np.random.normal(size=(batch_size, self.args.latent_size), scale=np.sqrt(1))).to(
+        if self.adler:
+            z = torch.rand((batch_size, 2, 128, 128)).cuda()
+        else:
+            z = torch.FloatTensor(np.random.normal(size=(batch_size, self.args.latent_size), scale=np.sqrt(1))).to(
             self.args.device)
+
         return z
 
     def compute_std_dev(self, recons, mean):
@@ -110,6 +133,7 @@ class GANS:
             'g4': [],
             'g5': [],
             'g6': [],
+            'g7': [],
         }
 
         avg = {
@@ -119,6 +143,7 @@ class GANS:
             'g4': None,
             'g5': None,
             'g6': None,
+            'g7': None,
         }
 
         std_devs = {
@@ -128,15 +153,19 @@ class GANS:
             'g4': None,
             'g5': None,
             'g6': None,
+            'g7': None,
         }
 
         batch_size = y.size(0)
         for i in range(len(self.gens['gens'])):
             gen_num = i + 1
             avg_tensor = torch.zeros(8, 16, 128, 128).to(self.args.device)
+            if i == 6:
+                self.adler = True
+
             for j in range(8):
                 z = self.get_noise(batch_size)
-                samples = self.gens['gens'][i](y, z)
+                samples = self.gens['gens'][i](y, z) if not self.adler else self.gens['gens'][i](torch.cat([y, z], dim=1))
                 samples = readd_measures_im(samples, y, args, true_measures=y) if self.gens['dc'][i] else samples
                 avg_tensor[j, :, :, :] = samples[2, :, :, :]
 
@@ -146,6 +175,8 @@ class GANS:
                 final_im = transforms.root_sum_of_squares(complex_abs(temp * std[2] + mean[2])).cpu().numpy()
 
                 recons[f'g{gen_num}'].append(final_im)
+
+            self.adler = False
 
             mean_recon = torch.mean(avg_tensor, dim=0)
             temp = torch.zeros(8, 128, 128, 2).to(self.args.device)
@@ -236,13 +267,13 @@ def get_colorbar(fig, im, ax, left=False):
 
 def create_mean_error_plots(avg, std_devs, gt):
     num_rows = 3
-    num_cols = 7
+    num_cols = 8
 
     fig = plt.figure(figsize=(5*2.33, 5))
     fig.subplots_adjust(wspace=0, hspace=0.05)
     generate_image(fig, gt, gt, 'GT', 1, num_rows, num_cols)
 
-    labels = ['Full', '-Adversarial', '-Supervised', '-Variance Reward', '-DC', '-DI']
+    labels = ['Full', '-Adversarial', '-Supervised', '-Variance Reward', '-DC', '-DI', 'Adler']
     im_er, ax_er = None, None
     im_std, ax_std = None, None
 
@@ -263,13 +294,13 @@ def create_mean_error_plots(avg, std_devs, gt):
 
 def create_z_compare_plots(recons, gt):
     num_rows = 5
-    num_cols = 7
+    num_cols = 8
 
     fig = plt.figure(figsize=(7*1.4, 7))
     fig.subplots_adjust(wspace=0, hspace=0.05)
     generate_image(fig, gt, gt, 'GT', 1, num_rows, num_cols)
 
-    labels = ['Full', '-Adversarial', '-Supervised', '-Variance Reward', '-DC', '-DI']
+    labels = ['Full', '-Adversarial', '-Supervised', '-Variance Reward', '-DC', '-DI', 'Adler']
 
     for i in range(num_cols - 1):
         generate_error_map(fig, gt, recons[f'g{i + 1}'][0], i + 2, num_rows, num_cols, title=labels[i])
@@ -285,9 +316,9 @@ def gif_im(gt, gen_ims, index, type):
     fig = plt.figure(figsize=(12, 4))
     fig.subplots_adjust(wspace=0, hspace=0.05)
     num_rows = 2
-    num_cols = 6
+    num_cols = 7
 
-    labels = ['Full', '-Adversarial', '-Supervised', '-Variance Reward', '-DC', '-DI']
+    labels = ['Full', '-Adversarial', '-Supervised', '-Variance Reward', '-DC', '-DI', 'Adler']
 
     im_er, ax_er = None, None
     for i in range(num_cols):
