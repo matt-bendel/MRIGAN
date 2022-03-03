@@ -76,7 +76,7 @@ class GANWrapper:
         self.noise_var = noise_var
         if not args.noise_v_fjd:
             self.model.eval()
-        self.data_consistency = True if args.z_location == 3 or args.z_location == 4 or args.z_location == 6 else False
+        self.data_consistency = True if args.z_location != 5 else False
 
     def get_noise(self, batch_size):
         # change the noise dimension as required
