@@ -206,7 +206,7 @@ def main(args):
             del fjd_metric
 
     else:
-        for i in range(6):
+        for i in range(max):
             args.z_location = i+1
             gan = get_gen(args)
             gan = GANWrapper(gan, args)
