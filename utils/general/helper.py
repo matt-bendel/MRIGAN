@@ -37,14 +37,14 @@ def readd_measures_im(data_tensor, old, args, kspace=False, true_measures=False)
     kspace_no_ip = torch.zeros(data_tensor.shape[0], 16, im_size, im_size).to(args.device)
 
     for k in range(data_tensor.shape[0]):
-        temp = torch.zeros(8, im_size, im_size, 2).to(args.device)
-        temp[:, :, :, 0] = data_tensor[k, 0:8, :, :]
-        temp[:, :, :, 1] = data_tensor[k, 8:16, :, :]
+        temp = torch.zeros(8 if args.in_chans < 32 else 16, im_size, im_size, 2).to(args.device)
+        temp[:, :, :, 0] = data_tensor[k, 0:8, :, :] if args.in_chans < 32 else data_tensor[k, 0:16, :, :]
+        temp[:, :, :, 1] = data_tensor[k, 8:16, :, :] if args.in_chans < 32 else data_tensor[k, 16:32, :, :]
         output_tensor = fft2c_new(temp)
 
-        temp = torch.zeros(8, im_size, im_size, 2).to(args.device)
-        temp[:, :, :, 0] = old[k, 0:8, :, :]
-        temp[:, :, :, 1] = old[k, 8:16, :, :]
+        temp = torch.zeros(8 if args.in_chans < 32 else 16, im_size, im_size, 2).to(args.device)
+        temp[:, :, :, 0] = old[k, 0:8, :, :] if args.in_chans < 32 else old[k, 0:16, :, :]
+        temp[:, :, :, 1] = old[k, 8:16, :, :] if args.in_chans < 32 else old[k, 16:32, :, :]
         old_out = fft2c_new(temp)
 
         inds = get_mask(im_size)
@@ -58,38 +58,54 @@ def readd_measures_im(data_tensor, old, args, kspace=False, true_measures=False)
         else:
             refined_measures = output_tensor
 
-        disc_inp[k, 0:8, :, :] = refined_measures[:, :, :, 0]
-        disc_inp[k, 8:16, :, :] = refined_measures[:, :, :, 1]
-        kspace_no_ip[k, 0:8, :, :] = output_tensor[:, :, :, 0]
-        kspace_no_ip[k, 8:16, :, :] = output_tensor[:, :, :, 1]
+        if args.in_chans < 32:
+            disc_inp[k, 0:8, :, :] = refined_measures[:, :, :, 0]
+            disc_inp[k, 8:16, :, :] = refined_measures[:, :, :, 1]
+            kspace_no_ip[k, 0:8, :, :] = output_tensor[:, :, :, 0]
+            kspace_no_ip[k, 8:16, :, :] = output_tensor[:, :, :, 1]
+        else:
+            disc_inp[k, 0:16, :, :] = refined_measures[:, :, :, 0]
+            disc_inp[k, 16:32, :, :] = refined_measures[:, :, :, 1]
+            kspace_no_ip[k, 0:16, :, :] = output_tensor[:, :, :, 0]
+            kspace_no_ip[k, 16:32, :, :] = output_tensor[:, :, :, 1]
 
     if kspace:
         return disc_inp if not args.inpaint else kspace_no_ip
 
     for k in range(data_tensor.shape[0]):
-        temp = torch.zeros(8, im_size, im_size, 2).to(args.device)
-        temp[:, :, :, 0] = disc_inp[k, 0:8, :, :]
-        temp[:, :, :, 1] = disc_inp[k, 8:16, :, :]
+        temp = torch.zeros(8 if args.in_chans < 32 else 16, im_size, im_size, 2).to(args.device)
+        temp[:, :, :, 0] = disc_inp[k, 0:8, :, :] if args.in_chans < 32 else disc_inp[k, 0:16, :, :]
+        temp[:, :, :, 1] = disc_inp[k, 8:16, :, :] if args.in_chans < 32 else disc_inp[k, 16:32, :, :]
         output_tensor = ifft2c_new(temp)
 
-        disc_inp[k, 0:8, :, :] = output_tensor[:, :, :, 0]
-        disc_inp[k, 8:16, :, :] = output_tensor[:, :, :, 1]
+        if args.in_chans < 32:
+            disc_inp[k, 0:8, :, :] = output_tensor[:, :, :, 0]
+            disc_inp[k, 8:16, :, :] = output_tensor[:, :, :, 1]
+        else:
+            disc_inp[k, 0:16, :, :] = output_tensor[:, :, :, 0]
+            disc_inp[k, 16:32, :, :] = output_tensor[:, :, :, 1]
 
     return disc_inp
 
 
 def prep_input_2_chan(data_tensor, unet_type, args, disc=False, disc_image=True):
     im_size = args.im_size
-    disc_inp = torch.zeros(data_tensor.shape[0], 16, im_size, im_size).to(args.device)
+    disc_inp = torch.zeros(data_tensor.shape[0], 16 if args.in_chans < 32 else 32, im_size, im_size).to(args.device)
 
     if disc and disc_image:
         return data_tensor
 
-    temp = torch.zeros(data_tensor.shape[0], 8, im_size, im_size, 2).to(args.device)
+    temp = torch.zeros(data_tensor.shape[0], 8 if args.in_chans < 32 else 16, im_size, im_size, 2).to(args.device)
     new_data = data_tensor.permute(0, 3, 1, 2)
-    temp[:, :, :, :, 0] = new_data[:, 0:8, :, :]
-    temp[:, :, :, :, 1] = new_data[:, 8:16, :, :]
+    temp[:, :, :, :, 0] = new_data[:, 0:8, :, :] if args.in_chans < 32 else new_data[:, 0:16, :, :]
+    temp[:, :, :, :, 1] = new_data[:, 8:16, :, :] if args.in_chans < 32 else new_data[:, 16:32, :, :]
     temp = ifft2c_new(temp)
-    disc_inp[:, 0:8, :, :] = temp[:, :, :, :, 0]
-    disc_inp[:, 8:16, :, :] = temp[:, :, :, :, 1]
+
+    if args.in_chans < 32:
+        disc_inp[:, 0:8, :, :] = temp[:, :, :, :, 0]
+        disc_inp[:, 8:16, :, :] = temp[:, :, :, :, 1]
+    else:
+        disc_inp[:, 0:16, :, :] = temp[:, :, :, :, 0]
+        disc_inp[:, 16:32, :, :] = temp[:, :, :, :, 1]
+
     return disc_inp

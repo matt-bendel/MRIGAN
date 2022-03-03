@@ -68,7 +68,7 @@ class DataTransform:
         # m[:, a] = True
         # m[:, 42:54] = True
         # samp = m
-        numcoil = 8
+        numcoil = 16
         mask = transforms.to_tensor(np.tile(samp, (numcoil, 1, 1)).astype(np.float32))
         mask = torch.unsqueeze(mask,-1).repeat(1,1,1,2)
 
@@ -123,39 +123,39 @@ class DataTransform:
 
         ###################################
 
-        stacked_masked_zfr = torch.zeros(16, 384, 384)
+        stacked_masked_zfr = torch.zeros(numcoil*2, 384, 384)
 
-        stacked_masked_zfr[0:8, :, :] = torch.squeeze(zfr[:, :, :, 0])
-        stacked_masked_zfr[8:16, :, :] = torch.squeeze(zfr[:, :, :, 1])
+        stacked_masked_zfr[0:numcoil, :, :] = torch.squeeze(zfr[:, :, :, 0])
+        stacked_masked_zfr[numcoil:numcoil*2, :, :] = torch.squeeze(zfr[:, :, :, 1])
         stacked_masked_zfr, mean, std = transforms.normalize_instance(stacked_masked_zfr)
         # zfr, mean, std = transforms.normalize_instance(zfr)
 
-        stacked_image = torch.zeros(16, 384, 384)
-        stacked_image[0:8, :, :] = torch.squeeze(true_image[:, :, :, 0])
-        stacked_image[8:16, :, :] = torch.squeeze(true_image[:, :, :, 1])
+        stacked_image = torch.zeros(numcoil*2, 384, 384)
+        stacked_image[0:numcoil, :, :] = torch.squeeze(true_image[:, :, :, 0])
+        stacked_image[numcoil:numcoil*2, :, :] = torch.squeeze(true_image[:, :, :, 1])
         stacked_image = transforms.normalize(stacked_image, mean, std)
         # target = transforms.normalize(true_image, mean, std)
         true_me = transforms.normalize(ifft2c_new(true_measures), mean, std)
 
-        temp = torch.zeros(8, 384, 384,2)
-        stacked_masked_kspace = torch.zeros(16, 384, 384)
-        temp[:, :, :, 0] = stacked_masked_zfr[0:8, :, :]
-        temp[:, :, :, 1] = stacked_masked_zfr[8:16, :, :]
+        temp = torch.zeros(numcoil, 384, 384,2)
+        stacked_masked_kspace = torch.zeros(numcoil*2, 384, 384)
+        temp[:, :, :, 0] = stacked_masked_zfr[0:numcoil, :, :]
+        temp[:, :, :, 1] = stacked_masked_zfr[numcoil:numcoil*2, :, :]
         masked_kspace_normalized = fft2c_new(temp)
-        stacked_masked_kspace[0:8, :, :] = torch.squeeze(masked_kspace_normalized[:, :, :, 0])
-        stacked_masked_kspace[8:16, :, :] = torch.squeeze(masked_kspace_normalized[:, :, :, 1])
+        stacked_masked_kspace[0:numcoil, :, :] = torch.squeeze(masked_kspace_normalized[:, :, :, 0])
+        stacked_masked_kspace[numcoil:numcoil*2, :, :] = torch.squeeze(masked_kspace_normalized[:, :, :, 1])
 
-        temp = torch.zeros(8, 384, 384, 2)
-        stacked_kspace = torch.zeros(16, 384, 384)
-        temp[:, :, :, 0] = stacked_image[0:8, :, :]
-        temp[:, :, :, 1] = stacked_image[8:16, :, :]
+        temp = torch.zeros(numcoil, 384, 384, 2)
+        stacked_kspace = torch.zeros(numcoil*2, 384, 384)
+        temp[:, :, :, 0] = stacked_image[0:numcoil, :, :]
+        temp[:, :, :, 1] = stacked_image[numcoil:numcoil*2, :, :]
         kspace_normalized = fft2c_new(temp)
-        stacked_kspace[0:8, :, :] = torch.squeeze(kspace_normalized[:, :, :, 0])
-        stacked_kspace[8:16, :, :] = torch.squeeze(kspace_normalized[:, :, :, 1])
+        stacked_kspace[0:numcoil, :, :] = torch.squeeze(kspace_normalized[:, :, :, 0])
+        stacked_kspace[numcoil:numcoil*2, :, :] = torch.squeeze(kspace_normalized[:, :, :, 1])
 
-        temp = torch.zeros(8, 384, 384, 2)
-        temp[:, :, :, 0] = stacked_masked_zfr[0:8, :, :]
-        temp[:, :, :, 1] = stacked_masked_zfr[8:16, :, :]
+        temp = torch.zeros(numcoil, 384, 384, 2)
+        temp[:, :, :, 0] = stacked_masked_zfr[0:numcoil, :, :]
+        temp[:, :, :, 1] = stacked_masked_zfr[numcoil:numcoil*2, :, :]
         true_measures_normal = fft2c_new(temp)
 
         return stacked_masked_kspace.permute(1,2,0), stacked_kspace.permute(1,2,0), mean, std, true_measures_normal
@@ -228,11 +228,11 @@ def ImageCropandKspaceCompression(x):
     w_to = w_from + 384
     h_to = h_from + 384
     cropped_x = x[w_from:w_to, h_from:h_to, :]
-    if cropped_x.shape[-1] >= 8:
+    if cropped_x.shape[-1] > 16:
         x_tocompression = cropped_x.reshape(384 ** 2, cropped_x.shape[-1])
         U, S, Vh = np.linalg.svd(x_tocompression, full_matrices=False)
         coil_compressed_x = np.matmul(x_tocompression, Vh.conj().T)
-        coil_compressed_x = coil_compressed_x[:, 0:8].reshape(384, 384, 8)
+        coil_compressed_x = coil_compressed_x[:, 0:16].reshape(384, 384, 16)
     else:
         coil_compressed_x = cropped_x
 

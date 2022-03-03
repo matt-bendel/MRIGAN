@@ -292,8 +292,8 @@ def get_gen_supervised(args):
 def main(args):
     args.exp_dir.mkdir(parents=True, exist_ok=True)
 
-    args.in_chans = 16
-    args.out_chans = 16
+    args.in_chans = 32
+    args.out_chans = 32
 
     if args.resume:
         generator, optimizer_G, discriminator, optimizer_D, args, best_loss_val, best_loss_dis, start_epoch = get_gen_supervised(
@@ -475,14 +475,14 @@ def main(args):
                         args.device)
 
                     for k in range(ims.shape[0]):
-                        output_rss = torch.zeros(8, ims.shape[2], ims.shape[2], 2)
-                        output_rss[:, :, :, 0] = ims[k, 0:8, :, :]
-                        output_rss[:, :, :, 1] = ims[k, 8:16, :, :]
+                        output_rss = torch.zeros(16, ims.shape[2], ims.shape[2], 2)
+                        output_rss[:, :, :, 0] = ims[k, 0:16, :, :]
+                        output_rss[:, :, :, 1] = ims[k, 16:32, :, :]
                         output = transforms.root_sum_of_squares(complex_abs(output_rss * std[k] + mean[k]))
 
-                        target_rss = torch.zeros(8, target_im.shape[2], target_im.shape[2], 2)
-                        target_rss[:, :, :, 0] = target_im[k, 0:8, :, :]
-                        target_rss[:, :, :, 1] = target_im[k, 8:16, :, :]
+                        target_rss = torch.zeros(16, target_im.shape[2], target_im.shape[2], 2)
+                        target_rss[:, :, :, 0] = target_im[k, 0:16, :, :]
+                        target_rss[:, :, :, 1] = target_im[k, 16:32, :, :]
                         target = transforms.root_sum_of_squares(complex_abs(target_rss * std[k] + mean[k]))
 
                         output = output.cpu().numpy()
@@ -494,9 +494,9 @@ def main(args):
                         if i + 1 == 1 and k == 2:
                             gen_im_list = []
                             for r, val in enumerate(gen_list):
-                                val_rss = torch.zeros(8, output.shape[0], output.shape[0], 2).to(args.device)
-                                val_rss[:, :, :, 0] = val[k, 0:8, :, :]
-                                val_rss[:, :, :, 1] = val[k, 8:16, :, :]
+                                val_rss = torch.zeros(16, output.shape[0], output.shape[0], 2).to(args.device)
+                                val_rss[:, :, :, 0] = val[k, 0:16, :, :]
+                                val_rss[:, :, :, 1] = val[k, 16:32, :, :]
                                 gen_im_list.append(transforms.root_sum_of_squares(
                                     complex_abs(val_rss * std[k] + mean[k])).cpu().numpy())
 
