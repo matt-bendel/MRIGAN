@@ -76,7 +76,7 @@ class GANS:
             else:
                 num = i + 1
                 self.gens['gens'].append(self.get_gen(args, num))
-                self.gens['dc'].append(False if num != 5 else True)
+                self.gens['dc'].append(False if num == 5 else True)
 
     def get_adler(self, args):
         checkpoint_file_gen = pathlib.Path(
