@@ -172,7 +172,7 @@ class GANS:
                 temp = torch.zeros(8, 128, 128, 2).to(self.args.device)
                 temp[:, :, :, 0] = samples[2, 0:8, :, :]
                 temp[:, :, :, 1] = samples[2, 8:16, :, :]
-                final_im = transforms.root_sum_of_squares(complex_abs(temp * std[2] + mean[2])).cpu().numpy()
+                final_im = transforms.root_sum_of_squares(complex_abs(temp)).cpu().numpy()
 
                 recons[f'g{gen_num}'].append(final_im)
 
@@ -182,7 +182,7 @@ class GANS:
             temp = torch.zeros(8, 128, 128, 2).to(self.args.device)
             temp[:, :, :, 0] = mean_recon[0:8, :, :]
             temp[:, :, :, 1] = mean_recon[8:16, :, :]
-            avg[f'g{gen_num}'] = transforms.root_sum_of_squares(complex_abs(temp * std[2] + mean[2])).cpu().numpy()
+            avg[f'g{gen_num}'] = transforms.root_sum_of_squares(complex_abs(temp)).cpu().numpy()
 
             std_devs[f'g{gen_num}'] = self.compute_std_dev(recons[f'g{gen_num}'], avg[f'g{gen_num}'])
 
@@ -234,7 +234,7 @@ def generate_error_map(fig, target, recon, image_ind, rows, cols, relative=False
         im = ax.imshow(k * error, cmap='bwr', origin='lower', vmin=-0.0001, vmax=0.0001)  # Plot image
         plt.gca().invert_yaxis()
     else:
-        im = ax.imshow(k * error, cmap='jet', vmax=1) if kspace else ax.imshow(k * error, cmap='jet', vmax=0.0001)
+        im = ax.imshow(k * error, cmap='jet', vmax=1) if kspace else ax.imshow(k * error, cmap='jet')
 
     if title != None:
         ax.set_title(title, size=10)
@@ -280,11 +280,11 @@ def create_mean_error_plots(avg, std_devs, gt):
     for i in range(num_cols - 1):
         generate_image(fig, gt, avg[f'g{i + 1}'], labels[i], i + 2, num_rows, num_cols)
         if i == 0:
-            im_er, ax_er = generate_error_map(fig, gt, avg[f'g{i + 1}'], i + 9, num_rows, num_cols)
-            im_std, ax_std = generate_image(fig, gt, std_devs[f'g{i + 1}'], 'Std. Dev', i + 16, num_rows, num_cols)
+            im_er, ax_er = generate_error_map(fig, gt, avg[f'g{i + 1}'], i + 10, num_rows, num_cols)
+            im_std, ax_std = generate_image(fig, gt, std_devs[f'g{i + 1}'], 'Std. Dev', i + 18, num_rows, num_cols)
         else:
-            generate_error_map(fig, gt, avg[f'g{i + 1}'], i + 9, num_rows, num_cols)
-            generate_image(fig, gt, std_devs[f'g{i + 1}'], 'Std. Dev', i + 16, num_rows, num_cols)
+            generate_error_map(fig, gt, avg[f'g{i + 1}'], i + 10, num_rows, num_cols)
+            generate_image(fig, gt, std_devs[f'g{i + 1}'], 'Std. Dev', i + 18, num_rows, num_cols)
 
     get_colorbar(fig, im_er, ax_er, left=True)
     get_colorbar(fig, im_std, ax_std, left=True)
@@ -304,10 +304,10 @@ def create_z_compare_plots(recons, gt):
 
     for i in range(num_cols - 1):
         generate_error_map(fig, gt, recons[f'g{i + 1}'][0], i + 2, num_rows, num_cols, title=labels[i])
-        generate_error_map(fig, gt, recons[f'g{i + 1}'][1], i + 9, num_rows, num_cols)
-        generate_error_map(fig, gt, recons[f'g{i + 1}'][2], i + 16, num_rows, num_cols)
-        generate_error_map(fig, gt, recons[f'g{i + 1}'][3], i + 23, num_rows, num_cols)
-        generate_error_map(fig, gt, recons[f'g{i + 1}'][4], i + 30, num_rows, num_cols)
+        generate_error_map(fig, gt, recons[f'g{i + 1}'][1], i + 10, num_rows, num_cols)
+        generate_error_map(fig, gt, recons[f'g{i + 1}'][2], i + 18, num_rows, num_cols)
+        generate_error_map(fig, gt, recons[f'g{i + 1}'][3], i + 26, num_rows, num_cols)
+        generate_error_map(fig, gt, recons[f'g{i + 1}'][4], i + 34, num_rows, num_cols)
 
     plt.savefig(f'/home/bendel.8/Git_Repos/full_scale_mrigan/MRIGAN/ablation_plots/5_z.png')
 
@@ -323,7 +323,7 @@ def gif_im(gt, gen_ims, index, type):
     im_er, ax_er = None, None
     for i in range(num_cols):
         generate_image(fig, gt, gen_ims[f'g{i + 1}'][index], labels[i], i + 1, num_rows, num_cols)
-        im_er, ax_er = generate_error_map(fig, gt, gen_ims[f'g{i + 1}'][index], i + 7, num_rows, num_cols)
+        im_er, ax_er = generate_error_map(fig, gt, gen_ims[f'g{i + 1}'][index], i + 8, num_rows, num_cols)
 
     get_colorbar(fig, im_er, ax_er)
     plt.title(f'Z - {index + 1}', size=8)
@@ -352,7 +352,7 @@ def main(generators, dev_loader):
         temp = torch.zeros(8, 128, 128, 2).to(args.device)
         temp[:, :, :, 0] = target_full[2, 0:8, :, :]
         temp[:, :, :, 1] = target_full[2, 8:16, :, :]
-        gt = transforms.root_sum_of_squares(complex_abs(temp * std[2] + mean[2])).cpu().numpy()
+        gt = transforms.root_sum_of_squares(complex_abs(temp)).cpu().numpy()
 
         with torch.no_grad():
             recons, avg, std_devs = generators(input, mean, std)
