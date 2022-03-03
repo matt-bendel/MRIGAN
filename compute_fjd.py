@@ -206,8 +206,11 @@ def main(args):
             del fjd_metric
 
     else:
-        for i in range(4):
+        for i in range(5):
             samples_num = 2**(i+1)
+            if i == 4:
+                samples_num = 128
+
             args.z_location = 1
             gan = get_gen(args)
             gan = GANWrapper(gan, args)
