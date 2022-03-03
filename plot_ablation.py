@@ -172,7 +172,7 @@ class GANS:
                 temp = torch.zeros(8, 128, 128, 2).to(self.args.device)
                 temp[:, :, :, 0] = samples[2, 0:8, :, :]
                 temp[:, :, :, 1] = samples[2, 8:16, :, :]
-                final_im = transforms.root_sum_of_squares(complex_abs(temp)).cpu().numpy()
+                final_im = transforms.root_sum_of_squares(complex_abs(temp*std[2] + mean[2])).cpu().numpy()
 
                 recons[f'g{gen_num}'].append(final_im)
 
@@ -182,7 +182,7 @@ class GANS:
             temp = torch.zeros(8, 128, 128, 2).to(self.args.device)
             temp[:, :, :, 0] = mean_recon[0:8, :, :]
             temp[:, :, :, 1] = mean_recon[8:16, :, :]
-            avg[f'g{gen_num}'] = transforms.root_sum_of_squares(complex_abs(temp)).cpu().numpy()
+            avg[f'g{gen_num}'] = transforms.root_sum_of_squares(complex_abs(temp*std[2] + mean[2])).cpu().numpy()
 
             std_devs[f'g{gen_num}'] = self.compute_std_dev(recons[f'g{gen_num}'], avg[f'g{gen_num}'])
 
@@ -234,7 +234,7 @@ def generate_error_map(fig, target, recon, image_ind, rows, cols, relative=False
         im = ax.imshow(k * error, cmap='bwr', origin='lower', vmin=-0.0001, vmax=0.0001)  # Plot image
         plt.gca().invert_yaxis()
     else:
-        im = ax.imshow(k * error, cmap='jet', vmax=1) if kspace else ax.imshow(k * error, cmap='jet')
+        im = ax.imshow(k * error, cmap='jet', vmax=1) if kspace else ax.imshow(k * error, cmap='jet', vmax=0.0001)
 
     if title != None:
         ax.set_title(title, size=10)
@@ -352,7 +352,7 @@ def main(generators, dev_loader):
         temp = torch.zeros(8, 128, 128, 2).to(args.device)
         temp[:, :, :, 0] = target_full[2, 0:8, :, :]
         temp[:, :, :, 1] = target_full[2, 8:16, :, :]
-        gt = transforms.root_sum_of_squares(complex_abs(temp)).cpu().numpy()
+        gt = transforms.root_sum_of_squares(complex_abs(temp*std[2] + mean[2])).cpu().numpy()
 
         with torch.no_grad():
             recons, avg, std_devs = generators(input, mean, std)
