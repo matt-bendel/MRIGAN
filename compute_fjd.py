@@ -206,8 +206,9 @@ def main(args):
             del fjd_metric
 
     else:
-        for i in range(max):
-            args.z_location = i+1
+        for i in range(2):
+            num_samps = 32 if i == 0 else 64
+            args.z_location = 1
             gan = get_gen(args)
             gan = GANWrapper(gan, args)
             print("COMPUTING METRIC")
@@ -217,7 +218,7 @@ def main(args):
                                    image_embedding=inception_embedding,
                                    condition_embedding=inception_embedding,
                                    save_reference_stats=True,
-                                   samples_per_condition=128,
+                                   samples_per_condition=num_samps,
                                    cuda=True,
                                    args=args)
 
