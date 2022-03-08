@@ -164,9 +164,8 @@ def average_gen(generator, input_w_z, old_input, args, true_measures):
     average_gen = torch.zeros(input_w_z.shape).to(args.device)
     gen_list = []
     for j in range(8):
-        z = torch.FloatTensor(np.random.normal(size=(input_w_z.shape[0], args.latent_size), scale=np.sqrt(1))).to(
-            args.device)
-        output_gen = generator(input=input_w_z, z=z)
+        z = torch.rand((input_w_z.size(0), 2, 128, 128)).cuda()
+        output_gen = generator(torch.cat([input_w_z, z]))
 
         if args.network_input == 'kspace':
             # refined_out = output_gen + old_input[:, 0:16]
@@ -334,15 +333,14 @@ def main(args):
             input_w_z = input  # add_z_to_input(args, input)
 
             for j in range(args.num_iters_discriminator):
-                z = torch.FloatTensor(
-                    np.random.normal(size=(input.shape[0], args.latent_size), scale=np.sqrt(1))).to(args.device)
+                z = torch.rand((input_w_z.size(0), 2, 128, 128)).cuda()
                 # ---------------------
                 #  Train Discriminator
                 # ---------------------
                 optimizer_D.zero_grad()
 
                 input_w_z = input_w_z.to(args.device)
-                output_gen = generator(input_w_z, z)
+                output_gen = generator(torch.cat([input_w_z, z]))
                 if args.network_input == 'kspace':
                     # refined_out = output_gen + old_input[:, 0:16]
                     refined_out = output_gen + old_input[:]
@@ -381,14 +379,12 @@ def main(args):
             optimizer_G.zero_grad()
 
             # Generate a batch of images
-            z = torch.FloatTensor(
-                np.random.normal(size=(args.num_z, input.shape[0], args.latent_size), scale=np.sqrt(1))).to(
-                args.device)
+            z = torch.rand((input_w_z.size(0), args.num_z, 2, 128, 128)).cuda()
             output_gen = torch.zeros(size=(
                 args.num_z, old_input.shape[0], old_input.shape[1], old_input.shape[2], old_input.shape[3])).to(
                 args.device)
             for k in range(args.num_z):
-                output_gen[k, :, :, :, :] = generator(input_w_z, z[k])
+                output_gen[k, :, :, :, :] = generator(torch.cat([input_w_z, z[:, k, :, :, :]]))
 
             if args.network_input == 'kspace':
                 refined_out = output_gen + old_input[:]
@@ -429,7 +425,7 @@ def main(args):
             for k in range(old_input.shape[0] - 1):
                 gen_pred_loss += torch.mean(fake_pred[k + 1])
 
-            var_weight = 0.02
+            var_weight = 0.1
             adv_weight = 1e-6 if args.supervised else 1e-3
             ssim_weight = 0.84
             g_loss = -adv_weight*torch.mean(gen_pred_loss) if args.adv_only else 0
