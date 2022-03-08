@@ -149,7 +149,7 @@ def create_datasets(args, val_only):
     )
 
     dev_data = SelectiveSliceData_Val(
-        root=args.data_path / 'multicoil_val',
+        root=args.data_path / 'Matt_small_test_T2',
         transform=DataTransform(args, val=True),
         challenge='multicoil',
         sample_rate=1,
