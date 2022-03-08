@@ -197,7 +197,7 @@ def main(args):
                     reference image distribution, its FJD score is very bad, as the model lacks 
                     any conditional consistency.
                     '''
-            print(f"FID FOR NETWORK {args.z_location}")
+            print(f"FID FOR NOISE STD. DEV: {exponent}")
             fid = fjd_metric.get_fid()
             fjd = fjd_metric.get_fjd(alpha=1.097)
             print('FID: ', fid)
