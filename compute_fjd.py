@@ -107,7 +107,7 @@ class GANWrapper:
         return final_im
 
     def add_noise(self, im):
-        return im + torch.empty((im.size(0), 3, 128, 128)).normal_(mean=0, std=np.sqrt(self.noise_var)).cuda()
+        return im + torch.empty((im.size(0), 3, 128, 128)).normal_(mean=0, std=self.noise_var).cuda()
 
     def __call__(self, y, target=None):
         if self.args.noise_v_fjd:
