@@ -215,7 +215,7 @@ class SelectiveSliceData_Val(torch.utils.data.Dataset):
         print('total_files:')
         print(len(f))
 
-        for fname in f[1:len(f)]:
+        for fname in f[0:len(f)]:
             kspace = h5py.File(fname, 'r')['kspace']
             print(kspace.shape)
             with h5py.File(fname, 'r') as data:
