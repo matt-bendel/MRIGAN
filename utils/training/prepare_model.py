@@ -23,7 +23,7 @@ def build_model(args):
                 out_chans=16,
                 z_location=args.z_location,
                 latent_size=args.latent_size
-            ).to(torch.device('cuda'))
+            ).to(torch.device('cuda:1'))
         else:
             model = GeneratorModelAdler(
                 in_chans=18,
@@ -50,7 +50,7 @@ def build_discriminator(args):
                 out_chans=args.out_chans,
                 z_location=args.z_location,
                 model_type=args.network_input
-            ).to(torch.device('cuda'))
+            ).to(torch.device('cuda:1'))
         else:
             model = DiscriminatorModelLowRes(
                 in_chans=48,
