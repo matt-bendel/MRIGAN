@@ -536,6 +536,9 @@ def main(args):
                         plt.savefig('temp_gen_targ_ablation.png')
                         plt.close()
 
+                if i == 10:
+                    break
+
         psnr_loss = np.mean(losses['psnr'])
         best_model = psnr_loss > best_loss_val
         best_loss_val = psnr_loss if psnr_loss > best_loss_val else best_loss_val
