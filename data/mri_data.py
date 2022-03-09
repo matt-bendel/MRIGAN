@@ -215,7 +215,7 @@ class SelectiveSliceData_Val(torch.utils.data.Dataset):
         print('total_files:')
         print(len(f))
 
-        for fname in f[0:len(f)]:
+        for fname in f[1:len(f)]:
             kspace = h5py.File(fname, 'r')['kspace']
 
             with h5py.File(fname, 'r') as data:
@@ -224,6 +224,8 @@ class SelectiveSliceData_Val(torch.utils.data.Dataset):
                     # if (scanner_str > 2.2):
                     if kspace.shape[1] >= 16:
                         keep_files.append(fname)
+                    else:
+                        # print(fname)
 
         files = keep_files
 
