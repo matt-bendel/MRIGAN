@@ -222,7 +222,7 @@ class SelectiveSliceData_Val(torch.utils.data.Dataset):
                 if (data.attrs['acquisition'] == 'AXT2'):
                     # scanner_str = findScannerStrength(data['ismrmrd_header'].value)
                     # if (scanner_str > 2.2):
-                    if kspace.shape[1] >= 8:
+                    if kspace.shape[1] >= 16:
                         keep_files.append(fname)
                     # else:
                         # print(fname)
