@@ -248,8 +248,8 @@ class SelectiveSliceData_Val(torch.utils.data.Dataset):
             files = files[:num_files]
         for fname in sorted(files):
             kspace = h5py.File(fname, 'r')['kspace']
-            if len(self.examples) > 300:
-                break
+            # if len(self.examples) > 300:
+            #     break
 
             if kspace.shape[-1] <= 384 or kspace.shape[1] < 10 or str(
                     fname) == '/storage/fastMRI_brain/data/multicoil_val/file_brain_AXT2_209_2090296.h5' or str(
