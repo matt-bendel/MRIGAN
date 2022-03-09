@@ -209,7 +209,7 @@ def main(args):
         for i in range(7):
             num_samps = 128
             args.z_location = i+1
-            if i == 7:
+            if i == 6:
                 args.z_location = -1
                 args.adler = True
             gan = get_gen(args)
