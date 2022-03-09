@@ -224,7 +224,7 @@ class SelectiveSliceData_Val(torch.utils.data.Dataset):
                     # if (scanner_str > 2.2):
                     if kspace.shape[1] >= 16:
                         keep_files.append(fname)
-                    else:
+                    # else:
                         # print(fname)
 
         files = keep_files
