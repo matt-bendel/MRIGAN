@@ -158,7 +158,7 @@ def create_datasets(args, val_only):
         restrict_size=False,
         big_test=True
     )
-    exit()
+
     return dev_data, train_data
 
 

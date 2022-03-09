@@ -236,8 +236,8 @@ class SelectiveSliceData_Val(torch.utils.data.Dataset):
 
         random.shuffle(files)
 
-        num_files = round(len(files)) if big_test else round(len(files)*0.3)
-        num_files = num_files if not small_test else 20
+        num_files = (round(len(files)) if big_test else round(len(files)*0.3)) if not small_test else 20
+        print(num_files)
 
         f_testing_and_Val = sorted(files[0:num_files])
 
@@ -249,8 +249,6 @@ class SelectiveSliceData_Val(torch.utils.data.Dataset):
             files = files[:num_files]
         for fname in sorted(files):
             kspace = h5py.File(fname, 'r')['kspace']
-            # if len(self.examples) > 300:
-            #     break
 
             if kspace.shape[-1] <= 384 or kspace.shape[1] < 10 or str(
                     fname) == '/storage/fastMRI_brain/data/multicoil_val/file_brain_AXT2_209_2090296.h5' or str(
