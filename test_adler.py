@@ -203,7 +203,7 @@ if __name__ == '__main__':
     random.seed(args.seed)
     np.random.seed(args.seed)
     torch.manual_seed(args.seed)
-    _, loader = create_data_loaders(args, val_only=True)
+    _, loader = create_data_loaders(args, val_only=True, big_test=True)
     args.in_chans = 16
     args.out_chans = 16
     args.z_location = -1
