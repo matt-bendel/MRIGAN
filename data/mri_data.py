@@ -217,7 +217,6 @@ class SelectiveSliceData_Val(torch.utils.data.Dataset):
 
         for fname in f[0:len(f)]:
             kspace = h5py.File(fname, 'r')['kspace']
-            print(kspace.shape)
             with h5py.File(fname, 'r') as data:
                 if (data.attrs['acquisition'] == 'AXT2'):
                     # scanner_str = findScannerStrength(data['ismrmrd_header'].value)
