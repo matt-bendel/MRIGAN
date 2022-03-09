@@ -236,7 +236,7 @@ class SelectiveSliceData_Val(torch.utils.data.Dataset):
 
         random.shuffle(files)
 
-        num_files = round(len(files))
+        num_files = round(len(files)*0.3)
 
         f_testing_and_Val = sorted(files[0:num_files])
 
@@ -248,7 +248,7 @@ class SelectiveSliceData_Val(torch.utils.data.Dataset):
             files = files[:num_files]
         for fname in sorted(files):
             kspace = h5py.File(fname, 'r')['kspace']
-            if len(self.examples) > 900:
+            if len(self.examples) > 300:
                 break
 
             if kspace.shape[-1] <= 384 or kspace.shape[1] < 10 or str(
