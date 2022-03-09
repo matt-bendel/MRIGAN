@@ -165,7 +165,7 @@ def average_gen(generator, input_w_z, old_input, args, true_measures):
     gen_list = []
     for j in range(8):
         z = torch.rand((input_w_z.size(0), 2, 128, 128)).cuda()
-        output_gen = generator(torch.cat([input_w_z, z]))
+        output_gen = generator(torch.cat([input_w_z, z], dim=1))
 
         if args.network_input == 'kspace':
             # refined_out = output_gen + old_input[:, 0:16]
@@ -340,7 +340,7 @@ def main(args):
                 optimizer_D.zero_grad()
 
                 input_w_z = input_w_z.to(args.device)
-                output_gen = generator(torch.cat([input_w_z, z]))
+                output_gen = generator(torch.cat([input_w_z, z], dim=1))
                 if args.network_input == 'kspace':
                     # refined_out = output_gen + old_input[:, 0:16]
                     refined_out = output_gen + old_input[:]
@@ -384,7 +384,7 @@ def main(args):
                 args.num_z, old_input.shape[0], old_input.shape[1], old_input.shape[2], old_input.shape[3])).to(
                 args.device)
             for k in range(args.num_z):
-                output_gen[k, :, :, :, :] = generator(torch.cat([input_w_z, z[:, k, :, :, :]]))
+                output_gen[k, :, :, :, :] = generator(torch.cat([input_w_z, z[:, k, :, :, :]], dim=1))
 
             if args.network_input == 'kspace':
                 refined_out = output_gen + old_input[:]
