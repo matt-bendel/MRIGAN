@@ -46,7 +46,7 @@ def build_discriminator(args):
     else:
         if not args.adler:
             model = DiscriminatorModelLowRes(
-                in_chans=args.in_chans,
+                in_chans=32,
                 out_chans=args.out_chans,
                 z_location=args.z_location,
                 model_type=args.network_input
