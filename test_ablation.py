@@ -208,8 +208,8 @@ if __name__ == '__main__':
     random.seed(args.seed)
     np.random.seed(args.seed)
     torch.manual_seed(args.seed)
-    _, loader = create_data_loaders(args, val_only=True)
-    for net in range(1):
+    _, loader = create_data_loaders(args, val_only=True, big_test=True)
+    for net in range(6):
         net += 1
         print(f"VALIDATING ABLATION NETWORK {net}")
         args.in_chans = 16
@@ -220,11 +220,10 @@ if __name__ == '__main__':
         gen = get_gen(args)
         gen.eval()
 
-        for number in range(1):
-            number = 3
-            power = (2**number)//1
-            print(f"VALIDATING NUM CODE VECTORS: {power}")
-            main(args, power, gen, loader)
+        number = 128
+        power = (2**number)//1
+        print(f"VALIDATING NUM CODE VECTORS: {power}")
+        main(args, power, gen, loader)
 
         del gen
         print("\n\n\n")

@@ -136,7 +136,7 @@ class DataTransform:
         return stacked_masked_kspace.permute(1, 2, 0), stacked_kspace.permute(1, 2, 0), mean, std, true_measures_normal
 
 
-def create_datasets(args, val_only):
+def create_datasets(args, val_only, big_test=False):
     if not val_only:
         train_data = SelectiveSliceData(
             root=args.data_path / 'multicoil_train',
@@ -156,6 +156,7 @@ def create_datasets(args, val_only):
         use_top_slices=True,
         number_of_top_slices=args.num_of_top_slices,
         restrict_size=False,
+        big_test=big_test
     )
 
     return dev_data, train_data if not val_only else None

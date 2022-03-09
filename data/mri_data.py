@@ -237,7 +237,7 @@ class SelectiveSliceData_Val(torch.utils.data.Dataset):
         random.shuffle(files)
 
         num_files = round(len(files)) if big_test else round(len(files)*0.3)
-        num_files = num_files if not small_test else 50
+        num_files = num_files if not small_test else 30
 
         f_testing_and_Val = sorted(files[0:num_files])
 
@@ -260,6 +260,7 @@ class SelectiveSliceData_Val(torch.utils.data.Dataset):
                     fname) == '/storage/fastMRI_brain/data/multicoil_val/file_brain_AXT2_210_2100025.h5':
                 continue
             else:
+                print(fname)
                 if restrict_size and ((kspace.shape[1] != 640) or (kspace.shape[2] != 368)):
                     continue  # skip non uniform sized images
                 num_slices = kspace.shape[0]
