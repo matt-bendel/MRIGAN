@@ -162,8 +162,8 @@ def create_datasets(args, val_only, big_test=False):
     return dev_data, train_data if not val_only else None
 
 
-def create_data_loaders(args, val_only=False):
-    dev_data, train_data = create_datasets(args, val_only)
+def create_data_loaders(args, val_only=False, big_test=False):
+    dev_data, train_data = create_datasets(args, val_only, big_test=big_test)
 
     if not val_only:
         train_loader = DataLoader(
