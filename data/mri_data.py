@@ -222,7 +222,7 @@ class SelectiveSliceData_Val(torch.utils.data.Dataset):
                 if (data.attrs['acquisition'] == 'AXT2'):
                     # scanner_str = findScannerStrength(data['ismrmrd_header'].value)
                     # if (scanner_str > 2.2):
-                    if kspace.shape[1] >= 16:
+                    if kspace.shape[1] >= 8:
                         keep_files.append(fname)
                     # else:
                         # print(fname)
@@ -236,8 +236,8 @@ class SelectiveSliceData_Val(torch.utils.data.Dataset):
 
         random.shuffle(files)
 
-        # num_files = round(len(files)*0.3)
-        num_files = round(len(files))
+        num_files = round(len(files)*0.3)
+        # num_files = round(len(files))
 
         f_testing_and_Val = sorted(files[0:num_files])
 
