@@ -425,7 +425,7 @@ def main(args):
             for k in range(old_input.shape[0] - 1):
                 gen_pred_loss += torch.mean(fake_pred[k + 1])
 
-            var_weight = 0.05
+            var_weight = 0.02
             adv_weight = 1e-6 if args.supervised else 1e-3
             ssim_weight = 0.84
             g_loss = -adv_weight*torch.mean(gen_pred_loss) if args.adv_only else 0
@@ -434,7 +434,7 @@ def main(args):
             g_loss += - var_weight * torch.mean(torch.var(disc_inputs_gen, dim=1),
                                                 dim=(0, 1, 2, 3)) if args.var_loss else 0
 
-            if g_loss.item() > 10:
+            if g_loss.item() < -10:
                 exit()
 
             g_loss.backward()
@@ -538,9 +538,6 @@ def main(args):
                         plt.imshow(np.abs(target), cmap='gray')
                         plt.savefig('temp_gen_targ_ablation.png')
                         plt.close()
-
-                if i == 10:
-                    break
 
         psnr_loss = np.mean(losses['psnr'])
         best_model = psnr_loss > best_loss_val
