@@ -204,7 +204,7 @@ if __name__ == '__main__':
     np.random.seed(args.seed)
     torch.manual_seed(args.seed)
     _, loader = create_data_loaders(args, val_only=True, big_test=True)
-    args.in_chans = 16
+    args.in_chans = 18
     args.out_chans = 16
     args.z_location = -1
     args.adler = True
@@ -213,8 +213,6 @@ if __name__ == '__main__':
     gen = get_gen(args)
     gen.eval()
 
-    for number in range(11):
-        number = -(number - 10)
-        power = (2**number)//1
-        print(f"VALIDATING NUM CODE VECTORS: {power}")
-        main(args, power, gen, loader)
+    power = 128
+    print(f"VALIDATING NUM CODE VECTORS: {power}")
+    main(args, power, gen, loader)

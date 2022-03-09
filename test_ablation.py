@@ -215,7 +215,7 @@ if __name__ == '__main__':
         args.in_chans = 16
         args.out_chans = 16
         args.z_location = net
-        args.data_consistency = True
+        args.data_consistency = True if net != 5 else False
 
         gen = get_gen(args)
         gen.eval()
