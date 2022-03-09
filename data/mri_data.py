@@ -152,16 +152,9 @@ class SelectiveSliceData(torch.utils.data.Dataset):
 
         for fname in sorted(files):
             kspace = h5py.File(fname, 'r')['kspace']
-            if kspace.shape[-1] <= 384 or kspace.shape[1] < 10 or str(
-                    fname) == '/storage/fastMRI_brain/data/multicoil_val/file_brain_AXT2_209_2090296.h5' or str(
-                    fname) == '/storage/fastMRI_brain/data/multicoil_val/file_brain_AXT2_200_2000250.h5' or str(
-                    fname) == '/storage/fastMRI_brain/data/multicoil_val/file_brain_AXT2_201_2010106.h5' or str(
-                    fname) == '/storage/fastMRI_brain/data/multicoil_val/file_brain_AXT2_204_2130024.h5' or str(
-                    fname) == '/storage/fastMRI_brain/data/multicoil_val/file_brain_AXT2_210_2100025.h5':
+            if kspace.shape[-1] <= 384 or kspace.shape[1] < 16:
                 continue
             else:
-                if restrict_size and ((kspace.shape[1] != 640) or (kspace.shape[2] != 368)):
-                    continue  # skip non uniform sized images
                 num_slices = kspace.shape[0]
                 if use_top_slices:
                     start_idx = 0
@@ -217,12 +210,13 @@ class SelectiveSliceData_Val(torch.utils.data.Dataset):
 
         for fname in f[0:len(f)]:
             kspace = h5py.File(fname, 'r')['kspace']
+
+            if kspace.shape[-1] <= 384 or kspace.shape[1] < 16:
+                continue
+
             with h5py.File(fname, 'r') as data:
                 if (data.attrs['acquisition'] == 'AXT2'):
-                    # scanner_str = findScannerStrength(data['ismrmrd_header'].value)
-                    # if (scanner_str > 2.2):
-                    if kspace.shape[1] >= 8:
-                        keep_files.append(fname)
+                    keep_files.append(fname)
 
         files = keep_files
 
@@ -247,7 +241,12 @@ class SelectiveSliceData_Val(torch.utils.data.Dataset):
             kspace = h5py.File(fname, 'r')['kspace']
 
             num_slices = kspace.shape[0]
-            self.examples += [(fname, slice) for slice in range(num_slices)]
+            if use_top_slices:
+                start_idx = 0
+                end_idx = start_idx + number_of_top_slices
+                self.examples += [(fname, slice) for slice in range(start_idx, end_idx)]
+            else:
+                self.examples += [(fname, slice) for slice in range(num_slices)]
 
     def __len__(self):
         return len(self.examples)
