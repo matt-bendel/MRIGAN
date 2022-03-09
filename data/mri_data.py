@@ -186,7 +186,7 @@ class SelectiveSliceData_Val(torch.utils.data.Dataset):
     A PyTorch Dataset that provides access to MR image slices.
     """
 
-    def __init__(self, root, transform, challenge, sample_rate=1, use_top_slices=True, number_of_top_slices=6, restrict_size=False):
+    def __init__(self, root, transform, challenge, sample_rate=1, use_top_slices=True, number_of_top_slices=6, restrict_size=False, big_test=False, small_test=False):
         """
         Args:
             root (pathlib.Path): Path to the dataset.
@@ -236,8 +236,8 @@ class SelectiveSliceData_Val(torch.utils.data.Dataset):
 
         random.shuffle(files)
 
-        num_files = round(len(files)*0.3)
-        # num_files = round(len(files))
+        num_files = round(len(files)) if big_test else round(len(files)*0.3)
+        num_files = num_files if not small_test else 50
 
         f_testing_and_Val = sorted(files[0:num_files])
 
@@ -260,6 +260,7 @@ class SelectiveSliceData_Val(torch.utils.data.Dataset):
                     fname) == '/storage/fastMRI_brain/data/multicoil_val/file_brain_AXT2_210_2100025.h5':
                 continue
             else:
+                print(fname)
                 if restrict_size and ((kspace.shape[1] != 640) or (kspace.shape[2] != 368)):
                     continue  # skip non uniform sized images
                 num_slices = kspace.shape[0]

@@ -19,7 +19,7 @@ def build_model(args):
     else:
         if not args.adler:
             model = GeneratorModelAdler(
-                in_chans=18,
+                in_chans=16,
                 out_chans=16,
                 z_location=args.z_location,
                 latent_size=args.latent_size

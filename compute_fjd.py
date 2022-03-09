@@ -206,9 +206,12 @@ def main(args):
             del fjd_metric
 
     else:
-        for i in range(1):
-            num_samps = 32
-            args.z_location = 1
+        for i in range(7):
+            num_samps = 128
+            args.z_location = i+1
+            if i == 7:
+                args.z_location = -1
+                args.adler = True
             gan = get_gen(args)
             gan = GANWrapper(gan, args)
             print("COMPUTING METRIC")
