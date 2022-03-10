@@ -209,8 +209,8 @@ if __name__ == '__main__':
     np.random.seed(args.seed)
     torch.manual_seed(args.seed)
     _, loader = create_data_loaders(args, val_only=True, big_test=True)
-    for net in range(6):
-        net += 1
+    for net in range(1):
+        net = 6
         print(f"VALIDATING ABLATION NETWORK {net}")
         args.in_chans = 16
         args.out_chans = 16
