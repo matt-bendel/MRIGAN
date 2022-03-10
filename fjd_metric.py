@@ -30,6 +30,7 @@ class FJDMetric:
         eps: Float value which is added to diagonals of covariance matrices 
              to improve computational stability. Default: 1e-6.
     """
+
     def __init__(self,
                  gan,
                  reference_loader,
@@ -70,7 +71,7 @@ class FJDMetric:
         self.alpha = calculate_alpha(image_embed, cond_embed, cuda=self.cuda)
         return self.alpha
 
-    def _get_generated_distribution(self):
+    def _get_generated_distribution(self, cfid=False):
         image_embed = []
         cond_embed = []
 
@@ -112,6 +113,9 @@ class FJDMetric:
             image_embed = np.concatenate(image_embed, axis=0)
             cond_embed = np.concatenate(cond_embed, axis=0)
 
+        if cfid:
+            return image_embed, cond_embed
+
         mu_fake, sigma_fake = self._get_joint_statistics(image_embed, cond_embed)
         del image_embed
         del cond_embed
@@ -135,7 +139,7 @@ class FJDMetric:
         self.mu_real, self.sigma_real = mu_real, sigma_real
         return mu_real, sigma_real
 
-    def _compute_reference_distribution(self):
+    def _compute_reference_distribution(self, cfid=False):
         image_embed = []
         cond_embed = []
 
@@ -167,6 +171,9 @@ class FJDMetric:
         else:
             image_embed = np.concatenate(image_embed, axis=0)
             cond_embed = np.concatenate(cond_embed, axis=0)
+
+        if cfid:
+            return image_embed, cond_embed
 
         self._calculate_alpha(image_embed, cond_embed)
         mu_real, sigma_real = self._get_joint_statistics(image_embed, cond_embed)
@@ -212,15 +219,23 @@ class FJDMetric:
         mu1[2048:] = mu1[2048:] * alpha
         mu2[2048:] = mu2[2048:] * alpha
 
-        sigma1[2048:, 2048:] = sigma1[2048:, 2048:] * alpha**2
+        sigma1[2048:, 2048:] = sigma1[2048:, 2048:] * alpha ** 2
         sigma1[2048:, :2048] = sigma1[2048:, :2048] * alpha
         sigma1[:2048, 2048:] = sigma1[:2048, 2048:] * alpha
 
-        sigma2[2048:, 2048:] = sigma2[2048:, 2048:] * alpha**2
+        sigma2[2048:, 2048:] = sigma2[2048:, 2048:] * alpha ** 2
         sigma2[2048:, :2048] = sigma2[2048:, :2048] * alpha
         sigma2[:2048, 2048:] = sigma2[:2048, 2048:] * alpha
 
         return mu1, sigma1, mu2, sigma2
+
+    def get_cfid(self, resample=True):
+        real_im_embed, cond_embed = self._compute_reference_distribution(cfid=True)
+        fake_im_embed, _ = self._get_generated_distribution(cfid=True)
+
+        print(real_im_embed.shape)
+        print(cond_embed.shape)
+        print(fake_im_embed.shape)
 
     def get_fjd(self, alpha=None, resample=True):
         """Calculate FJD.
@@ -321,7 +336,7 @@ def calculate_fd(mu1, sigma1, mu2, sigma2, cuda=False, eps=1e-6):
 # A pytorch implementation of cov, from Modar M. Alfadly
 # https://discuss.pytorch.org/t/covariance-and-gradient-support/16217/2
 def torch_cov(m, rowvar=False):
-        '''Estimate a covariance matrix given data.
+    '''Estimate a covariance matrix given data.
 
         Covariance indicates the level to which two variables vary together.
         If we examine N-dimensional samples, `X = [x_1, x_2, ... x_N]^T`,
@@ -340,17 +355,17 @@ def torch_cov(m, rowvar=False):
         Returns:
                 The covariance matrix of the variables.
         '''
-        if m.dim() > 2:
-            raise ValueError('m has more than 2 dimensions')
-        if m.dim() < 2:
-            m = m.view(1, -1)
-        if not rowvar and m.size(0) != 1:
-            m = m.t()
-        # m = m.type(torch.double)  # uncomment this line if desired
-        fact = 1.0 / (m.size(1) - 1)
-        m -= torch.mean(m, dim=1, keepdim=True)
-        mt = m.t()  # if complex: mt = m.t().conj()
-        return fact * m.matmul(mt).squeeze()
+    if m.dim() > 2:
+        raise ValueError('m has more than 2 dimensions')
+    if m.dim() < 2:
+        m = m.view(1, -1)
+    if not rowvar and m.size(0) != 1:
+        m = m.t()
+    # m = m.type(torch.double)  # uncomment this line if desired
+    fact = 1.0 / (m.size(1) - 1)
+    m -= torch.mean(m, dim=1, keepdim=True)
+    mt = m.t()  # if complex: mt = m.t().conj()
+    return fact * m.matmul(mt).squeeze()
 
 
 # Pytorch implementation of matrix sqrt, from Tsung-Yu Lin, and Subhransu Maji
@@ -419,7 +434,7 @@ def numpy_calculate_frechet_distance(mu1, sigma1, mu2, sigma2, eps=1e-6):
     if np.iscomplexobj(covmean):
         if not np.allclose(np.diagonal(covmean).imag, 0, atol=1e-3):
             m = np.max(np.abs(covmean.imag))
-            #raise ValueError('Imaginary component {}'.format(m))
+            # raise ValueError('Imaginary component {}'.format(m))
             print('Imaginary component of {}, may affect results'.format(m))
         covmean = covmean.real
 
