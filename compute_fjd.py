@@ -44,7 +44,7 @@ def get_gen(args):
         checkpoint_file_gen = pathlib.Path(
             f'/home/bendel.8/Git_Repos/full_scale_mrigan/MRIGAN/trained_models{string_for_file}/image/{args.z_location}/generator_best_model.pt')
 
-    if args.adler:
+    if args.adler and args.z_location != 7:
         checkpoint_file_gen = pathlib.Path(
             f'/home/bendel.8/Git_Repos/full_scale_mrigan/MRIGAN/trained_models/adler/generator_best_model.pt')
 
@@ -206,12 +206,10 @@ def main(args):
             del fjd_metric
 
     else:
-        for i in range(7):
+        for i in range(1):
             num_samps = 32
-            args.z_location = i+1
-            if i == 6:
-                args.z_location = -1
-                args.adler = True
+            args.z_location = 7
+            args.adler = True
             gan = get_gen(args)
             gan = GANWrapper(gan, args)
             print("COMPUTING METRIC")
