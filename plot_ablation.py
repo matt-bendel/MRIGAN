@@ -70,6 +70,7 @@ class GANS:
             'dc': [],
         }
         for i in range(8):
+            print(i)
             if i == 7:
                 self.gens['gens'].append(self.get_adler(args))
                 self.gens['dc'].append(True)
