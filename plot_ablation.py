@@ -166,7 +166,7 @@ class GANS:
         for i in range(len(self.gens['gens'])):
             gen_num = i + 1
             avg_tensor = torch.zeros(8, 16, 128, 128).to(self.args.device)
-            if i == 6 or  i == 7:
+            if i == 6 or i == 7:
                 self.adler = True
 
             for j in range(8):
