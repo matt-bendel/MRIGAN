@@ -100,6 +100,7 @@ class GANS:
         return generator
 
     def get_gen(self, args, num, type='image'):
+        args.adler = False
         checkpoint_file_gen = pathlib.Path(
             f'/home/bendel.8/Git_Repos/full_scale_mrigan/MRIGAN/trained_models/ablation/{type}/{num}/generator_best_model.pt')
         checkpoint_gen = torch.load(checkpoint_file_gen, map_location=torch.device('cuda'))
