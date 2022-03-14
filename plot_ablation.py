@@ -74,16 +74,19 @@ class GANS:
                 self.gens['gens'].append(self.get_adler(args))
                 self.gens['dc'].append(True)
             elif i == 6:
-                self.gens['gens'].append(self.get_gen(args, 7))
+                self.gens['gens'].append(self.get_adler(args, ours=True))
                 self.gens['dc'].append(True)
             else:
                 num = i + 1
                 self.gens['gens'].append(self.get_gen(args, num))
                 self.gens['dc'].append(False if num == 5 else True)
 
-    def get_adler(self, args):
+    def get_adler(self, args, ours=False):
         checkpoint_file_gen = pathlib.Path(
             f'/home/bendel.8/Git_Repos/full_scale_mrigan/MRIGAN/trained_models/adler/generator_best_model.pt')
+        if ours:
+            checkpoint_file_gen = pathlib.Path(
+                f'/home/bendel.8/Git_Repos/full_scale_mrigan/MRIGAN/trained_models/ablation/image/7/generator_best_model.pt')
         checkpoint_gen = torch.load(checkpoint_file_gen, map_location=torch.device('cuda'))
         args.adler = True
         generator = build_model(args)
