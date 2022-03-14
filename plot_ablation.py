@@ -69,9 +69,12 @@ class GANS:
             'gens': [],
             'dc': [],
         }
-        for i in range(7):
-            if i == 6:
+        for i in range(8):
+            if i == 7:
                 self.gens['gens'].append(self.get_adler(args))
+                self.gens['dc'].append(True)
+            elif i == 6:
+                self.gens['gens'].append(self.get_gen(args, 7))
                 self.gens['dc'].append(True)
             else:
                 num = i + 1
@@ -134,6 +137,7 @@ class GANS:
             'g5': [],
             'g6': [],
             'g7': [],
+            'g8': [],
         }
 
         avg = {
@@ -144,6 +148,7 @@ class GANS:
             'g5': None,
             'g6': None,
             'g7': None,
+            'g8': None,
         }
 
         std_devs = {
@@ -154,13 +159,14 @@ class GANS:
             'g5': None,
             'g6': None,
             'g7': None,
+            'g8': None,
         }
 
         batch_size = y.size(0)
         for i in range(len(self.gens['gens'])):
             gen_num = i + 1
             avg_tensor = torch.zeros(8, 16, 128, 128).to(self.args.device)
-            if i == 6:
+            if i == 6 or  i == 7:
                 self.adler = True
 
             for j in range(8):
@@ -267,24 +273,24 @@ def get_colorbar(fig, im, ax, left=False):
 
 def create_mean_error_plots(avg, std_devs, gt):
     num_rows = 3
-    num_cols = 8
+    num_cols = 9
 
-    fig = plt.figure(figsize=(5*2.33, 5))
+    fig = plt.figure(figsize=(9*3, 9))
     fig.subplots_adjust(wspace=0, hspace=0.05)
     generate_image(fig, gt, gt, 'GT', 1, num_rows, num_cols)
 
-    labels = ['Full', '-Adversarial', '-Supervised', '-Variance Reward', '-DC', '-DI', 'Adler']
+    labels = ['Full', '-Adversarial', '-Supervised', '-Variance Reward', '-DC', '-DI', 'Full (2)', 'Adler']
     im_er, ax_er = None, None
     im_std, ax_std = None, None
 
     for i in range(num_cols - 1):
         generate_image(fig, gt, avg[f'g{i + 1}'], labels[i], i + 2, num_rows, num_cols)
         if i == 0:
-            im_er, ax_er = generate_error_map(fig, gt, avg[f'g{i + 1}'], i + 10, num_rows, num_cols)
-            im_std, ax_std = generate_image(fig, gt, std_devs[f'g{i + 1}'], 'Std. Dev', i + 18, num_rows, num_cols)
+            im_er, ax_er = generate_error_map(fig, gt, avg[f'g{i + 1}'], i + 11, num_rows, num_cols)
+            im_std, ax_std = generate_image(fig, gt, std_devs[f'g{i + 1}'], 'Std. Dev', i + 20, num_rows, num_cols)
         else:
-            generate_error_map(fig, gt, avg[f'g{i + 1}'], i + 10, num_rows, num_cols)
-            generate_image(fig, gt, std_devs[f'g{i + 1}'], 'Std. Dev', i + 18, num_rows, num_cols)
+            generate_error_map(fig, gt, avg[f'g{i + 1}'], i + 11, num_rows, num_cols)
+            generate_image(fig, gt, std_devs[f'g{i + 1}'], 'Std. Dev', i + 20, num_rows, num_cols)
 
     get_colorbar(fig, im_er, ax_er, left=True)
     get_colorbar(fig, im_std, ax_std, left=True)
@@ -294,20 +300,20 @@ def create_mean_error_plots(avg, std_devs, gt):
 
 def create_z_compare_plots(recons, gt):
     num_rows = 5
-    num_cols = 8
+    num_cols = 9
 
-    fig = plt.figure(figsize=(7*1.4, 7))
+    fig = plt.figure(figsize=(9*1.8, 9))
     fig.subplots_adjust(wspace=0, hspace=0.05)
     generate_image(fig, gt, gt, 'GT', 1, num_rows, num_cols)
 
-    labels = ['Full', '-Adversarial', '-Supervised', '-Variance Reward', '-DC', '-DI', 'Adler']
+    labels = ['Full', '-Adversarial', '-Supervised', '-Variance Reward', '-DC', '-DI', 'Full (2)', 'Adler']
 
     for i in range(num_cols - 1):
         generate_error_map(fig, gt, recons[f'g{i + 1}'][0], i + 2, num_rows, num_cols, title=labels[i])
-        generate_error_map(fig, gt, recons[f'g{i + 1}'][1], i + 10, num_rows, num_cols)
-        generate_error_map(fig, gt, recons[f'g{i + 1}'][2], i + 18, num_rows, num_cols)
-        generate_error_map(fig, gt, recons[f'g{i + 1}'][3], i + 26, num_rows, num_cols)
-        generate_error_map(fig, gt, recons[f'g{i + 1}'][4], i + 34, num_rows, num_cols)
+        generate_error_map(fig, gt, recons[f'g{i + 1}'][1], i + 11, num_rows, num_cols)
+        generate_error_map(fig, gt, recons[f'g{i + 1}'][2], i + 20, num_rows, num_cols)
+        generate_error_map(fig, gt, recons[f'g{i + 1}'][3], i + 29, num_rows, num_cols)
+        generate_error_map(fig, gt, recons[f'g{i + 1}'][4], i + 38, num_rows, num_cols)
 
     plt.savefig(f'/home/bendel.8/Git_Repos/full_scale_mrigan/MRIGAN/ablation_plots/5_z.png')
 
@@ -316,14 +322,14 @@ def gif_im(gt, gen_ims, index, type):
     fig = plt.figure(figsize=(12, 4))
     fig.subplots_adjust(wspace=0, hspace=0.05)
     num_rows = 2
-    num_cols = 7
+    num_cols = 8
 
-    labels = ['Full', '-Adversarial', '-Supervised', '-Variance Reward', '-DC', '-DI', 'Adler']
+    labels = ['Full', '-Adversarial', '-Supervised', '-Variance Reward', '-DC', '-DI', 'Full (2)', 'Adler']
 
     im_er, ax_er = None, None
     for i in range(num_cols):
         generate_image(fig, gt, gen_ims[f'g{i + 1}'][index], labels[i], i + 1, num_rows, num_cols)
-        im_er, ax_er = generate_error_map(fig, gt, gen_ims[f'g{i + 1}'][index], i + 8, num_rows, num_cols)
+        im_er, ax_er = generate_error_map(fig, gt, gen_ims[f'g{i + 1}'][index], i + 9, num_rows, num_cols)
 
     get_colorbar(fig, im_er, ax_er)
     plt.title(f'Z - {index + 1}', size=8)
