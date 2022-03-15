@@ -4,7 +4,7 @@ import torch
 import numpy as np
 from tqdm import tqdm
 from scipy import linalg
-# import tensorflow as tf
+import tensorflow as tf
 
 def symmetric_matrix_square_root(mat, eps=1e-10):
     """Compute square root of a symmetric matrix.
