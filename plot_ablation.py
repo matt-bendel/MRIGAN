@@ -170,11 +170,11 @@ class GANS:
         batch_size = y.size(0)
         for i in range(len(self.gens['gens'])):
             gen_num = i + 1
-            avg_tensor = torch.zeros(8, 16, 128, 128).to(self.args.device)
+            avg_tensor = torch.zeros(32, 16, 128, 128).to(self.args.device)
             if i == 6 or i == 7:
                 self.adler = True
 
-            for j in range(8):
+            for j in range(32):
                 z = self.get_noise(batch_size)
                 samples = self.gens['gens'][i](y, z) if not self.adler else self.gens['gens'][i](torch.cat([y, z], dim=1))
                 samples = readd_measures_im(samples, y, args, true_measures=y) if self.gens['dc'][i] else samples
@@ -343,13 +343,13 @@ def gif_im(gt, gen_ims, index, type):
 
 def generate_gif(type):
     images = []
-    for i in range(8):
+    for i in range(32):
         images.append(iio.imread(f'/home/bendel.8/Git_Repos/full_scale_mrigan/MRIGAN/gifs/gif_{type}_{i}.png'))
 
     iio.mimsave(f'/home/bendel.8/Git_Repos/full_scale_mrigan/MRIGAN/ablation_plots/variation_gif.gif', images,
                 duration=0.25)
 
-    for i in range(8):
+    for i in range(32):
         os.remove(f'/home/bendel.8/Git_Repos/full_scale_mrigan/MRIGAN/gifs/gif_{type}_{i}.png')
 
 
@@ -371,7 +371,7 @@ def main(generators, dev_loader):
             create_mean_error_plots(avg, std_devs, gt)
             create_z_compare_plots(recons, gt)
 
-            for r in range(8):
+            for r in range(32):
                 gif_im(gt, recons, r, 'image')
 
             generate_gif('image')
