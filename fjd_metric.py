@@ -153,6 +153,7 @@ class FJDMetric:
     def _get_generated_distribution(self, cfid=False):
         image_embed = []
         cond_embed = []
+        true_embed = []
 
         for i, data in tqdm(enumerate(self.condition_loader),
                             desc='Computing generated distribution',
@@ -180,6 +181,10 @@ class FJDMetric:
                         cond_e = self.condition_embedding(condition_im)
 
                         if self.cuda:
+                            if cfid:
+                                true_e = self.image_embedding(true_im)
+                                true_embed.append(true_e)
+
                             image_embed.append(img_e)
                             cond_embed.append(cond_e)
                         else:
@@ -191,6 +196,10 @@ class FJDMetric:
                             cond_e = self.condition_embedding(condition_im[j])
 
                             if self.cuda:
+                                if cfid:
+                                    true_e = self.image_embedding(true_im)
+                                    true_embed.append(true_e)
+
                                 image_embed.append(img_e)
                                 cond_embed.append(cond_e)
                             else:
@@ -199,6 +208,8 @@ class FJDMetric:
 
 
         if self.cuda:
+            if cfid:
+                true_embed = torch.cat(true_embed, dim=0)
             image_embed = torch.cat(image_embed, dim=0)
             cond_embed = torch.cat(cond_embed, dim=0)
         else:
@@ -206,7 +217,7 @@ class FJDMetric:
             cond_embed = np.concatenate(cond_embed, axis=0)
 
         if cfid:
-            return None#tf.convert_to_tensor(image_embed.cpu().numpy()), tf.convert_to_tensor(cond_embed.cpu().numpy())
+            return tf.convert_to_tensor(image_embed.cpu().numpy()), tf.convert_to_tensor(cond_embed.cpu().numpy()), tf.convert_to_tensor(true_embed.cpu().numpy())
 
         mu_fake, sigma_fake = self._get_joint_statistics(image_embed, cond_embed)
         del image_embed
@@ -322,8 +333,7 @@ class FJDMetric:
         return mu1, sigma1, mu2, sigma2
 
     def get_cfid(self, resample=True):
-        y_true, x_true = self._compute_reference_distribution(cfid=True)
-        y_predict, _ = self._get_generated_distribution(cfid=True)
+        y_predict, x_true, y_true = self._get_generated_distribution(cfid=True)
 
         print(y_true.shape)
         print(x_true.shape)
