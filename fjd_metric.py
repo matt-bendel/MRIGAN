@@ -255,8 +255,8 @@ class FJDMetric:
 
         zero_mu_x_true = x_true - mu_x_true
         zero_mu_x_pred = x_pred - mu_x_pred
-        zero_mu_y1 = y1 - mu_y1
-        zero_mu_y2 = y2 - mu_y2
+        zero_mu_y1 = y_1 - mu_y1
+        zero_mu_y2 = y_2 - mu_y2
 
         sigma_x_true_x_true = torch.matmul(torch.transpose(zero_mu_x_true, 0, 1), zero_mu_x_true) / N1
         sigma_x_pred_x_pred = torch.matmul(torch.transpose(zero_mu_x_pred, 0, 1), zero_mu_x_pred) / N2
