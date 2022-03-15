@@ -258,19 +258,19 @@ class FJDMetric:
         zero_mu_y1 = y_1 - mu_y1
         zero_mu_y2 = y_2 - mu_y2
 
-        sigma_x_true_x_true = torch.matmul(torch.transpose(zero_mu_x_true, 0, 1), zero_mu_x_true) / N1
-        sigma_x_pred_x_pred = torch.matmul(torch.transpose(zero_mu_x_pred, 0, 1), zero_mu_x_pred) / N2
-        sigma_x_true_y = torch.matmul(torch.transpose(zero_mu_x_true, 0, 1), zero_mu_y1) / N1
-        sigma_x_pred_y = torch.matmul(torch.transpose(zero_mu_x_pred, 0, 1), zero_mu_y2) / N2
-        sigma_y_x_true = torch.matmul(torch.transpose(zero_mu_y1, 0, 1), zero_mu_x_true) / N1
-        sigma_y_x_pred = torch.matmul(torch.transpose(zero_mu_y2, 0, 1), zero_mu_x_pred) / N2
-        sigma_y1_y1_inv = torch.inv(torch.matmul(torch.transpose(zero_mu_y1, 0, 1), zero_mu_y1) / N1)
-        sigma_y2_y2_inv = torch.inv(torch.matmul(torch.transpose(zero_mu_y2, 0, 1), zero_mu_y2) / N2)
+        sigma_x_true_x_true = torch.mm(torch.transpose(zero_mu_x_true, 0, 1), zero_mu_x_true) / N1
+        sigma_x_pred_x_pred = torch.mm(torch.transpose(zero_mu_x_pred, 0, 1), zero_mu_x_pred) / N2
+        sigma_x_true_y = torch.mm(torch.transpose(zero_mu_x_true, 0, 1), zero_mu_y1) / N1
+        sigma_x_pred_y = torch.mm(torch.transpose(zero_mu_x_pred, 0, 1), zero_mu_y2) / N2
+        sigma_y_x_true = torch.mm(torch.transpose(zero_mu_y1, 0, 1), zero_mu_x_true) / N1
+        sigma_y_x_pred = torch.mm(torch.transpose(zero_mu_y2, 0, 1), zero_mu_x_pred) / N2
+        sigma_y1_y1_inv = torch.inv(torch.mm(torch.transpose(zero_mu_y1, 0, 1), zero_mu_y1) / N1)
+        sigma_y2_y2_inv = torch.inv(torch.mm(torch.transpose(zero_mu_y2, 0, 1), zero_mu_y2) / N2)
 
-        mu_x_true_given_y = mu_x_true + torch.matmul(torch.matmul(sigma_x_true_y, sigma_y1_y1_inv), y_1 - mu_y1)
-        mu_x_pred_given_y = mu_x_pred + torch.matmul(torch.matmul(sigma_x_pred_y, sigma_y2_y2_inv), y_2 - mu_y2)
-        sigma_x_true_x_true_given_y = sigma_x_true_x_true - torch.matmul(torch.matmul(sigma_x_true_y, sigma_y1_y1_inv), sigma_y_x_true)
-        sigma_x_pred_x_pred_given_y = sigma_x_pred_x_pred - torch.matmul(torch.matmul(sigma_x_pred_y, sigma_y2_y2_inv), sigma_y_x_pred)
+        mu_x_true_given_y = mu_x_true + torch.mm(torch.mm(sigma_x_true_y, sigma_y1_y1_inv), y_1 - mu_y1)
+        mu_x_pred_given_y = mu_x_pred + torch.mm(torch.mm(sigma_x_pred_y, sigma_y2_y2_inv), y_2 - mu_y2)
+        sigma_x_true_x_true_given_y = sigma_x_true_x_true - torch.mm(torch.mm(sigma_x_true_y, sigma_y1_y1_inv), sigma_y_x_true)
+        sigma_x_pred_x_pred_given_y = sigma_x_pred_x_pred - torch.mm(torch.mm(sigma_x_pred_y, sigma_y2_y2_inv), sigma_y_x_pred)
 
         return calculate_fd(mu_x_true_given_y, sigma_x_true_x_true_given_y, mu_x_pred_given_y, sigma_x_pred_x_pred_given_y, cuda=self.cuda, eps=self.eps)
 

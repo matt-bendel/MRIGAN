@@ -234,7 +234,7 @@ def main(args):
                                    image_embedding=inception_embedding,
                                    condition_embedding=inception_embedding,
                                    save_reference_stats=True,
-                                   samples_per_condition=num_samps if not cfid else 1,
+                                   samples_per_condition=num_samps,
                                    cuda=True,
                                    args=args)
 
@@ -258,7 +258,6 @@ def main(args):
             else:
                 cfid_val = fjd_metric.get_cfid()
                 print('CFID: ', cfid_val)
-                exit()
             del gan
             del fjd_metric
 
