@@ -106,6 +106,20 @@ class GANWrapper:
 
         return final_im
 
+    def patch_im(self, im):
+        new_im = torch.zeros(self.args.num_patches, 3, 128 // self.args.num_patches**2, 128 // self.args.num_patches**2)
+        col = 0
+        for i in range(self.args.num_patches**2):
+            ind = i % self.args.num_patches
+            if i < self.args.num_patches and i % self.args.num_patches == 0:
+                col = 0
+            elif i % self.args.num_patches == 0:
+                col += 128 // self.args.num_patches
+
+            new_im[i, :, :, :] = im[:, ind*128//self.args.num_patches:(ind+1)*128//self.args.num_patches, col:col+128//self.args.num_patches]
+
+        return new_im
+
     def add_noise(self, im):
         return im + torch.empty((im.size(0), 3, 128, 128)).normal_(mean=0, std=self.noise_var).cuda()
 
@@ -123,7 +137,7 @@ class GANWrapper:
         else:
             samples = readd_measures_im(samples, y, args, true_measures=y) if self.data_consistency else samples
             im = self.convert_to_im(samples)
-        return im
+        return im if not self.args.patches else patch_im(im)
 
 
 '''
@@ -168,6 +182,7 @@ def main(args):
     inception_embedding = InceptionEmbedding(parallel=True)
     print("GETTING GENERATOR")
     max = 6 if not args.inpaint and not args.adler else 1
+    cfid = True
 
     if args.noise_v_fjd:
         for i in range(6):
@@ -206,10 +221,10 @@ def main(args):
             del fjd_metric
 
     else:
-        for i in range(1):
+        for i in range(8):
             num_samps = 32
-            args.z_location = 7
-            args.adler = True
+            args.z_location = i+1
+            args.adler = True if i > 5 else False
             gan = get_gen(args)
             gan = GANWrapper(gan, args)
             print("COMPUTING METRIC")
@@ -219,7 +234,7 @@ def main(args):
                                    image_embedding=inception_embedding,
                                    condition_embedding=inception_embedding,
                                    save_reference_stats=True,
-                                   samples_per_condition=num_samps,
+                                   samples_per_condition=num_samps if not cfid else 1,
                                    cuda=True,
                                    args=args)
 
@@ -235,10 +250,15 @@ def main(args):
                     any conditional consistency.
                     '''
             print(f"FID FOR NETWORK {args.z_location}")
-            fid = fjd_metric.get_fid()
-            fjd = fjd_metric.get_fjd(alpha=1.097)
-            print('FID: ', fid)
-            print('FJD: ', fjd)
+            if not cfid:
+                fid = fjd_metric.get_fid()
+                fjd = fjd_metric.get_fjd(alpha=1.097)
+                print('FID: ', fid)
+                print('FJD: ', fjd)
+            else:
+                cfid_val = fjd_metric.get_cfid()
+                print('CFID: ', cfid_val)
+                exit()
             del gan
             del fjd_metric
 
