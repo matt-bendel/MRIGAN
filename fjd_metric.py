@@ -55,6 +55,10 @@ class FJDMetric:
         self.samples_per_condition = samples_per_condition
         self.cuda = cuda
         self.eps = eps
+        self.fake_im_embeds = None
+        self.fake_im_cond_embeds = None
+        self.true_im_embeds = None
+        self.true_im_cond_embeds = None
 
         self.mu_fake, self.sigma_fake = None, None
         self.mu_real, self.sigma_real = None, None
@@ -126,8 +130,8 @@ class FJDMetric:
             image_embed = np.concatenate(image_embed, axis=0)
             cond_embed = np.concatenate(cond_embed, axis=0)
 
-        if cfid:
-            return image_embed, cond_embed
+        self.fake_im_embeds = image_embed
+        self.fake_im_cond_embeds = cond_embed
 
         mu_fake, sigma_fake = self._get_joint_statistics(image_embed, cond_embed)
         del image_embed
@@ -197,8 +201,8 @@ class FJDMetric:
             image_embed = np.concatenate(image_embed, axis=0)
             cond_embed = np.concatenate(cond_embed, axis=0)
 
-        if cfid:
-            return image_embed, cond_embed
+        self.true_im_embeds = image_embed
+        self.true_im_cond_embeds = cond_embed
 
         self._calculate_alpha(image_embed, cond_embed)
         mu_real, sigma_real = self._get_joint_statistics(image_embed, cond_embed)
@@ -254,10 +258,9 @@ class FJDMetric:
 
         return mu1, sigma1, mu2, sigma2
 
-    def get_cfid(self, resample=True):
-        x_true, y_1 = self._compute_reference_distribution(cfid=True)
+    def get_cfid(self, x_true, y_1):
         N1 = x_true.shape[0]
-        x_pred, y_2 = self._get_generated_distribution(cfid=True)
+        x_pred, y_2 = self.fake_im_embeds, self.fake_im_cond_embeds
         N2 = x_pred.shape[0]
 
         mu_x_true = torch.mean(x_true, 0)
@@ -276,8 +279,8 @@ class FJDMetric:
         sigma_x_pred_y = torch.mm(zero_mu_x_pred.t(), zero_mu_y2) / N2
         sigma_y_x_true = torch.mm(zero_mu_y1.t(), zero_mu_x_true) / N1
         sigma_y_x_pred = torch.mm(zero_mu_y2.t(), zero_mu_x_pred) / N2
-        sigma_y1_y1_inv = torch.inv(torch.mm(zero_mu_y1.t(), zero_mu_y1) / N1)
-        sigma_y2_y2_inv = torch.inv(torch.mm(zero_mu_y2.t(), zero_mu_y2) / N2)
+        sigma_y1_y1_inv = torch.inverse(torch.mm(zero_mu_y1.t(), zero_mu_y1) / N1)
+        sigma_y2_y2_inv = torch.inverse(torch.mm(zero_mu_y2.t(), zero_mu_y2) / N2)
 
         mu_x_true_given_y = mu_x_true + torch.mm(torch.mm(sigma_x_true_y, sigma_y1_y1_inv), y_1 - mu_y1)
         mu_x_pred_given_y = mu_x_pred + torch.mm(torch.mm(sigma_x_pred_y, sigma_y2_y2_inv), y_2 - mu_y2)
