@@ -165,18 +165,30 @@ class FJDMetric:
             else:
                 _, condition, image = data
                 image = image.cuda()
-                condition = condition.cuda()
+                condition_im = condition.cuda()
 
             with torch.no_grad():
-                image = self.image_embedding(image)
-                condition = self.condition_embedding(condition)
+                if not self.args.patches:
+                    img_e = self.image_embedding(image)
+                    cond_e = self.condition_embedding(condition_im)
 
-                if self.cuda:
-                    image_embed.append(image)
-                    cond_embed.append(condition)
+                    if self.cuda:
+                        image_embed.append(img_e)
+                        cond_embed.append(cond_e)
+                    else:
+                        image_embed.append(img_e.cpu().numpy())
+                        cond_embed.append(cond_e.cpu().numpy())
                 else:
-                    image_embed.append(image.cpu().numpy())
-                    cond_embed.append(condition.cpu().numpy())
+                    for j in range(self.args.num_patches ** 2):
+                        img_e = self.image_embedding(image[j])
+                        cond_e = self.condition_embedding(condition_im[j])
+
+                        if self.cuda:
+                            image_embed.append(img_e)
+                            cond_embed.append(cond_e)
+                        else:
+                            image_embed.append(img_e.cpu().numpy())
+                            cond_embed.append(cond_e.cpu().numpy())
 
         if self.cuda:
             image_embed = torch.cat(image_embed, dim=0)
@@ -243,9 +255,9 @@ class FJDMetric:
         return mu1, sigma1, mu2, sigma2
 
     def get_cfid(self, resample=True):
-        x_true, y_1 = self._compute_reference_distribution()
+        x_true, y_1 = self._compute_reference_distribution(cfid=True)
         N1 = x_true.shape[0]
-        x_pred, y_2 = self._get_generated_distribution()
+        x_pred, y_2 = self._get_generated_distribution(cfid=True)
         N2 = x_pred.shape[0]
 
         mu_x_true = torch.mean(x_true, 0)
