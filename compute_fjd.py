@@ -234,7 +234,7 @@ def main(args):
                                    image_embedding=inception_embedding,
                                    condition_embedding=inception_embedding,
                                    save_reference_stats=True,
-                                   samples_per_condition=num_samps,
+                                   samples_per_condition=num_samps if not cfid else 1,
                                    cuda=True,
                                    args=args)
 
