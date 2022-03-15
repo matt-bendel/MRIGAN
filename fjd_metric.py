@@ -243,7 +243,7 @@ class FJDMetric:
         return mu1, sigma1, mu2, sigma2
 
     def get_cfid(self, resample=True):
-        x_true, y_1 = self._get_reference_distribution()
+        x_true, y_1 = self._compute_reference_distribution()
         N1 = x_true.shape[0]
         x_pred, y_2 = self._get_generated_distribution()
         N2 = x_pred.shape[0]
