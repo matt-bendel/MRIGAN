@@ -259,6 +259,7 @@ class FJDMetric:
         return mu1, sigma1, mu2, sigma2
 
     def get_cfid(self, x_true, y_1):
+        self._get_generated_distribution()
         x_pred, y_2 = self.fake_im_embeds, self.fake_im_cond_embeds
         N2 = x_pred.shape[0]
 
@@ -276,6 +277,14 @@ class FJDMetric:
         mu_x_pred_given_y = mu_x_pred + torch.mm(torch.mm(sigma_x_pred_y, sigma_y2_y2_inv), zero_mu_y2)
         sigma_x_pred_x_pred_given_y = sigma_x_pred_x_pred - torch.mm(torch.mm(sigma_x_pred_y, sigma_y2_y2_inv),
                                                                      sigma_y_x_pred)
+
+        print(mu_x_pred.shape)
+        print(torch.mm(sigma_x_pred_y, sigma_y2_y2_inv))
+        print(zero_mu_y2)
+        print(torch.mm(torch.mm(sigma_x_pred_y, sigma_y2_y2_inv), zero_mu_y2).shape)
+        print(mu_x_pred_given_y.shape)
+
+        exit()
 
         N1 = x_true.shape[0]
         mu_x_true = torch.mean(x_true, 0)
