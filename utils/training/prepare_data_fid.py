@@ -148,6 +148,9 @@ class DataTransform:
                 new_cond_im[i, :, :, :] = cond_im[:, ind*128//(self.args.num_patches):(ind+1)*128//(self.args.num_patches), col:col+128//(self.args.num_patches)]
                 new_ref_im[i, :, :, :] = ref_im[:, ind*128//(self.args.num_patches):(ind+1)*128//(self.args.num_patches), col:col+128//(self.args.num_patches)]
 
+            ref_im = new_ref_im
+            cond_im = new_cond_im
+
 
         return stacked_masked_zfr, cond_im, ref_im
 

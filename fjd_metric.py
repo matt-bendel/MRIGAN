@@ -191,9 +191,9 @@ class FJDMetric:
                             cond_embed.append(cond_e.cpu().numpy())
                     else:
                         for j in range(self.args.num_patches**2):
-                            img_e = self.image_embedding(image[j])
-                            cond_e = self.condition_embedding(condition_im[j])
-                            true_e = self.image_embedding(true_im)
+                            img_e = self.image_embedding(image[:, j, :, :, :])
+                            cond_e = self.condition_embedding(condition_im[:, j, :, :, :])
+                            true_e = self.image_embedding(true_im[:, j, :, :, :])
 
                             if self.cuda:
                                 true_embed.append(true_e)
