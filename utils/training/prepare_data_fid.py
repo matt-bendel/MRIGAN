@@ -176,6 +176,19 @@ def create_datasets(args, val_only):
 
     return dev_data, train_data
 
+def create_small_dataset(args, val_only):
+    dev_data = SelectiveSliceData_Val(
+        root=args.data_path / 'multicoil_val',
+        transform=DataTransform(args, val=True),
+        challenge='multicoil',
+        sample_rate=1,
+        use_top_slices=True,
+        number_of_top_slices=args.num_of_top_slices,
+        restrict_size=False,
+        big_test=True
+    )
+
+    return dev_data
 
 def create_data_loaders(args, val_only=False):
     dev_data, train_data = create_datasets(args, val_only)

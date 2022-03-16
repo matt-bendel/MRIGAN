@@ -123,6 +123,9 @@ class GANWrapper:
     def add_noise(self, im):
         return im + torch.empty((im.size(0), 3, 128, 128)).normal_(mean=0, std=self.noise_var).cuda()
 
+    def free_memory(self):
+        del self.model
+
     def __call__(self, y, target=None):
         if self.args.noise_v_fjd:
             return self.add_noise(y)
@@ -199,7 +202,8 @@ def main(args):
                                        condition_loader=cond_loader,
                                        image_embedding=inception_embedding,
                                        condition_embedding=inception_embedding,
-                                       save_reference_stats=False,
+                                       reference_stats_path=f'ref_stats_{j}.npz',
+                                       save_reference_stats=True,
                                        samples_per_condition=num_samps,
                                        cuda=True,
                                        args=args)
@@ -211,6 +215,7 @@ def main(args):
                 print('FJD: ', fjd)
                 cfid_val = fjd_metric.get_cfid()
                 print('CFID: ', cfid_val)
+                gan.free_memory()
                 del gan
                 del fjd_metric
             del ref_loader
@@ -252,6 +257,7 @@ def main(args):
             fjd = fjd_metric.get_fjd(alpha=1.097)
             print('FID: ', fid)
             print('FJD: ', fjd)
+            gan.free_memory()
             del gan
             del fjd_metric
 
@@ -291,6 +297,7 @@ def main(args):
             print('FJD: ', fjd)
             cfid_val = fjd_metric.get_cfid()
             print('CFID: ', cfid_val)
+            gan.free_memory()
             del gan
             del fjd_metric
 
