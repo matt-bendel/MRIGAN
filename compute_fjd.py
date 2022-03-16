@@ -107,7 +107,7 @@ class GANWrapper:
         return final_im
 
     def patch_im(self, im):
-        new_im = torch.zeros(self.args.num_patches, 3, 128 // (self.args.num_patches**2), 128 // (self.args.num_patches**2))
+        new_im = torch.zeros(self.args.num_patches**2, 3, 128 // (self.args.num_patches**2), 128 // (self.args.num_patches**2))
         col = 0
         for i in range(self.args.num_patches**2):
             ind = i % self.args.num_patches
