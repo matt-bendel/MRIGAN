@@ -286,15 +286,15 @@ def main(args):
                     any conditional consistency.
                     '''
             print(f"FID FOR NETWORK {args.z_location}")
-            # fid = fjd_metric.get_fid()
-            # if i == 0:
-            #     true_im_embed = fjd_metric.true_im_embeds
-            #     true_im_cond_embed = fjd_metric.true_im_cond_embeds
+            fid = fjd_metric.get_fid()
+            if i == 0:
+                true_im_embed = fjd_metric.true_im_embeds
+                true_im_cond_embed = fjd_metric.true_im_cond_embeds
 
-            # fjd = fjd_metric.get_fjd(alpha=1.097)
-            # print('FID: ', fid)
-            # print('FJD: ', fjd)
-            cfid_val = fjd_metric.get_cfid(None, None)
+            fjd = fjd_metric.get_fjd(alpha=1.097)
+            print('FID: ', fid)
+            print('FJD: ', fjd)
+            cfid_val = fjd_metric.get_cfid(true_im_embed, true_im_cond_embed)
             print('CFID: ', cfid_val)
             exit()
             del gan
