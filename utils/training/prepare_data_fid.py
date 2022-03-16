@@ -135,8 +135,8 @@ class DataTransform:
         cond_im = 2*(torch.clone(cond_im) - torch.min(cond_im))/(torch.max(cond_im) - torch.min(cond_im)) - 1
 
         if self.args.patches:
-            new_cond_im = torch.zeros(self.args.num_patches**2, 3, 128 // (self.args.num_patches**2), 128 // (self.args.num_patches**2))
-            new_ref_im = torch.zeros(self.args.num_patches**2, 3, 128 // (self.args.num_patches**2), 128 // (self.args.num_patches**2))
+            new_cond_im = torch.zeros(self.args.num_patches**2, 3, 128 // (self.args.num_patches), 128 // (self.args.num_patches))
+            new_ref_im = torch.zeros(self.args.num_patches**2, 3, 128 // (self.args.num_patches), 128 // (self.args.num_patches))
             col = 0
             for i in range(self.args.num_patches**2):
                 ind = i % self.args.num_patches
@@ -145,8 +145,8 @@ class DataTransform:
                 elif i % self.args.num_patches == 0:
                     col += 128 // self.args.num_patches
 
-                new_cond_im[i, :, :, :] = cond_im[:, ind*128//(self.args.num_patches**2):(ind+1)*128//(self.args.num_patches**2), col:col+128//(self.args.num_patches**2)]
-                new_ref_im[i, :, :, :] = ref_im[:, ind*128//(self.args.num_patches**2):(ind+1)*128//(self.args.num_patches**2), col:col+128//(self.args.num_patches**2)]
+                new_cond_im[i, :, :, :] = cond_im[:, ind*128//(self.args.num_patches):(ind+1)*128//(self.args.num_patches), col:col+128//(self.args.num_patches)]
+                new_ref_im[i, :, :, :] = ref_im[:, ind*128//(self.args.num_patches):(ind+1)*128//(self.args.num_patches), col:col+128//(self.args.num_patches)]
 
 
         return stacked_masked_zfr, cond_im, ref_im
