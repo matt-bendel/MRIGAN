@@ -294,7 +294,7 @@ def main(args):
             # fjd = fjd_metric.get_fjd(alpha=1.097)
             # print('FID: ', fid)
             # print('FJD: ', fjd)
-            cfid_val = fjd_metric.get_cfid(true_im_embed, true_im_cond_embed)
+            cfid_val = fjd_metric.get_cfid(None, None)
             print('CFID: ', cfid_val)
             exit()
             del gan
