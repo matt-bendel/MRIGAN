@@ -273,10 +273,6 @@ class FJDMetric:
         sigma_y_x_pred = torch.mm(zero_mu_y2, zero_mu_x_pred.t()) / N2
         sigma_y2_y2_inv = torch.inverse(torch.mm(zero_mu_y2, zero_mu_y2.t()) / N2)
 
-        print(mu_x_pred.shape)
-        print(torch.mm(sigma_x_pred_y, sigma_y2_y2_inv).shape)
-        print(zero_mu_y2.shape)
-
         mu_x_pred_given_y = mu_x_pred + torch.mm(torch.mm(sigma_x_pred_y, sigma_y2_y2_inv), zero_mu_y2)
         sigma_x_pred_x_pred_given_y = sigma_x_pred_x_pred - torch.mm(torch.mm(sigma_x_pred_y, sigma_y2_y2_inv),
                                                                      sigma_y_x_pred)
@@ -293,12 +289,11 @@ class FJDMetric:
         sigma_y_x_true = torch.mm(zero_mu_y1, zero_mu_x_true.t()) / N1
         sigma_y1_y1_inv = torch.inverse(torch.mm(zero_mu_y1, zero_mu_y1.t()) / N1)
 
-        print(mu_x_true.shape)
-        print(torch.mm(sigma_x_true_y, sigma_y1_y1_inv).shape)
-        print(zero_mu_y1.shape)
-
         mu_x_true_given_y = mu_x_true + torch.mm(torch.mm(sigma_x_true_y, sigma_y1_y1_inv), zero_mu_y1)
         sigma_x_true_x_true_given_y = sigma_x_true_x_true - torch.mm(torch.mm(sigma_x_true_y, sigma_y1_y1_inv), sigma_y_x_true)
+
+        print(mu_x_pred_given_y.shape)
+        print(mu_x_true_given_y.shape)
 
         return calculate_fd(mu_x_true_given_y, sigma_x_true_x_true_given_y, mu_x_pred_given_y, sigma_x_pred_x_pred_given_y, cuda=self.cuda, eps=self.eps)
 
