@@ -176,42 +176,42 @@ cuda - If True, indicates that the GPU accelerated version of FJD should be
 
 
 def main(args):
-    patch_study = False
     print("GETTING DATA LOADERS")
     print("GETTING INCEPTION EMBEDDING")
     inception_embedding = InceptionEmbedding(parallel=True)
     print("GETTING GENERATOR")
     max = 6 if not args.inpaint and not args.adler else 1
 
-    if patch_study:
-        args.patches = True
+    if args.patches:
+        num_samps = 32
         for i in range(3):
-            args.num_patches = 2**(i+1)
+            args.num_patches = 2 ** (i + 1)
+            print("PATCHES ", args.num_patches)
             ref_loader, cond_loader = get_dataloaders(args)
-            num_samps = 32
-            args.z_location = 1
-            gan = get_gen(args)
-            gan = GANWrapper(gan, args)
-            print("COMPUTING METRIC")
-            fjd_metric = FJDMetric(gan=gan,
-                                   reference_loader=ref_loader,
-                                   condition_loader=cond_loader,
-                                   image_embedding=inception_embedding,
-                                   condition_embedding=inception_embedding,
-                                   save_reference_stats=False,
-                                   samples_per_condition=num_samps,
-                                   cuda=True,
-                                   args=args)
+            for j in range(3):
+                args.z_location = 1 if j == 0 else (6 if j == 1 else -1)
+                gan = get_gen(args)
+                gan = GANWrapper(gan, args)
+                print("COMPUTING METRIC")
+                fjd_metric = FJDMetric(gan=gan,
+                                       reference_loader=ref_loader,
+                                       condition_loader=cond_loader,
+                                       image_embedding=inception_embedding,
+                                       condition_embedding=inception_embedding,
+                                       save_reference_stats=False,
+                                       samples_per_condition=num_samps,
+                                       cuda=True,
+                                       args=args)
 
-            print(f"FID FOR NETWORK {args.z_location}")
-            fid = fjd_metric.get_fid()
-            fjd = fjd_metric.get_fjd(alpha=1.097)
-            print('FID: ', fid)
-            print('FJD: ', fjd)
-            cfid_val = fjd_metric.get_cfid(fjd_metric.true_im_embeds, fjd_metric.true_im_cond_embeds)
-            print('CFID: ', cfid_val)
-            del gan
-            del fjd_metric
+                print(f"FID FOR NETWORK {args.z_location}")
+                fid = fjd_metric.get_fid()
+                fjd = fjd_metric.get_fjd(alpha=1.097)
+                print('FID: ', fid)
+                print('FJD: ', fjd)
+                cfid_val = fjd_metric.get_cfid()
+                print('CFID: ', cfid_val)
+                del gan
+                del fjd_metric
             del ref_loader
             del cond_loader
         exit()
@@ -255,8 +255,6 @@ def main(args):
             del fjd_metric
 
     else:
-        true_im_embed = None
-        true_im_cond_embed = None
         for i in range(8):
             num_samps = 32
             args.z_location = i+1
@@ -286,15 +284,11 @@ def main(args):
                     any conditional consistency.
                     '''
             print(f"FID FOR NETWORK {args.z_location}")
-            # fid = fjd_metric.get_fid()
-            if i == 0:
-                true_im_embed = fjd_metric.true_im_embeds
-                true_im_cond_embed = fjd_metric.true_im_cond_embeds
-
-            # fjd = fjd_metric.get_fjd(alpha=1.097)
-            # print('FID: ', fid)
-            # print('FJD: ', fjd)
-            cfid_val = fjd_metric.get_cfid(true_im_embed, true_im_cond_embed)
+            fid = fjd_metric.get_fid()
+            fjd = fjd_metric.get_fjd(alpha=1.097)
+            print('FID: ', fid)
+            print('FJD: ', fjd)
+            cfid_val = fjd_metric.get_cfid()
             print('CFID: ', cfid_val)
             exit()
             del gan

@@ -4,6 +4,85 @@ import torch
 import numpy as np
 from tqdm import tqdm
 from scipy import linalg
+import tensorflow as tf
+
+def symmetric_matrix_square_root(mat, eps=1e-10):
+    """Compute square root of a symmetric matrix.
+    Note that this is different from an elementwise square root. We want to
+    compute M' where M' = sqrt(mat) such that M' * M' = mat.
+    Also note that this method **only** works for symmetric matrices.
+    Args:
+      mat: Matrix to take the square root of.
+      eps: Small epsilon such that any element less than eps will not be square
+        rooted to guard against numerical instability.
+    Returns:
+      Matrix square root of mat.
+    """
+    # Unlike numpy, tensorflow's return order is (s, u, v)
+    s, u, v = tf.linalg.svd(mat)
+    # sqrt is unstable around 0, just use 0 in such case
+    si = tf.compat.v1.where(tf.less(s, eps), s, tf.sqrt(s))
+    # Note that the v returned by Tensorflow is v = V
+    # (when referencing the equation A = U S V^T)
+    # This is unlike Numpy which returns v = V^T
+    return tf.matmul(tf.matmul(u, tf.linalg.tensor_diag(si)), v, transpose_b=True)
+
+
+def trace_sqrt_product(sigma, sigma_v):
+    """Find the trace of the positive sqrt of product of covariance matrices.
+    '_symmetric_matrix_square_root' only works for symmetric matrices, so we
+    cannot just take _symmetric_matrix_square_root(sigma * sigma_v).
+    ('sigma' and 'sigma_v' are symmetric, but their product is not necessarily).
+    Let sigma = A A so A = sqrt(sigma), and sigma_v = B B.
+    We want to find trace(sqrt(sigma sigma_v)) = trace(sqrt(A A B B))
+    Note the following properties:
+    (i) forall M1, M2: eigenvalues(M1 M2) = eigenvalues(M2 M1)
+      => eigenvalues(A A B B) = eigenvalues (A B B A)
+    (ii) if M1 = sqrt(M2), then eigenvalues(M1) = sqrt(eigenvalues(M2))
+      => eigenvalues(sqrt(sigma sigma_v)) = sqrt(eigenvalues(A B B A))
+    (iii) forall M: trace(M) = sum(eigenvalues(M))
+      => trace(sqrt(sigma sigma_v)) = sum(eigenvalues(sqrt(sigma sigma_v)))
+                                    = sum(sqrt(eigenvalues(A B B A)))
+                                    = sum(eigenvalues(sqrt(A B B A)))
+                                    = trace(sqrt(A B B A))
+                                    = trace(sqrt(A sigma_v A))
+    A = sqrt(sigma). Both sigma and A sigma_v A are symmetric, so we **can**
+    use the _symmetric_matrix_square_root function to find the roots of these
+    matrices.
+    Args:
+      sigma: a square, symmetric, real, positive semi-definite covariance matrix
+      sigma_v: same as sigma
+    Returns:
+      The trace of the positive square root of sigma*sigma_v
+    """
+
+    # Note sqrt_sigma is called "A" in the proof above
+    sqrt_sigma = symmetric_matrix_square_root(sigma)
+
+    # This is sqrt(A sigma_v A) above
+    sqrt_a_sigmav_a = tf.matmul(sqrt_sigma, tf.matmul(sigma_v, sqrt_sigma))
+
+
+    return tf.linalg.trace(symmetric_matrix_square_root(sqrt_a_sigmav_a))
+
+
+# **Estimators**
+#
+def sample_covariance(a, b, invert=False):
+    '''
+    Sample covariance estimating
+    a = [N,m]
+    b = [N,m]
+    '''
+    assert (a.shape[0] == b.shape[0])
+    assert (a.shape[1] == b.shape[1])
+    m = a.shape[1]
+    N = a.shape[0]
+    C = tf.matmul(tf.transpose(a), b) / N
+    if invert:
+        return tf.linalg.pinv(C)
+    else:
+        return C
 
 
 class FJDMetric:
@@ -11,23 +90,23 @@ class FJDMetric:
 
     Args:
         gan: Model that takes in a conditioning tensor and yields image samples.
-        reference_loader: DataLoader that yields (images, conditioning) pairs 
+        reference_loader: DataLoader that yields (images, conditioning) pairs
             to be used as the reference distribution.
         condition_loader: Dataloader that yields (image, conditioning) pairs.
             Images are ignored, and conditions are fed to the GAN.
-        image_embedding: Function that takes in 4D [B, 3, H, W] image tensor 
+        image_embedding: Function that takes in 4D [B, 3, H, W] image tensor
             and yields 2D [B, D] embedding vectors.
-        condition_embedding: Function that takes in conditioning from 
+        condition_embedding: Function that takes in conditioning from
             condition_loader and yields 2D [B, D] embedding vectors.
-        reference_stats_path: File path to save precomputed statistics of 
+        reference_stats_path: File path to save precomputed statistics of
             reference distribution. Default: current directory.
-        save_reference_stats: Boolean indicating whether statistics of 
+        save_reference_stats: Boolean indicating whether statistics of
             reference distribution should be saved. Default: False.
-        samples_per_condition: Integer indicating the number of samples to 
+        samples_per_condition: Integer indicating the number of samples to
             generate for each condition from the condition_loader. Default: 1.
         cuda: Boolean indicating whether to use GPU accelerated FJD or not.
               Default: False.
-        eps: Float value which is added to diagonals of covariance matrices 
+        eps: Float value which is added to diagonals of covariance matrices
              to improve computational stability. Default: 1e-6.
     """
 
@@ -55,10 +134,7 @@ class FJDMetric:
         self.samples_per_condition = samples_per_condition
         self.cuda = cuda
         self.eps = eps
-        self.fake_im_embeds = None
-        self.fake_im_cond_embeds = None
-        self.true_im_embeds = None
-        self.true_im_cond_embeds = None
+        self.gen_embeds, self.cond_embeds, self.true_embeds = None, None, None
 
         self.mu_fake, self.sigma_fake = None, None
         self.mu_real, self.sigma_real = None, None
@@ -78,6 +154,7 @@ class FJDMetric:
     def _get_generated_distribution(self, cfid=False):
         image_embed = []
         cond_embed = []
+        true_embed = []
 
         for i, data in tqdm(enumerate(self.condition_loader),
                             desc='Computing generated distribution',
@@ -103,8 +180,10 @@ class FJDMetric:
                     if not self.args.patches:
                         img_e = self.image_embedding(image)
                         cond_e = self.condition_embedding(condition_im)
+                        true_e = self.image_embedding(true_im)
 
                         if self.cuda:
+                            true_embed.append(true_e)
                             image_embed.append(img_e)
                             cond_embed.append(cond_e)
                         else:
@@ -114,8 +193,10 @@ class FJDMetric:
                         for j in range(self.args.num_patches**2):
                             img_e = self.image_embedding(image[j])
                             cond_e = self.condition_embedding(condition_im[j])
+                            true_e = self.image_embedding(true_im)
 
                             if self.cuda:
+                                true_embed.append(true_e)
                                 image_embed.append(img_e)
                                 cond_embed.append(cond_e)
                             else:
@@ -124,18 +205,20 @@ class FJDMetric:
 
 
         if self.cuda:
+            true_embed = torch.cat(true_embed, dim=0)
             image_embed = torch.cat(image_embed, dim=0)
             cond_embed = torch.cat(cond_embed, dim=0)
         else:
             image_embed = np.concatenate(image_embed, axis=0)
             cond_embed = np.concatenate(cond_embed, axis=0)
 
-        self.fake_im_embeds = image_embed
-        self.fake_im_cond_embeds = cond_embed
+
+        self.gen_embeds, self.cond_embeds, self.true_embeds = tf.convert_to_tensor(image_embed.cpu().numpy()), tf.convert_to_tensor(cond_embed.cpu().numpy()), tf.convert_to_tensor(true_embed.cpu().numpy())
 
         mu_fake, sigma_fake = self._get_joint_statistics(image_embed, cond_embed)
         del image_embed
         del cond_embed
+        del true_embed
 
         self.mu_fake, self.sigma_fake = mu_fake, sigma_fake
         return mu_fake, sigma_fake
@@ -169,30 +252,18 @@ class FJDMetric:
             else:
                 _, condition, image = data
                 image = image.cuda()
-                condition_im = condition.cuda()
+                condition = condition.cuda()
 
             with torch.no_grad():
-                if not self.args.patches:
-                    img_e = self.image_embedding(image)
-                    cond_e = self.condition_embedding(condition_im)
+                image = self.image_embedding(image)
+                condition = self.condition_embedding(condition)
 
-                    if self.cuda:
-                        image_embed.append(img_e)
-                        cond_embed.append(cond_e)
-                    else:
-                        image_embed.append(img_e.cpu().numpy())
-                        cond_embed.append(cond_e.cpu().numpy())
+                if self.cuda:
+                    image_embed.append(image)
+                    cond_embed.append(condition)
                 else:
-                    for j in range(self.args.num_patches ** 2):
-                        img_e = self.image_embedding(image[j])
-                        cond_e = self.condition_embedding(condition_im[j])
-
-                        if self.cuda:
-                            image_embed.append(img_e)
-                            cond_embed.append(cond_e)
-                        else:
-                            image_embed.append(img_e.cpu().numpy())
-                            cond_embed.append(cond_e.cpu().numpy())
+                    image_embed.append(image.cpu().numpy())
+                    cond_embed.append(condition.cpu().numpy())
 
         if self.cuda:
             image_embed = torch.cat(image_embed, dim=0)
@@ -200,9 +271,6 @@ class FJDMetric:
         else:
             image_embed = np.concatenate(image_embed, axis=0)
             cond_embed = np.concatenate(cond_embed, axis=0)
-
-        self.true_im_embeds = image_embed
-        self.true_im_cond_embeds = cond_embed
 
         self._calculate_alpha(image_embed, cond_embed)
         mu_real, sigma_real = self._get_joint_statistics(image_embed, cond_embed)
@@ -234,8 +302,8 @@ class FJDMetric:
         return mu, sigma, alpha
 
     def _scale_statistics(self, mu1, sigma1, mu2, sigma2, alpha):
-        # Perform scaling operations directly on the precomputed mean and 
-        # covariance matrices, rather than scaling the conditioning embeddings 
+        # Perform scaling operations directly on the precomputed mean and
+        # covariance matrices, rather than scaling the conditioning embeddings
         # and recomputing mu and sigma
 
         if self.cuda:
@@ -258,63 +326,56 @@ class FJDMetric:
 
         return mu1, sigma1, mu2, sigma2
 
-    def get_cfid(self, x_true, y_1):
-        self._get_generated_distribution()
-        x_pred, y_2 = self.fake_im_embeds, self.fake_im_cond_embeds
-        N2 = x_pred.shape[0]
+    def get_cfid(self, resample=True):
+        y_predict, x_true, y_true = self.gen_embeds, self.cond_embeds, self.true_embeds
 
-        mu_x_pred = torch.mean(x_pred, 0)
-        mu_y2 = torch.mean(y_2, 0)
+        assert ((y_predict.shape[0] == y_true.shape[0]) and (y_predict.shape[0] == x_true.shape[0]))
+        assert ((y_predict.shape[1] == y_true.shape[1]) and (y_predict.shape[1] == x_true.shape[1]))
 
-        zero_mu_x_pred = x_pred - mu_x_pred
-        zero_mu_y2 = y_2 - mu_y2
+        # mean estimations
+        m_y_true = tf.reduce_mean(y_true, axis=0)
+        m_y_predict = tf.reduce_mean(y_predict, axis=0)
+        m_x_true = tf.reduce_mean(x_true, axis=0)
 
-        sigma_x_pred_x_pred = torch.mm(zero_mu_x_pred, zero_mu_x_pred.t()) / N2
-        sigma_x_pred_y = torch.mm(zero_mu_x_pred, zero_mu_y2.t()) / N2
-        sigma_y_x_pred = torch.mm(zero_mu_y2, zero_mu_x_pred.t()) / N2
-        sigma_y2_y2_inv = torch.inverse(torch.mm(zero_mu_y2, zero_mu_y2.t()) / N2)
+        # covariance computations
+        c_y_predict_x_true = sample_covariance(y_predict - m_y_predict, x_true - m_x_true)
+        c_y_true_x_true = sample_covariance(y_true - m_y_true, x_true - m_x_true)
 
-        mu_x_pred_given_y = mu_x_pred + torch.mm(torch.mm(sigma_x_pred_y, sigma_y2_y2_inv), zero_mu_y2)
-        sigma_x_pred_x_pred_given_y = sigma_x_pred_x_pred - torch.mm(torch.mm(sigma_x_pred_y, sigma_y2_y2_inv),
-                                                                     sigma_y_x_pred)
+        c_x_true_y_true = sample_covariance(x_true - m_x_true, y_true - m_y_true)
+        c_x_true_y_predict = sample_covariance(x_true - m_x_true, y_predict - m_y_predict)
 
-        print(mu_x_pred.shape)
-        print(torch.mm(sigma_x_pred_y, sigma_y2_y2_inv))
-        print(zero_mu_y2)
-        print(torch.mm(torch.mm(sigma_x_pred_y, sigma_y2_y2_inv), zero_mu_y2).shape)
-        print(mu_x_pred_given_y.shape)
+        c_y_predict_y_predict = sample_covariance(y_predict - m_y_predict, y_predict - m_y_predict)
+        c_y_true_y_true = sample_covariance(y_true - m_y_true, y_true - m_y_true)
+        inv_c_x_true_x_true = sample_covariance(x_true - m_x_true, x_true - m_x_true, invert=True)
 
-        exit()
+        # conditoinal mean and covariance estimations
+        v = x_true - m_x_true
+        A = tf.matmul(inv_c_x_true_x_true, tf.transpose(v))
 
-        N1 = x_true.shape[0]
-        mu_x_true = torch.mean(x_true, 0)
-        mu_y1 = torch.mean(y_1, 0)
+        c_y_true_given_x_true = c_y_true_y_true - tf.matmul(c_y_true_x_true,
+                                                            tf.matmul(inv_c_x_true_x_true, c_x_true_y_true))
+        c_y_predict_given_x_true = c_y_predict_y_predict - tf.matmul(c_y_predict_x_true,
+                                                                     tf.matmul(inv_c_x_true_x_true, c_x_true_y_predict))
+        c_y_true_x_true_minus_c_y_predict_x_true = c_y_true_x_true - c_y_predict_x_true
+        c_x_true_y_true_minus_c_x_true_y_predict = c_x_true_y_true - c_x_true_y_predict
 
-        zero_mu_x_true = x_true - mu_x_true
-        zero_mu_y1 = y_1 - mu_y1
+        # Distance between Gaussians
+        m_dist = tf.einsum('...k,...k->...', m_y_true - m_y_predict, m_y_true - m_y_predict)
+        c_dist1 = tf.linalg.trace(tf.matmul(tf.matmul(c_y_true_x_true_minus_c_y_predict_x_true, inv_c_x_true_x_true),
+                                            c_x_true_y_true_minus_c_x_true_y_predict))
+        c_dist2 = tf.linalg.trace(c_y_true_given_x_true + c_y_predict_given_x_true) - 2 * trace_sqrt_product(
+            c_y_predict_given_x_true, c_y_true_given_x_true)
 
-        sigma_x_true_x_true = torch.mm(zero_mu_x_true, zero_mu_x_true.t()) / N1
-        sigma_x_true_y = torch.mm(zero_mu_x_true, zero_mu_y1.t()) / N1
-        sigma_y_x_true = torch.mm(zero_mu_y1, zero_mu_x_true.t()) / N1
-        sigma_y1_y1_inv = torch.inverse(torch.mm(zero_mu_y1, zero_mu_y1.t()) / N1)
-
-        mu_x_true_given_y = mu_x_true + torch.mm(torch.mm(sigma_x_true_y, sigma_y1_y1_inv), zero_mu_y1)
-        sigma_x_true_x_true_given_y = sigma_x_true_x_true - torch.mm(torch.mm(sigma_x_true_y, sigma_y1_y1_inv), sigma_y_x_true)
-
-        print(mu_x_pred_given_y.shape)
-        print(mu_x_true_given_y.shape)
-
-        return calculate_fd(mu_x_true_given_y, sigma_x_true_x_true_given_y, mu_x_pred_given_y, sigma_x_pred_x_pred_given_y, cuda=self.cuda, eps=self.eps)
-
+        return m_dist + c_dist1 + c_dist2
 
     def get_fjd(self, alpha=None, resample=False):
         """Calculate FJD.
 
         Args:
-            alpha (float): Scaling factor for the conditioning embedding. If 
-                None, alpha is set to be the ratio between the average norm of 
+            alpha (float): Scaling factor for the conditioning embedding. If
+                None, alpha is set to be the ratio between the average norm of
                 the image embedding and conditioning embedding. Default: None.
-            resample (bool): If True, draws new samples from GAN and recomputes 
+            resample (bool): If True, draws new samples from GAN and recomputes
                 generated distribution statistics. Default: True.
 
         Returns:
@@ -342,7 +403,7 @@ class FJDMetric:
         """Calculate FID (equivalent to FJD at alpha = 0).
 
         Args:
-            resample (bool): If True, draws new samples from GAN and recomputes 
+            resample (bool): If True, draws new samples from GAN and recomputes
                 generated distribution statistics. Default: True.
 
         Returns:
@@ -355,7 +416,7 @@ class FJDMetric:
         """Calculate FJD at a range of alpha values.
 
         Args:
-            alphas (list of floats): Values of alpha with which FJD will be 
+            alphas (list of floats): Values of alpha with which FJD will be
                 calculated.
 
         Returns:
@@ -527,10 +588,10 @@ def torch_calculate_frechet_distance(mu1, sigma1, mu2, sigma2, eps=1e-6):
     -- mu1   : Numpy array containing the activations of a layer of the
              inception net (like returned by the function 'get_predictions')
              for generated samples.
-    -- mu2   : The sample mean over activations, precalculated on an 
+    -- mu2   : The sample mean over activations, precalculated on an
              representive data set.
     -- sigma1: The covariance matrix over activations for generated samples.
-    -- sigma2: The covariance matrix over activations, precalculated on an 
+    -- sigma2: The covariance matrix over activations, precalculated on an
              representive data set.
     Returns:
     --   : The Frechet Distance.
