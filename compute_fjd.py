@@ -190,6 +190,7 @@ def main(args):
             ref_loader, cond_loader = get_dataloaders(args)
             for j in range(3):
                 args.z_location = 1 if j == 0 else (6 if j == 1 else -1)
+                args.adler = True if j==2 else False
                 gan = get_gen(args)
                 gan = GANWrapper(gan, args)
                 print("COMPUTING METRIC")
