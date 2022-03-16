@@ -140,7 +140,7 @@ class GANWrapper:
         else:
             samples = readd_measures_im(samples, y, args, true_measures=y) if self.data_consistency else samples
             im = self.convert_to_im(samples)
-        return im if not self.args.patches else patch_im(im)
+        return im if not self.args.patches else self.patch_im(im)
 
 
 '''
