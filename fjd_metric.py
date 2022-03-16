@@ -255,15 +255,27 @@ class FJDMetric:
                 condition = condition.cuda()
 
             with torch.no_grad():
-                image = self.image_embedding(image)
-                condition = self.condition_embedding(condition)
+                if not self.args.patches:
+                    image = self.image_embedding(image)
+                    condition = self.condition_embedding(condition)
 
-                if self.cuda:
-                    image_embed.append(image)
-                    cond_embed.append(condition)
+                    if self.cuda:
+                        image_embed.append(image)
+                        cond_embed.append(condition)
+                    else:
+                        image_embed.append(image.cpu().numpy())
+                        cond_embed.append(condition.cpu().numpy())
                 else:
-                    image_embed.append(image.cpu().numpy())
-                    cond_embed.append(condition.cpu().numpy())
+                    for j in range(self.args.num_patches ** 2):
+                        image = self.image_embedding(image[:, j, :, :, :])
+                        condition = self.condition_embedding(condition[:, j, :, :, :])
+
+                        if self.cuda:
+                            image_embed.append(image)
+                            cond_embed.append(condition)
+                        else:
+                            image_embed.append(image.cpu().numpy())
+                            cond_embed.append(condition.cpu().numpy())
 
         if self.cuda:
             image_embed = torch.cat(image_embed, dim=0)
