@@ -288,10 +288,10 @@ class FJDMetric:
         zero_mu_x_true = x_true - mu_x_true
         zero_mu_y1 = y_1 - mu_y1
 
-        sigma_x_true_x_true = torch.mm(zero_mu_x_true.t(), zero_mu_x_true) / N1
-        sigma_x_true_y = torch.mm(zero_mu_x_true.t(), zero_mu_y1) / N1
-        sigma_y_x_true = torch.mm(zero_mu_y1.t(), zero_mu_x_true) / N1
-        sigma_y1_y1_inv = torch.inverse(torch.mm(zero_mu_y1.t(), zero_mu_y1) / N1)
+        sigma_x_true_x_true = torch.mm(zero_mu_x_true, zero_mu_x_true.t()) / N1
+        sigma_x_true_y = torch.mm(zero_mu_x_true, zero_mu_y1.t()) / N1
+        sigma_y_x_true = torch.mm(zero_mu_y1, zero_mu_x_true.t()) / N1
+        sigma_y1_y1_inv = torch.inverse(torch.mm(zero_mu_y1, zero_mu_y1.t()) / N1)
 
         print(mu_x_true.shape)
         print(torch.mm(sigma_x_true_y, sigma_y1_y1_inv).shape)
