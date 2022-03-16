@@ -145,8 +145,8 @@ class DataTransform:
                 elif i % self.args.num_patches == 0:
                     col += 128 // self.args.num_patches
 
-                new_cond_im[i, :, :, :] = cond_im[:, ind*128//self.args.num_patches:(ind+1)*128//self.args.num_patches, col:col+128//self.args.num_patches]
-                new_ref_im[i, :, :, :] = ref_im[:, ind*128//self.args.num_patches:(ind+1)*128//self.args.num_patches, col:col+128//self.args.num_patches]
+                new_cond_im[i, :, :, :] = cond_im[:, ind*128//(self.args.num_patches**2):(ind+1)*128//(self.args.num_patches**2), col:col+128//(self.args.num_patches**2)]
+                new_ref_im[i, :, :, :] = ref_im[:, ind*128//(self.args.num_patches**2):(ind+1)*128//(self.args.num_patches**2), col:col+128//(self.args.num_patches**2)]
 
 
         return stacked_masked_zfr, cond_im, ref_im

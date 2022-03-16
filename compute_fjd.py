@@ -116,7 +116,7 @@ class GANWrapper:
             elif i % self.args.num_patches == 0:
                 col += 128 // self.args.num_patches
 
-            new_im[i, :, :, :] = im[:, ind*128//self.args.num_patches:(ind+1)*128//self.args.num_patches, col:col+128//self.args.num_patches]
+            new_im[i, :, :, :] = im[:, ind*128//(self.args.num_patches**2):(ind+1)*128//(self.args.num_patches**2), col:col+128//(self.args.num_patches**2)]
 
         return new_im
 
