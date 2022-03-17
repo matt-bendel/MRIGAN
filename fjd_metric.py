@@ -207,7 +207,6 @@ class FJDMetric:
                             del cond_e
                             del true_e
 
-
         if self.cuda:
             true_embed = torch.cat(true_embed, dim=0)
             image_embed = torch.cat(image_embed, dim=0)
@@ -217,7 +216,7 @@ class FJDMetric:
             cond_embed = np.concatenate(cond_embed, axis=0)
 
 
-        self.gen_embeds, self.cond_embeds, self.true_embeds = tf.convert_to_tensor(image_embed.cpu().numpy()), tf.convert_to_tensor(cond_embed.cpu().numpy()), tf.convert_to_tensor(true_embed.cpu().numpy())
+        self.gen_embeds, self.cond_embeds, self.true_embeds = tf.convert_to_tensor(image_embed.cpu().numpy()), tf.convert_to_tensor(cond_embed.cpu().numpy()), true_embed.cpu().numpy()
 
         mu_fake, sigma_fake = self._get_joint_statistics(image_embed, cond_embed)
         del image_embed
@@ -345,27 +344,39 @@ class FJDMetric:
     def get_cfid(self, resample=True):
         y_predict, x_true, y_true = self.gen_embeds, self.cond_embeds, self.true_embeds
 
+        del self.true_embeds
+        del self.gen_embeds
+        del self.cond_embeds
+
         assert ((y_predict.shape[0] == y_true.shape[0]) and (y_predict.shape[0] == x_true.shape[0]))
         assert ((y_predict.shape[1] == y_true.shape[1]) and (y_predict.shape[1] == x_true.shape[1]))
 
         # mean estimations
-        m_y_true = tf.reduce_mean(y_true, axis=0)
         m_y_predict = tf.reduce_mean(y_predict, axis=0)
         m_x_true = tf.reduce_mean(x_true, axis=0)
 
         # covariance computations
         c_y_predict_x_true = sample_covariance(y_predict - m_y_predict, x_true - m_x_true)
-        c_y_true_x_true = sample_covariance(y_true - m_y_true, x_true - m_x_true)
-
-        c_x_true_y_true = sample_covariance(x_true - m_x_true, y_true - m_y_true)
+        c_y_predict_y_predict = sample_covariance(y_predict - m_y_predict, y_predict - m_y_predict)
         c_x_true_y_predict = sample_covariance(x_true - m_x_true, y_predict - m_y_predict)
 
-        c_y_predict_y_predict = sample_covariance(y_predict - m_y_predict, y_predict - m_y_predict)
+        del y_predict
+
+        y_true = tf.convert_to_tensor(y_true)
+        m_y_true = tf.reduce_mean(y_true, axis=0)
+        c_y_true_x_true = sample_covariance(y_true - m_y_true, x_true - m_x_true)
+        c_x_true_y_true = sample_covariance(x_true - m_x_true, y_true - m_y_true)
         c_y_true_y_true = sample_covariance(y_true - m_y_true, y_true - m_y_true)
+
+        del y_true
+
         inv_c_x_true_x_true = sample_covariance(x_true - m_x_true, x_true - m_x_true, invert=True)
 
         # conditoinal mean and covariance estimations
         v = x_true - m_x_true
+
+        del x_true
+
         A = tf.matmul(inv_c_x_true_x_true, tf.transpose(v))
 
         c_y_true_given_x_true = c_y_true_y_true - tf.matmul(c_y_true_x_true,
