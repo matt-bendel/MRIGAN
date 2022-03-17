@@ -48,7 +48,7 @@ R = 4
 
 # assign directory
 ref_directory = '/storage/fastMRI_brain/data/small_T2_test'
-recon_directory = pathlib.Path(f'/storage/fastMRI_brain/LangevinRecons{R}')
+recon_directory = f'/storage/fastMRI_brain/Langevin_Recons_R={R}/'
 # iterate over files in
 # that directory
 
@@ -62,7 +62,7 @@ for filename in os.listdir(ref_directory):
         recons = np.zeros((32, 384, 384))
         recon_object = None
         for j in range(32):
-            new_filename = filename + f'|langevin|slide_idx_{i}_R={R}_sample={j}_outputs.pt'
+            new_filename = recon_directory + filename + f'|langevin|slide_idx_{i}_R={R}_sample={j}_outputs.pt'
             recon_object = torch.load(new_filename)
             recons[j] = complex_abs(recon_object['mvue'][0].permute(1,2,0)).cpu().numpy()
 
