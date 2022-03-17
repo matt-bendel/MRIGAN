@@ -66,9 +66,9 @@ for filename in os.listdir(ref_directory):
             recon_object = torch.load(new_filename)
             recons[j] = complex_abs(recon_object['mvue'][0].permute(1,2,0)).cpu().numpy()
 
-        mean_recon = np.mean(recons, dim=0)
+        mean_recon = np.mean(recons, axis=0)
         gt = recon_object['gt'][0][0].abs().cpu().numpy()
-        apsd = np.mean(np.std(recons, dim=0), dim=(0, 1, 2))
+        apsd = np.mean(np.std(recons, axis=0), axis=(0, 1, 2))
 
         apsd_vals.append(apsd)
         psnr_vals.append(psnr(gt, mean))
