@@ -187,8 +187,8 @@ def main(args):
 
     if args.patches:
         num_samps = 32
-        for i in range(3):
-            args.num_patches = 2 ** (i + 1)
+        for i in range(2):
+            args.num_patches = 2 ** (i + 2)
             print("PATCHES ", args.num_patches)
             ref_loader, cond_loader = get_dataloaders(args)
             for j in range(3):
@@ -202,7 +202,7 @@ def main(args):
                                        condition_loader=cond_loader,
                                        image_embedding=inception_embedding,
                                        condition_embedding=inception_embedding,
-                                       reference_stats_path=f'ref_stats_{j}.npz',
+                                       reference_stats_path=f'ref_stats_{i}.npz',
                                        save_reference_stats=True,
                                        samples_per_condition=num_samps,
                                        cuda=True,
