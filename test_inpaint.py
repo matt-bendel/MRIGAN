@@ -172,9 +172,7 @@ if __name__ == '__main__':
     gen = get_gen(args)
     gen.eval()
 
-    for number in range(11):
-        power = (2 ** number) // 1
-        print(f"VALIDATING NUM CODE VECTORS: {power}")
-        main(args, power, gen, loader)
+    power = 128
+    main(args, power, gen, loader)
 
     # main(args)

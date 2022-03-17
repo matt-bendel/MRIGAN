@@ -302,6 +302,7 @@ def main(args):
                                    image_embedding=inception_embedding,
                                    condition_embedding=inception_embedding,
                                    save_reference_stats=True,
+                                   reference_stats_path='ref_stats_inpaint.npz',
                                    samples_per_condition=num_samps,
                                    cuda=True,
                                    args=args)
