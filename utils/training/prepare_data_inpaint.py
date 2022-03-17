@@ -81,7 +81,7 @@ class DataTransform:
         return normalized_input, normalized_gt, mean, std
 
 
-def create_datasets(args, val_only):
+def create_datasets(args, val_only, big_test):
     if not val_only:
         train_data = SelectiveSliceData(
             root=args.data_path / 'multicoil_train',
@@ -101,13 +101,14 @@ def create_datasets(args, val_only):
         use_top_slices=True,
         number_of_top_slices=args.num_of_top_slices,
         restrict_size=False,
+        big_test=big_test
     )
 
     return dev_data, train_data if not val_only else None
 
 
-def create_data_loaders(args, val_only=False):
-    dev_data, train_data = create_datasets(args, val_only)
+def create_data_loaders(args, val_only=False, big_test=False):
+    dev_data, train_data = create_datasets(args, val_only, big_test=big_test)
 
     if not val_only:
         train_loader = DataLoader(

@@ -56,7 +56,7 @@ def ssim(
     return ssim
 
 
-def average_gen(generator, input_w_z, args, target=None, inds=None, power_num=1024):
+def average_gen(generator, input_w_z, args, target=None, inds=None, power_num=128):
     start = time.perf_counter()
     average_gen = torch.zeros((input_w_z.shape[0], power_num, 1, 128, 128)).to(args.device)
 
@@ -167,7 +167,7 @@ if __name__ == '__main__':
     random.seed(args.seed)
     np.random.seed(args.seed)
     torch.manual_seed(args.seed)
-    _, loader = create_data_loaders(args, val_only=True)
+    _, loader = create_data_loaders(args, val_only=True, big_test=True)
 
     gen = get_gen(args)
     gen.eval()

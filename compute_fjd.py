@@ -9,9 +9,11 @@ import pathlib
 import torch
 import matplotlib.pyplot as plt
 import numpy as np
+import fjd_metric_langevin
 
 from utils.general.helper import readd_measures_im
 from utils.training.prepare_data_fid import create_data_loaders
+from utils.training import prepare_data_fid_langevin
 from utils.training.parse_args import create_arg_parser
 from fjd_metric import FJDMetric
 from embeddings import InceptionEmbedding
@@ -184,8 +186,33 @@ def main(args):
     inception_embedding = InceptionEmbedding(parallel=True)
     print("GETTING GENERATOR")
     max = 6 if not args.inpaint and not args.adler else 1
+    Langevin = False
 
-    if args.patches:
+    if Langevin:
+        ref_loader, cond_loader = prepare_data_fid_langevin.get_dataloaders(args)
+        print("COMPUTING METRIC")
+        args.patches = True
+        for i in range(11):
+            args.num_patches = 2 ** (i + 1)
+            fjd_metric = fjd_metric_langevin.FJDMetric(gan=None,
+                                   reference_loader=ref_loader,
+                                   condition_loader=cond_loader,
+                                   image_embedding=inception_embedding,
+                                   condition_embedding=inception_embedding,
+                                   reference_stats_path=f'ref_stats_mvue_{args.num_patches}.npz',
+                                   save_reference_stats=True,
+                                   samples_per_condition=32,
+                                   cuda=True,
+                                   args=args)
+            fid = fjd_metric.get_fid()
+            fjd = fjd_metric.get_fjd(alpha=1.097)
+            print('FID: ', fid)
+            print('FJD: ', fjd)
+            cfid_val = fjd_metric.get_cfid()
+            print('CFID: ', cfid_val)
+        exit()
+
+    if args.patches and not args.inpaint:
         num_samps = 32
         for i in range(2):
             args.num_patches = 2 ** (i + 2)
@@ -262,10 +289,10 @@ def main(args):
             del fjd_metric
 
     else:
-        for i in range(8):
+        for i in range(1):
             num_samps = 32
             args.z_location = i+1
-            args.adler = True if i > 5 else False
+            args.inpaint = True
             gan = get_gen(args)
             gan = GANWrapper(gan, args)
             print("COMPUTING METRIC")
