@@ -344,10 +344,6 @@ class FJDMetric:
     def get_cfid(self, resample=True):
         y_predict, x_true, y_true = self.gen_embeds, self.cond_embeds, self.true_embeds
 
-        del self.true_embeds
-        del self.gen_embeds
-        del self.cond_embeds
-
         assert ((y_predict.shape[0] == y_true.shape[0]) and (y_predict.shape[0] == x_true.shape[0]))
         assert ((y_predict.shape[1] == y_true.shape[1]) and (y_predict.shape[1] == x_true.shape[1]))
 
@@ -361,6 +357,7 @@ class FJDMetric:
         c_x_true_y_predict = sample_covariance(x_true - m_x_true, y_predict - m_y_predict)
 
         del y_predict
+        del self.gen_embeds
 
         y_true = tf.convert_to_tensor(y_true)
         m_y_true = tf.reduce_mean(y_true, axis=0)
@@ -369,6 +366,7 @@ class FJDMetric:
         c_y_true_y_true = sample_covariance(y_true - m_y_true, y_true - m_y_true)
 
         del y_true
+        del self.true_embeds
 
         inv_c_x_true_x_true = sample_covariance(x_true - m_x_true, x_true - m_x_true, invert=True)
 
@@ -376,6 +374,7 @@ class FJDMetric:
         v = x_true - m_x_true
 
         del x_true
+        del self.cond_embeds
 
         A = tf.matmul(inv_c_x_true_x_true, tf.transpose(v))
 
