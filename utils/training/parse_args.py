@@ -9,7 +9,7 @@ def create_arg_parser():
 
     # PATCH ARGS
     parser.add_argument('--patches', action='store_true', help='Whether or not only loss is adversarial')
-    parser.add_argument('--num-patches', type=int, default=1, help='Number of z values')
+    parser.add_argument('--num-patches', type=int, default=4, help='Number of z values')
 
     # ABLATION ARGS
     parser.add_argument('--adv-only', action='store_true', help='Whether or not only loss is adversarial')
