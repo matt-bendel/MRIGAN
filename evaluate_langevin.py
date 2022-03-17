@@ -68,7 +68,7 @@ for filename in os.listdir(ref_directory):
 
         mean_recon = np.mean(recons, axis=0)
         gt = recon_object['gt'][0][0].abs().cpu().numpy()
-        apsd = np.mean(np.std(recons, axis=0), axis=(0, 1, 2))
+        apsd = np.mean(np.std(recons, axis=0), axis=(0, 1))
 
         apsd_vals.append(apsd)
         psnr_vals.append(psnr(gt, mean))
