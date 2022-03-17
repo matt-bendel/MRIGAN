@@ -19,8 +19,8 @@ def build_model(args):
     else:
         if not args.adler:
             model = GeneratorModelLowRes(
-                in_chans=16,
-                out_chans=16,
+                in_chans=args.in_chans,
+                out_chans=args.out_chans,
                 z_location=args.z_location,
                 latent_size=args.latent_size
             ).to(torch.device('cuda'))

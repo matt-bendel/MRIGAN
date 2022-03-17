@@ -189,11 +189,12 @@ def main(args):
     Langevin = False
 
     if Langevin:
-        ref_loader, cond_loader = prepare_data_fid_langevin.get_dataloaders(args)
         print("COMPUTING METRIC")
         args.patches = True
         for i in range(11):
             args.num_patches = 2 ** (i + 1)
+            print("PATCHES ", args.num_patches**2)
+            ref_loader, cond_loader = prepare_data_fid_langevin.get_dataloaders(args)
             fjd_metric = fjd_metric_langevin.FJDMetric(gan=None,
                                    reference_loader=ref_loader,
                                    condition_loader=cond_loader,
@@ -210,6 +211,8 @@ def main(args):
             print('FJD: ', fjd)
             cfid_val = fjd_metric.get_cfid()
             print('CFID: ', cfid_val)
+            del ref_loader
+            del cond_loader
         exit()
 
     if args.patches and not args.inpaint:
