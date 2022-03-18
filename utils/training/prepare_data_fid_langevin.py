@@ -103,6 +103,10 @@ class DataTransform:
         # Mask k-space
         gt_ksp *= mask[None, None, :]
 
+        print(maps.shape)
+        print(gt.shape)
+        print(gt_ksp.shape)
+
         zfr = torch.tensor(get_mvue(gt_ksp, maps))
         print(zfr.shape)
         zfr = zfr[0].abs().unsqueeze(0).repeat(3, 1, 1)
