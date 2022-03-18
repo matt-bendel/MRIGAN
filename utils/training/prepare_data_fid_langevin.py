@@ -10,6 +10,7 @@ from data.mri_data_mvue import SelectiveSliceData, SelectiveSliceData_Val
 from utils.fftc import ifft2c_new, fft2c_new
 import cv2
 import torchgeometry as tg
+import matplotlib.pyplot as plt
 
 def get_mvue(kspace, s_maps):
     ''' Get mvue estimate from coil measurements '''
@@ -103,13 +104,10 @@ class DataTransform:
         # Mask k-space
         gt_ksp *= mask[None, None, :]
 
-        print(maps.shape)
-        print(gt.shape)
-        print(gt_ksp.shape)
-
-        zfr = torch.tensor(get_mvue(gt_ksp, maps))
+        zfr = torch.tensor(get_mvue(gt_ksp.reshape((1,) + gt_ksp.shape), maps.reshape((1,) + maps.shape)))[0].abs()
+        plt.imshow(zfr.cpu().numpy(), cmap='gray')
+        zfr = zfr.unsqueeze(0).repeat(3, 1, 1)
         print(zfr.shape)
-        zfr = zfr[0].abs().unsqueeze(0).repeat(3, 1, 1)
 
         ref_im = 2*(gt - torch.min(gt))/(torch.max(gt) - torch.min(gt)) - 1
         cond_im = 2*(torch.clone(zfr) - torch.min(zfr))/(torch.max(zfr) - torch.min(zfr)) - 1
