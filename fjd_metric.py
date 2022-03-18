@@ -145,6 +145,7 @@ class FJDMetric:
         else:
             joint_embed = np.concatenate([image_embed, cond_embed], axis=1)
         mu, sigma = get_embedding_statistics(joint_embed, cuda=self.cuda)
+        del joint_embed
         return mu, sigma
 
     def _calculate_alpha(self, image_embed, cond_embed):
@@ -465,8 +466,8 @@ class FJDMetric:
 def get_embedding_statistics(embeddings, cuda=False):
     if cuda:
         embeddings = embeddings  # More precision = more stable
-        mu = torch.mean(embeddings, 0)
-        sigma = torch_cov(embeddings, rowvar=False)
+        mu = torch.mean(embeddings, 0).to('cuda:0')
+        sigma = torch_cov(embeddings, rowvar=False).to('cuda:0')
     else:
         mu = np.mean(embeddings, axis=0)
         sigma = np.cov(embeddings, rowvar=False)
