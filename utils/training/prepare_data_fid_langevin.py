@@ -103,7 +103,9 @@ class DataTransform:
         # Mask k-space
         gt_ksp *= mask[None, None, :]
 
-        zfr = torch.tensor(get_mvue(gt_ksp, maps))[0].abs().unsqueeze(0).repeat(3, 1, 1)
+        zfr = torch.tensor(get_mvue(gt_ksp, maps))
+        print(zfr.shape)
+        zfr = zfr[0].abs().unsqueeze(0).repeat(3, 1, 1)
 
         ref_im = 2*(gt - torch.min(gt))/(torch.max(gt) - torch.min(gt)) - 1
         cond_im = 2*(torch.clone(zfr) - torch.min(zfr))/(torch.max(zfr) - torch.min(zfr)) - 1
