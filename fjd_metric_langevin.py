@@ -5,6 +5,7 @@ import numpy as np
 from tqdm import tqdm
 from scipy import linalg
 import tensorflow as tf
+import torchgeometry as tg
 
 from utils.math import complex_abs
 
@@ -143,7 +144,7 @@ class FJDMetric:
 
     def _get_joint_statistics(self, image_embed, cond_embed):
         if self.cuda:
-            joint_embed = torch.cat([image_embed, cond_embed], dim=1)
+            joint_embed = torch.cat([image_embed, cond_embed], dim=1).to('cuda:3')
         else:
             joint_embed = np.concatenate([image_embed, cond_embed], axis=1)
         mu, sigma = get_embedding_statistics(joint_embed, cuda=self.cuda)
@@ -157,7 +158,20 @@ class FJDMetric:
         if self.args.num_patches == 1:
             return im_tensor
 
-        #TODO: Overlapping Patches and Nonoverlapping
+        new_im = torch.zeros(self.args.num_patches ** 2, 3, 384 // (self.args.num_patches), 384 // (self.args.num_patches))
+        col = 0
+        for i in range(self.args.num_patches ** 2):
+            ind = i % self.args.num_patches
+            if i < self.args.num_patches and i % self.args.num_patches == 0:
+                col = 0
+            elif i % self.args.num_patches == 0:
+                col += 384 // self.args.num_patches
+
+            new_im[i, :, :, :] = im_tensor[:, ind * 384 // (self.args.num_patches):(ind + 1) * 384 // (
+                self.args.num_patches), col:col + 384 // (self.args.num_patches)]
+
+            return new_im
+
 
     def _get_generated_distribution(self, cfid=False):
         image_embed = []
@@ -174,21 +188,36 @@ class FJDMetric:
                     for j in range(32):
                         new_filename = recon_directory + fname + f'|langevin|slide_idx_{i}_R={R}_sample={j}_outputs.pt'
                         recon_object = torch.load(new_filename)
-                        img_e = self.image_embedding(self._get_patches(complex_abs(recon_object['mvue'][0].permute(1,2,0))))
-                        cond_e = self.condition_embedding(self._get_patches(recon_object['zfr'][0].abs()))
-                        true_e = self.image_embedding(self._get_patches(recon_object['gt'][0][0].abs()))
 
-                        if self.cuda:
-                            true_embed.append(true_e.to('cuda:2'))
-                            image_embed.append(img_e.to('cuda:1'))
-                            cond_embed.append(cond_e.to('cuda:1'))
-                        else:
-                            image_embed.append(img_e.cpu().numpy())
-                            cond_embed.append(cond_e.cpu().numpy())
+                        im_patches = self._get_patches(complex_abs(recon_object['mvue'][0].permute(1,2,0)))
+                        cond_patches = self._get_patches(recon_object['zfr'][0].abs())
+                        true_patches = self._get_patches(recon_object['gt'][0][0].abs())
 
-                        del img_e
-                        del cond_e
-                        del true_e
+                        for k in range(self.args.num_patches):
+                            if self.args.num_patches == 1:
+                                img_e = self.image_embedding(im_patches)
+                                cond_e = self.condition_embedding(cond_patches)
+                                true_e = self.image_embedding(true_patches)
+                            else:
+                                img_e = self.image_embedding(im_patches[:, k, :, :, :])
+                                cond_e = self.condition_embedding(cond_patches[:, k, :, :, :])
+                                true_e = self.image_embedding(true_patches[:, k, :, :, :])
+
+                            if self.cuda:
+                                true_embed.append(true_e.to('cuda:2'))
+                                image_embed.append(img_e.to('cuda:1'))
+                                cond_embed.append(cond_e.to('cuda:1'))
+                            else:
+                                image_embed.append(img_e.cpu().numpy())
+                                cond_embed.append(cond_e.cpu().numpy())
+
+                            del img_e
+                            del cond_e
+                            del true_e
+
+                        del im_patches
+                        del cond_patches
+                        del true_patches
 
         if self.cuda:
             true_embed = torch.cat(true_embed, dim=0)

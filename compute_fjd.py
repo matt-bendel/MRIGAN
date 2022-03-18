@@ -191,8 +191,8 @@ def main(args):
     if Langevin:
         print("COMPUTING METRIC")
         args.patches = True
-        for i in range(11):
-            args.num_patches = 2 ** (i + 1)
+        for i in range(6):
+            args.num_patches = 2 ** i
             print("PATCHES ", args.num_patches**2)
             ref_loader, cond_loader = prepare_data_fid_langevin.get_dataloaders(args)
             fjd_metric = fjd_metric_langevin.FJDMetric(gan=None,
@@ -211,6 +211,7 @@ def main(args):
             print('FJD: ', fjd)
             cfid_val = fjd_metric.get_cfid()
             print('CFID: ', cfid_val)
+            del fjd_metric
             del ref_loader
             del cond_loader
         exit()

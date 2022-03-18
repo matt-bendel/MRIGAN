@@ -9,6 +9,7 @@ from utils.math import complex_abs
 from data.mri_data_mvue import SelectiveSliceData, SelectiveSliceData_Val
 from utils.fftc import ifft2c_new, fft2c_new
 import cv2
+import torchgeometry as tg
 
 def get_mvue(kspace, s_maps):
     ''' Get mvue estimate from coil measurements '''
@@ -108,7 +109,6 @@ class DataTransform:
         cond_im = 2*(torch.clone(zfr) - torch.min(zfr))/(torch.max(zfr) - torch.min(zfr)) - 1
 
         if self.args.patches and self.args.num_patches > 1:
-            # TODO: ADD OVERLAPPING PATCHES
             new_cond_im = torch.zeros(self.args.num_patches**2, 3, 384 // (self.args.num_patches), 384 // (self.args.num_patches))
             new_ref_im = torch.zeros(self.args.num_patches**2, 3, 384 // (self.args.num_patches), 384 // (self.args.num_patches))
             col = 0
