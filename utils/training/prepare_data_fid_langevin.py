@@ -106,6 +106,7 @@ class DataTransform:
 
         zfr = torch.tensor(get_mvue(gt_ksp.reshape((1,) + gt_ksp.shape), maps.reshape((1,) + maps.shape)))[0].abs()
         plt.imshow(zfr.cpu().numpy(), cmap='gray')
+        plt.savefig('TEMP_LANG_TEST.png')
         zfr = zfr.unsqueeze(0).repeat(3, 1, 1)
         print(zfr.shape)
 
