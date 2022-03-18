@@ -98,7 +98,7 @@ class DataTransform:
         # find mvue image
         gt = torch.tensor(get_mvue(gt_ksp.reshape((1,) + gt_ksp.shape), maps.reshape((1,) + maps.shape)))[0].abs().unsqueeze(0).repeat(3, 1, 1)
 
-        mask = self._get_mask(acs_lines, total_lines,
+        mask = self._get_mask(None, None,
                               4, None)
         # Mask k-space
         gt_ksp *= mask[None, None, :]
