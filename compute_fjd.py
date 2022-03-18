@@ -217,13 +217,13 @@ def main(args):
 
     if args.patches and not args.inpaint:
         num_samps = 32
-        for i in range(2):
+        for i in range(1):
             args.num_patches = 2 ** (i + 2)
             print("PATCHES ", args.num_patches)
             ref_loader, cond_loader = get_dataloaders(args)
-            for j in range(3):
-                args.z_location = 1 if j == 0 else (6 if j == 1 else -1)
-                args.adler = True if j==2 else False
+            for j in range(8):
+                args.z_location = j+1
+                args.adler = True if j > 5 else False
                 gan = get_gen(args)
                 gan = GANWrapper(gan, args)
                 print("COMPUTING METRIC")
