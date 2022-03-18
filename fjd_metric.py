@@ -141,7 +141,7 @@ class FJDMetric:
 
     def _get_joint_statistics(self, image_embed, cond_embed):
         if self.cuda:
-            joint_embed = torch.cat([image_embed, cond_embed], dim=1).to('cuda:3')
+            joint_embed = torch.cat([image_embed, cond_embed], dim=1).to('cuda:0')
         else:
             joint_embed = np.concatenate([image_embed, cond_embed], axis=1)
         mu, sigma = get_embedding_statistics(joint_embed, cuda=self.cuda)
@@ -466,8 +466,8 @@ class FJDMetric:
 def get_embedding_statistics(embeddings, cuda=False):
     if cuda:
         embeddings = embeddings  # More precision = more stable
-        mu = torch.mean(embeddings, 0).to('cuda:0')
-        sigma = torch_cov(embeddings, rowvar=False).to('cuda:0')
+        mu = torch.mean(embeddings, 0)
+        sigma = torch_cov(embeddings, rowvar=False)
     else:
         mu = np.mean(embeddings, axis=0)
         sigma = np.cov(embeddings, rowvar=False)
