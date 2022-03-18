@@ -265,7 +265,7 @@ class FJDMetric:
                 condition = condition.to(self.args.device, dtype=torch.float)
                 image = image.to(self.args.device, dtype=torch.float)
             else:
-                _, condition, image = data
+                condition, image = data
                 image = image.cuda()
                 condition = condition.cuda()
                 print(image.shape)
