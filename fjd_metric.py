@@ -141,7 +141,7 @@ class FJDMetric:
 
     def _get_joint_statistics(self, image_embed, cond_embed):
         if self.cuda:
-            joint_embed = torch.cat([image_embed, cond_embed], dim=1).to('cuda:0')
+            joint_embed = torch.cat([image_embed, cond_embed], dim=1).to('cuda:3')
         else:
             joint_embed = np.concatenate([image_embed, cond_embed], axis=1)
         mu, sigma = get_embedding_statistics(joint_embed, cuda=self.cuda)
@@ -297,7 +297,7 @@ class FJDMetric:
         del image_embed
         del cond_embed
 
-        return mu_real, sigma_real
+        return mu_real.to('cuda:3'), sigma_real.to('cuda:3')
 
     def _save_activation_statistics(self, mu, sigma, alpha):
         if self.cuda:
@@ -319,7 +319,7 @@ class FJDMetric:
             sigma = torch.tensor(sigma).cuda()
             alpha = torch.tensor(alpha).cuda()
 
-        return mu, sigma, alpha
+        return mu.to('cuda:3'), sigma.to('cuda:3'), alpha
 
     def _scale_statistics(self, mu1, sigma1, mu2, sigma2, alpha):
         # Perform scaling operations directly on the precomputed mean and
