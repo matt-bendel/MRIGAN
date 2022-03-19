@@ -244,7 +244,7 @@ class FJDMetric:
         else:
             mu_real, sigma_real = self._compute_reference_distribution()
 
-        self.mu_real, self.sigma_real = mu_real, sigma_real
+        self.mu_real, self.sigma_real = mu_real.to('cuda:3'), sigma_real.to('cuda:3')
         return mu_real, sigma_real
 
     def _compute_reference_distribution(self, cfid=False):
