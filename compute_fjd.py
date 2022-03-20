@@ -244,10 +244,15 @@ def main(args):
                 fjd = fjd_metric.get_fjd(alpha=1.097)
                 print('FID: ', fid)
                 print('FJD: ', fjd)
-                cfid_val = fjd_metric.get_cfid()
-                print('CFID: ', cfid_val)
                 gan.free_memory()
                 del gan
+                del fjd_metric.image_embedding
+                del fjd_metric.condition_embedding
+                del fjd_metric.reference_loader
+                del fjd_metric.condition_loader
+                del fjd_metric.gan
+                cfid_val = fjd_metric.get_cfid()
+                print('CFID: ', cfid_val)
                 del fjd_metric
             del ref_loader
             del cond_loader
