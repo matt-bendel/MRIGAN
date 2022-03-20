@@ -236,7 +236,7 @@ class FJDMetric:
             if os.path.isfile(self.reference_stats_path):
                 stats = self._get_statistics_from_file(self.reference_stats_path)
                 mu_real, sigma_real, alpha = stats
-                self.alpha = alpha
+                self.alpha = alpha.to('cuda:3')
             else:
                 mu_real, sigma_real = self._compute_reference_distribution()
                 if self.save_reference_stats:
