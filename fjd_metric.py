@@ -208,8 +208,6 @@ class FJDMetric:
                             del cond_e
                             del true_e
 
-                break
-
         if self.cuda:
             true_embed = torch.cat(true_embed, dim=0)
             image_embed = torch.cat(image_embed, dim=0)

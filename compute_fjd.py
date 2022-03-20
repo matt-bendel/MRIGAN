@@ -241,8 +241,6 @@ def main(args):
 
                 print(f"FID FOR NETWORK {args.z_location}")
                 fid = fjd_metric.get_fid()
-                print(fjd_metric.mu_fake.shape)
-                print(fjd_metric.mu_real.shape)
                 fjd = fjd_metric.get_fjd(alpha=1.097)
                 print('FID: ', fid)
                 print('FJD: ', fjd)
