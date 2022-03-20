@@ -297,7 +297,7 @@ class FJDMetric:
         del image_embed
         del cond_embed
 
-        return mu_real.to('cuda:3'), sigma_real.to('cuda:3')
+        return mu_real, sigma_real
 
     def _save_activation_statistics(self, mu, sigma, alpha):
         if self.cuda:
@@ -639,7 +639,7 @@ def torch_calculate_frechet_distance(mu1, sigma1, mu2, sigma2, eps=1e-6):
 
     # Add a tiny offset to the covariance matrices to make covmean estimate more stable
     # Will change the output by a couple decimal places compared to not doing this
-    offset = torch.eye(sigma1.size(0)).cuda().double() * eps
+    offset = torch.eye(sigma1.size(0)).to('cuda:3').double() * eps
     sigma1, sigma2 = sigma1 + offset, sigma2 + offset
 
     diff = mu1 - mu2
