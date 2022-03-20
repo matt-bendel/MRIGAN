@@ -319,7 +319,7 @@ class FJDMetric:
             sigma = torch.tensor(sigma).cuda()
             alpha = torch.tensor(alpha).cuda()
 
-        return mu.to('cuda:3'), sigma.to('cuda:3'), alpha
+        return mu.to('cuda:3'), sigma.to('cuda:3'), alpha.to('cuda:3')
 
     def _scale_statistics(self, mu1, sigma1, mu2, sigma2, alpha):
         # Perform scaling operations directly on the precomputed mean and
