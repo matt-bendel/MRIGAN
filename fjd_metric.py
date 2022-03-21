@@ -410,10 +410,10 @@ class FJDMetric:
         c_y_predict_given_x_true = c_y_predict_y_predict - torch.mm(c_y_predict_x_true,
                                                                     torch.mm(inv_c_x_true_x_true, c_x_true_y_predict))
 
-        m_y_given_x = m_y_true.reshape((-1,1)) + torch.mm(c_y_true_x_true, A)
-        m_y_pred_given_x = m_y_predict.reshape((-1,1)) + torch.mm(c_y_predict_x_true, A)
+        # m_y_given_x = m_y_true.reshape((-1,1)) + torch.mm(c_y_true_x_true, A)
+        # m_y_pred_given_x = m_y_predict.reshape((-1,1)) + torch.mm(c_y_predict_x_true, A)
 
-        return torch_calculate_frechet_distance(m_y_given_x, c_y_true_given_x_true, m_y_pred_given_x,
+        return torch_calculate_frechet_distance(m_y_true, c_y_true_given_x_true, m_y_predict,
                                                 c_y_predict_given_x_true)
 
     def get_cfid(self, resample=True):
