@@ -379,9 +379,7 @@ class FJDMetric:
         del self.true_embeds
 
         temp = torch.cat([x_true, x_true], dim=1)
-        print(temp.device)
         temp2 = torch_cov(temp, rowvar=False)
-        print(temp2.device)
         inv_c_x_true_x_true = torch.cholesky_inverse(temp2)
 
         # conditoinal mean and covariance estimations
@@ -394,6 +392,8 @@ class FJDMetric:
 
         c_y_true_given_x_true = c_y_true_y_true - torch.mm(c_y_true_x_true,
                                                            torch.mm(inv_c_x_true_x_true, c_x_true_y_true))
+        print(inv_c_x_true_x_true.shape)
+        print(c_x_true_y_predict.shape)
         c_y_predict_given_x_true = c_y_predict_y_predict - torch.mm(c_y_predict_x_true,
                                                                     torch.mm(inv_c_x_true_x_true, c_x_true_y_predict))
 
