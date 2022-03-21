@@ -378,7 +378,8 @@ class FJDMetric:
         del y_true
         del self.true_embeds
 
-        inv_c_x_true_x_true = torch.inverse(torch_cov(torch.cat([x_true, x_true], dim=1), rowvar=False))
+        temp = torch.cat([x_true, x_true], dim=1)
+        inv_c_x_true_x_true = torch.inverse(torch_cov(temp, rowvar=False))
 
         # conditoinal mean and covariance estimations
         v = x_true - m_x_true
