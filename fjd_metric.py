@@ -29,6 +29,30 @@ def symmetric_matrix_square_root(mat, eps=1e-10):
     return tf.matmul(tf.matmul(u, tf.linalg.tensor_diag(si)), v, transpose_b=True)
 
 
+def symmetric_matrix_square_root_torch(mat, eps=1e-10):
+    """Compute square root of a symmetric matrix.
+    Note that this is different from an elementwise square root. We want to
+    compute M' where M' = sqrt(mat) such that M' * M' = mat.
+    Also note that this method **only** works for symmetric matrices.
+    Args:
+      mat: Matrix to take the square root of.
+      eps: Small epsilon such that any element less than eps will not be square
+        rooted to guard against numerical instability.
+    Returns:
+      Matrix square root of mat.
+    """
+    # Unlike numpy, tensorflow's return order is (s, u, v)
+    u, s, v = torch.linalg.svd(mat)
+    # sqrt is unstable around 0, just use 0 in such case
+    si = s
+    si[s < eps] = 0
+    si[s != 0] = torch.sqrt(si[si != 0])
+    # Note that the v returned by Tensorflow is v = V
+    # (when referencing the equation A = U S V^T)
+    # This is unlike Numpy which returns v = V^T
+    return torch.mm(torch.mm(u, torch.diag(si)), v.t())
+
+
 def trace_sqrt_product(sigma, sigma_v):
     """Find the trace of the positive sqrt of product of covariance matrices.
     '_symmetric_matrix_square_root' only works for symmetric matrices, so we
@@ -66,6 +90,43 @@ def trace_sqrt_product(sigma, sigma_v):
     return tf.linalg.trace(symmetric_matrix_square_root(sqrt_a_sigmav_a))
 
 
+def trace_sqrt_product_torch(sigma, sigma_v):
+    """Find the trace of the positive sqrt of product of covariance matrices.
+    '_symmetric_matrix_square_root' only works for symmetric matrices, so we
+    cannot just take _symmetric_matrix_square_root(sigma * sigma_v).
+    ('sigma' and 'sigma_v' are symmetric, but their product is not necessarily).
+    Let sigma = A A so A = sqrt(sigma), and sigma_v = B B.
+    We want to find trace(sqrt(sigma sigma_v)) = trace(sqrt(A A B B))
+    Note the following properties:
+    (i) forall M1, M2: eigenvalues(M1 M2) = eigenvalues(M2 M1)
+      => eigenvalues(A A B B) = eigenvalues (A B B A)
+    (ii) if M1 = sqrt(M2), then eigenvalues(M1) = sqrt(eigenvalues(M2))
+      => eigenvalues(sqrt(sigma sigma_v)) = sqrt(eigenvalues(A B B A))
+    (iii) forall M: trace(M) = sum(eigenvalues(M))
+      => trace(sqrt(sigma sigma_v)) = sum(eigenvalues(sqrt(sigma sigma_v)))
+                                    = sum(sqrt(eigenvalues(A B B A)))
+                                    = sum(eigenvalues(sqrt(A B B A)))
+                                    = trace(sqrt(A B B A))
+                                    = trace(sqrt(A sigma_v A))
+    A = sqrt(sigma). Both sigma and A sigma_v A are symmetric, so we **can**
+    use the _symmetric_matrix_square_root function to find the roots of these
+    matrices.
+    Args:
+      sigma: a square, symmetric, real, positive semi-definite covariance matrix
+      sigma_v: same as sigma
+    Returns:
+      The trace of the positive square root of sigma*sigma_v
+    """
+
+    # Note sqrt_sigma is called "A" in the proof above
+    sqrt_sigma = symmetric_matrix_square_root_torch(sigma)
+
+    # This is sqrt(A sigma_v A) above
+    sqrt_a_sigmav_a = torch.mm(sqrt_sigma, torch.mm(sigma_v, sqrt_sigma))
+
+    return torch.trace(symmetric_matrix_square_root_torch(sqrt_a_sigmav_a))
+
+
 # **Estimators**
 #
 def sample_covariance(a, b, invert=False):
@@ -84,6 +145,7 @@ def sample_covariance(a, b, invert=False):
     else:
         return C
 
+
 def sample_covariance_torch(a, b):
     '''
     Sample covariance estimating
@@ -95,7 +157,6 @@ def sample_covariance_torch(a, b):
     m = a.shape[1]
     N = a.shape[0]
     return torch.mm(torch.transpose(a, 0, 1), b) / N
-
 
 
 class FJDMetric:
@@ -400,19 +461,22 @@ class FJDMetric:
         del x_true
         del self.cond_embeds
 
-        A = torch.mm(inv_c_x_true_x_true, torch.transpose(v, 0, 1))
-
         c_y_true_given_x_true = c_y_true_y_true - torch.mm(c_y_true_x_true,
                                                            torch.mm(inv_c_x_true_x_true, c_x_true_y_true))
 
         c_y_predict_given_x_true = c_y_predict_y_predict - torch.mm(c_y_predict_x_true,
                                                                     torch.mm(inv_c_x_true_x_true, c_x_true_y_predict))
 
-        # m_y_given_x = m_y_true.reshape((-1,1)) + torch.mm(c_y_true_x_true, A)
-        # m_y_pred_given_x = m_y_predict.reshape((-1,1)) + torch.mm(c_y_predict_x_true, A)
+        c_y_true_x_true_minus_c_y_predict_x_true = c_y_true_x_true - c_y_predict_x_true
+        c_x_true_y_true_minus_c_x_true_y_predict = c_x_true_y_true - c_x_true_y_predict
 
-        return torch_calculate_frechet_distance(m_y_true, c_y_true_given_x_true, m_y_predict,
-                                                c_y_predict_given_x_true)
+        m_dist = torch.einsum('...k,...k->...', m_y_true - m_y_predict, m_y_true - m_y_predict)
+        c_dist1 = torch.trace(torch.mm(torch.mm(c_y_true_x_true_minus_c_y_predict_x_true, inv_c_x_true_x_true),
+                                       c_x_true_y_true_minus_c_x_true_y_predict))
+        c_dist2 = torch.trace(c_y_true_given_x_true + c_y_predict_given_x_true) - 2 * trace_sqrt_product_torch(
+            c_y_predict_given_x_true, c_y_true_given_x_true)
+
+        return m_dist + c_dist1 + c_dist2
 
     def get_cfid(self, resample=True):
         y_predict, x_true, y_true = self.gen_embeds, self.cond_embeds, self.true_embeds
