@@ -219,13 +219,22 @@ class FJDMetric:
 
         mu_fake, sigma_fake = self._get_joint_statistics(image_embed, cond_embed)
 
-        self.gen_embeds = tf.convert_to_tensor(image_embed.cpu().numpy())
+        # self.gen_embeds = tf.convert_to_tensor(image_embed.cpu().numpy())
+        # del image_embed
+        #
+        # self.cond_embeds = tf.convert_to_tensor(cond_embed.cpu().numpy())
+        # del cond_embed
+        #
+        # self.true_embeds = true_embed.cpu().numpy()
+        # del true_embed
+
+        self.gen_embeds = image_embed.to('cuda:1')
         del image_embed
 
-        self.cond_embeds = tf.convert_to_tensor(cond_embed.cpu().numpy())
+        self.cond_embeds = cond_embed.to('cuda:1')
         del cond_embed
 
-        self.true_embeds = true_embed.cpu().numpy()
+        self.true_embeds = true_embed.to('cuda:2')
         del true_embed
 
         self.mu_fake, self.sigma_fake = mu_fake, sigma_fake
@@ -345,6 +354,50 @@ class FJDMetric:
         sigma2[:2048, 2048:] = sigma2[:2048, 2048:] * alpha
 
         return mu1, sigma1, mu2, sigma2
+
+    def get_cfid_torch(self, resample=True):
+        y_predict, x_true, y_true = self.gen_embeds, self.cond_embeds, self.true_embeds
+
+        # mean estimations
+        m_y_predict = torch.mean(y_predict, dim=0)
+        m_x_true = torch.mean(x_true, dim=0)
+
+        # covariance computations
+        c_y_predict_x_true = torch_cov(torch.cat([y_predict, x_true], dim=1), rowvar=False)
+        c_y_predict_y_predict = torch_cov(y_predict, rowvar=False)
+        c_x_true_y_predict = torch_cov(torch.cat([x_true, y_predict], dim=1), rowvar=False)
+
+        del y_predict
+        del self.gen_embeds
+
+        y_true = y_true.to('cuda:1')
+        m_y_true = torch.mean(y_true, dim=0)
+        c_y_true_x_true = torch_cov(torch.cat([y_true, x_true], dim=1), rowvar=False)
+        c_x_true_y_true = torch_cov(torch.cat([x_true, y_true], dim=1), rowvar=False)
+        c_y_true_y_true = torch_cov(y_true, rowvar=False)
+
+        del y_true
+        del self.true_embeds
+
+        inv_c_x_true_x_true = torch.inverse(torch_cov(x_true, rowvar=False))
+
+        # conditoinal mean and covariance estimations
+        v = x_true - m_x_true
+
+        del x_true
+        del self.cond_embeds
+
+        A = torch.mm(inv_c_x_true_x_true, torch.transpose(v, 0, 1))
+
+        c_y_true_given_x_true = c_y_true_y_true - torch.mm(c_y_true_x_true,
+                                                            torch.mm(inv_c_x_true_x_true, c_x_true_y_true))
+        c_y_predict_given_x_true = c_y_predict_y_predict - torch.mm(c_y_predict_x_true,
+                                                                     torch.mm(inv_c_x_true_x_true, c_x_true_y_predict))
+
+        m_y_given_x = m_y_true + torch.mm(c_y_true_x_true, A)
+        m_y_pred_given_x = m_y_predict + torch.mm(c_y_true_x_true, A)
+
+        return torch_calculate_frechet_distance(m_y_given_x, c_y_true_given_x_true, m_y_pred_given_x, c_y_predict_given_x_true)
 
     def get_cfid(self, resample=True):
         y_predict, x_true, y_true = self.gen_embeds, self.cond_embeds, self.true_embeds
