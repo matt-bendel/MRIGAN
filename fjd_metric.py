@@ -50,7 +50,7 @@ def symmetric_matrix_square_root_torch(mat, eps=1e-10):
     # Note that the v returned by Tensorflow is v = V
     # (when referencing the equation A = U S V^T)
     # This is unlike Numpy which returns v = V^T
-    return torch.mm(torch.mm(u, torch.diag(si)), v.t())
+    return torch.mm(torch.mm(u, torch.diag(si)), v)
 
 
 def trace_sqrt_product(sigma, sigma_v):
@@ -281,6 +281,7 @@ class FJDMetric:
                             del img_e
                             del cond_e
                             del true_e
+            break
 
         if self.cuda:
             true_embed = torch.cat(true_embed, dim=0)

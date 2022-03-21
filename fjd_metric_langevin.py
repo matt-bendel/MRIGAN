@@ -9,6 +9,7 @@ import torchgeometry as tg
 
 from utils.math import complex_abs
 
+#TODO: ADAPT METHODS TO TORCH
 def symmetric_matrix_square_root(mat, eps=1e-10):
     """Compute square root of a symmetric matrix.
     Note that this is different from an elementwise square root. We want to
@@ -65,7 +66,6 @@ def trace_sqrt_product(sigma, sigma_v):
     # This is sqrt(A sigma_v A) above
     sqrt_a_sigmav_a = tf.matmul(sqrt_sigma, tf.matmul(sigma_v, sqrt_sigma))
 
-
     return tf.linalg.trace(symmetric_matrix_square_root(sqrt_a_sigmav_a))
 
 
@@ -87,6 +87,17 @@ def sample_covariance(a, b, invert=False):
     else:
         return C
 
+def sample_covariance_torch(a, b):
+    '''
+    Sample covariance estimating
+    a = [N,m]
+    b = [N,m]
+    '''
+    assert (a.shape[0] == b.shape[0])
+    assert (a.shape[1] == b.shape[1])
+    m = a.shape[1]
+    N = a.shape[0]
+    return torch.mm(torch.transpose(a, 0, 1), b) / N
 
 class FJDMetric:
     """Helper function for calculating FJD metric.
@@ -158,7 +169,8 @@ class FJDMetric:
         if self.args.num_patches == 1:
             return im_tensor
 
-        new_im = torch.zeros(self.args.num_patches ** 2, 3, 384 // (self.args.num_patches), 384 // (self.args.num_patches))
+        new_im = torch.zeros(self.args.num_patches ** 2, 3, 384 // (self.args.num_patches),
+                             384 // (self.args.num_patches))
         col = 0
         for i in range(self.args.num_patches ** 2):
             ind = i % self.args.num_patches
@@ -172,14 +184,13 @@ class FJDMetric:
 
             return new_im
 
-
     def _get_generated_distribution(self, cfid=False):
         image_embed = []
         cond_embed = []
         true_embed = []
 
         ref_directory = '/storage/fastMRI_brain/data/small_T2_test'
-        R=4
+        R = 4
         recon_directory = f'/storage/fastMRI_brain/Langevin_Recons_R={R}/'
 
         for fname in os.listdir(ref_directory):
@@ -189,7 +200,7 @@ class FJDMetric:
                         new_filename = recon_directory + fname + f'|langevin|slide_idx_{i}_R={R}_sample={j}_outputs.pt'
                         recon_object = torch.load(new_filename)
 
-                        im_patches = self._get_patches(complex_abs(recon_object['mvue'][0].permute(1,2,0)))
+                        im_patches = self._get_patches(complex_abs(recon_object['mvue'][0].permute(1, 2, 0)))
                         cond_patches = self._get_patches(recon_object['zfr'][0].abs())
                         true_patches = self._get_patches(recon_object['gt'][0][0].abs())
 
@@ -227,8 +238,7 @@ class FJDMetric:
             image_embed = np.concatenate(image_embed, axis=0)
             cond_embed = np.concatenate(cond_embed, axis=0)
 
-
-        self.gen_embeds, self.cond_embeds, self.true_embeds = tf.convert_to_tensor(image_embed.cpu().numpy()), tf.convert_to_tensor(cond_embed.cpu().numpy()), true_embed.cpu().numpy()
+        self.gen_embeds, self.cond_embeds, self.true_embeds = image_embed, cond_embed, true_embed
 
         mu_fake, sigma_fake = self._get_joint_statistics(image_embed, cond_embed)
         del image_embed
@@ -439,6 +449,53 @@ class FJDMetric:
         fjd = calculate_fd(m1, s1, m2, s2, cuda=self.cuda, eps=self.eps)
         return fjd
 
+    def get_cfid_torch(self, resample=True):
+        y_predict, x_true, y_true = self.gen_embeds, self.cond_embeds, self.true_embeds
+
+        # mean estimations
+        m_y_predict = torch.mean(y_predict, dim=0)
+        m_x_true = torch.mean(x_true, dim=0)
+
+        # covariance computations
+        c_y_predict_x_true = sample_covariance_torch(y_predict - m_y_predict, x_true - m_x_true)
+        c_y_predict_y_predict = sample_covariance_torch(y_predict - m_y_predict, y_predict - m_y_predict)
+        c_x_true_y_predict = sample_covariance_torch(x_true - m_x_true, y_predict - m_y_predict)
+
+        del y_predict
+        del self.gen_embeds
+
+        y_true = y_true.to('cuda:1')
+        m_y_true = torch.mean(y_true, dim=0)
+        c_y_true_x_true = sample_covariance_torch(y_true - m_y_true, x_true - m_x_true)
+        c_x_true_y_true = sample_covariance_torch(x_true - m_x_true, y_true - m_y_true)
+        c_y_true_y_true = sample_covariance_torch(y_true - m_y_true, y_true - m_y_true)
+
+        del y_true
+        del self.true_embeds
+
+        temp = sample_covariance_torch(x_true - m_x_true, x_true - m_x_true)
+        inv_c_x_true_x_true = torch.cholesky_inverse(temp)
+
+        # conditoinal mean and covariance estimations
+        v = x_true - m_x_true
+
+        del x_true
+        del self.cond_embeds
+
+        A = torch.mm(inv_c_x_true_x_true, torch.transpose(v, 0, 1))
+
+        c_y_true_given_x_true = c_y_true_y_true - torch.mm(c_y_true_x_true,
+                                                           torch.mm(inv_c_x_true_x_true, c_x_true_y_true))
+
+        c_y_predict_given_x_true = c_y_predict_y_predict - torch.mm(c_y_predict_x_true,
+                                                                    torch.mm(inv_c_x_true_x_true, c_x_true_y_predict))
+
+        # m_y_given_x = m_y_true.reshape((-1,1)) + torch.mm(c_y_true_x_true, A)
+        # m_y_pred_given_x = m_y_predict.reshape((-1,1)) + torch.mm(c_y_predict_x_true, A)
+
+        return torch_calculate_frechet_distance(m_y_true, c_y_true_given_x_true, m_y_predict,
+                                                c_y_predict_given_x_true)
+
     def get_fid(self, resample=False):
         """Calculate FID (equivalent to FJD at alpha = 0).
 
@@ -548,9 +605,9 @@ def sqrt_newton_schulz(A, numIters, dtype=None):
         batchSize = A.shape[0]
         dim = A.shape[1]
         normA = A.mul(A).sum(dim=1).sum(dim=1).sqrt()
-        Y = A.div(normA.view(batchSize, 1, 1).expand_as(A))
-        I = torch.eye(dim, dim).view(1, dim, dim).repeat(batchSize, 1, 1).type(dtype)
-        Z = torch.eye(dim, dim).view(1, dim, dim).repeat(batchSize, 1, 1).type(dtype)
+        Y = A.div(normA.view(batchSize, 1, 1).expand_as(A)).to(A.device)
+        I = torch.eye(dim, dim).view(1, dim, dim).repeat(batchSize, 1, 1).type(dtype).to(A.device)
+        Z = torch.eye(dim, dim).view(1, dim, dim).repeat(batchSize, 1, 1).type(dtype).to(A.device)
         for i in range(numIters):
             T = 0.5 * (3.0 * I - Z.bmm(Y))
             Y = Y.bmm(T)
@@ -648,7 +705,7 @@ def torch_calculate_frechet_distance(mu1, sigma1, mu2, sigma2, eps=1e-6):
 
     # Add a tiny offset to the covariance matrices to make covmean estimate more stable
     # Will change the output by a couple decimal places compared to not doing this
-    offset = torch.eye(sigma1.size(0)).cuda().double() * eps
+    offset = torch.eye(sigma1.size(0)).to(sigma1.device).double() * eps
     sigma1, sigma2 = sigma1 + offset, sigma2 + offset
 
     diff = mu1 - mu2

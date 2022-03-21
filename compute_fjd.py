@@ -209,7 +209,7 @@ def main(args):
             fjd = fjd_metric.get_fjd(alpha=1.097)
             print('FID: ', fid)
             print('FJD: ', fjd)
-            cfid_val = fjd_metric.get_cfid()
+            cfid_val = fjd_metric.get_cfid_torch()
             print('CFID: ', cfid_val)
             del fjd_metric
             del ref_loader
@@ -217,7 +217,7 @@ def main(args):
         exit()
 
     if args.patches and not args.inpaint:
-        num_samps = 32
+        num_samps = 1
         for i in range(1):
             args.num_patches = 2 ** (i + 2)
             print("PATCHES ", args.num_patches)
@@ -332,7 +332,7 @@ def main(args):
             fjd = fjd_metric.get_fjd(alpha=1.097)
             print('FID: ', fid)
             print('FJD: ', fjd)
-            cfid_val = fjd_metric.get_cfid()
+            cfid_val = fjd_metric.get_cfid_torch()
             print('CFID: ', cfid_val)
             gan.free_memory()
             del gan
