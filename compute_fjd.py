@@ -221,7 +221,7 @@ def main(args):
 
     if args.patches and not args.inpaint:
         num_samps = 32
-        for i in range(3):
+        for i in range(2):
             args.num_patches = 2**i
             if i == 0:
                 args.patches = False
@@ -266,7 +266,7 @@ def main(args):
                 del fjd_metric.reference_loader
                 del fjd_metric.condition_loader
                 del fjd_metric.gan
-                cfid_val = fjd_metric.get_cfid_torch()
+                cfid_val = fjd_metric.get_cfid()
                 print('CFID: ', cfid_val)
                 del fjd_metric
             del ref_loader
