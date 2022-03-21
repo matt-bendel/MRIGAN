@@ -221,9 +221,9 @@ def main(args):
 
     if args.patches and not args.inpaint:
         num_samps = 32
-        for i in range(2):
-            args.num_patches = 2**i
-            if i == 0:
+        for i in range(1):
+            args.num_patches = 2
+            if args.num_patches == 1:
                 args.patches = False
             else:
                 args.patches = True
