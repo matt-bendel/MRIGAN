@@ -380,7 +380,10 @@ class FJDMetric:
         del self.true_embeds
 
         temp = torch.cat([x_true, x_true], dim=1)
-        inv_c_x_true_x_true = torch.inverse(torch_cov(temp, rowvar=False))
+        print(temp.device)
+        temp2 = torch_cov(temp, rowvar=False)
+        print(temp2.device)
+        inv_c_x_true_x_true = torch.inverse(temp2)
 
         # conditoinal mean and covariance estimations
         v = x_true - m_x_true
