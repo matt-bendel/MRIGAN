@@ -302,13 +302,13 @@ class FJDMetric:
         # self.true_embeds = true_embed.cpu().numpy()
         # del true_embed
 
-        self.gen_embeds = tf.convert_to_tensor(image_embed.cpu().numpy())
+        self.gen_embeds = image_embed
         del image_embed
 
-        self.cond_embeds = tf.convert_to_tensor(cond_embed.cpu().numpy())
+        self.cond_embeds = cond_embed
         del cond_embed
 
-        self.true_embeds = true_embed.cpu().numpy()
+        self.true_embeds = true_embed
         del true_embed
 
         self.mu_fake, self.sigma_fake = mu_fake, sigma_fake
