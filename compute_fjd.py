@@ -217,7 +217,7 @@ def main(args):
         exit()
 
     if args.patches and not args.inpaint:
-        num_samps = 1
+        num_samps = 32
         for i in range(1):
             args.num_patches = 2 ** (i + 2)
             print("PATCHES ", args.num_patches)
