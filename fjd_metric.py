@@ -94,7 +94,7 @@ def sample_covariance_torch(a, b):
     assert (a.shape[1] == b.shape[1])
     m = a.shape[1]
     N = a.shape[0]
-    return torch.mm(tf.transpose(a, 0, 1), b) / N
+    return torch.mm(torch.transpose(a, 0, 1), b) / N
 
 
 
@@ -221,6 +221,7 @@ class FJDMetric:
                             del cond_e
                             del true_e
 
+            #TODO
             break
         if self.cuda:
             true_embed = torch.cat(true_embed, dim=0)
