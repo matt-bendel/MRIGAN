@@ -453,7 +453,7 @@ class FJDMetric:
         del self.true_embeds
 
         temp = sample_covariance_torch(x_true - m_x_true, x_true - m_x_true).cpu().numpy()
-        inv_c_x_true_x_true = torch.tensor(np.linalg.inv(temp)).to('cuda:1')
+        inv_c_x_true_x_true = torch.tensor(np.linalg.pinv(temp)).to('cuda:1')
 
         del x_true
         del self.cond_embeds
