@@ -364,7 +364,7 @@ class FJDMetric:
 
         # covariance computations
         c_y_predict_x_true = torch_cov(torch.cat([y_predict, x_true], dim=1), rowvar=False)
-        c_y_predict_y_predict = torch_cov(y_predict, rowvar=False)
+        c_y_predict_y_predict = torch_cov(torch.cat([y_predict, y_predict], dim=1), rowvar=False)
         c_x_true_y_predict = torch_cov(torch.cat([x_true, y_predict], dim=1), rowvar=False)
 
         del y_predict
@@ -374,7 +374,7 @@ class FJDMetric:
         m_y_true = torch.mean(y_true, dim=0)
         c_y_true_x_true = torch_cov(torch.cat([y_true, x_true], dim=1), rowvar=False)
         c_x_true_y_true = torch_cov(torch.cat([x_true, y_true], dim=1), rowvar=False)
-        c_y_true_y_true = torch_cov(y_true, rowvar=False)
+        c_y_true_y_true = torch_cov(torch.cat([y_true, y_true], dim=1), rowvar=False)
 
         del y_true
         del self.true_embeds
