@@ -452,8 +452,8 @@ class FJDMetric:
         del y_true
         del self.true_embeds
 
-        temp = sample_covariance_torch(x_true - m_x_true, x_true - m_x_true)
-        inv_c_x_true_x_true = torch.cholesky_inverse(temp)
+        temp = sample_covariance_torch(x_true - m_x_true, x_true - m_x_true).cpu().numpy()
+        inv_c_x_true_x_true = torch.tensor(np.linalg.inv(temp)).to('cuda:1')
 
         del x_true
         del self.cond_embeds
@@ -467,7 +467,7 @@ class FJDMetric:
         c_y_true_x_true_minus_c_y_predict_x_true = c_y_true_x_true - c_y_predict_x_true
         c_x_true_y_true_minus_c_x_true_y_predict = c_x_true_y_true - c_x_true_y_predict
 
-        m_dist = torch.einsum('...k,...k->...', m_y_true - m_y_predict, m_y_true - m_y_predict)
+        m_dist = torch.dot(m_y_true - m_y_predict, m_y_true - m_y_predict)
         c_dist1 = torch.trace(torch.mm(torch.mm(c_y_true_x_true_minus_c_y_predict_x_true, inv_c_x_true_x_true),
                                        c_x_true_y_true_minus_c_x_true_y_predict))
         c_dist2 = torch.trace(c_y_true_given_x_true + c_y_predict_given_x_true) - 2 * trace_sqrt_product_torch(
