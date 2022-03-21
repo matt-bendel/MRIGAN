@@ -383,7 +383,7 @@ class FJDMetric:
         print(temp.device)
         temp2 = torch_cov(temp, rowvar=False)
         print(temp2.device)
-        inv_c_x_true_x_true = torch.inverse(temp2)
+        inv_c_x_true_x_true = temp2.inverse()
 
         # conditoinal mean and covariance estimations
         v = x_true - m_x_true
