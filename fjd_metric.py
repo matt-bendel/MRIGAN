@@ -84,6 +84,19 @@ def sample_covariance(a, b, invert=False):
     else:
         return C
 
+def sample_covariance_torch(a, b):
+    '''
+    Sample covariance estimating
+    a = [N,m]
+    b = [N,m]
+    '''
+    assert (a.shape[0] == b.shape[0])
+    assert (a.shape[1] == b.shape[1])
+    m = a.shape[1]
+    N = a.shape[0]
+    return torch.mm(tf.transpose(a, 0, 1), b) / N
+
+
 
 class FJDMetric:
     """Helper function for calculating FJD metric.
@@ -363,25 +376,24 @@ class FJDMetric:
         m_x_true = torch.mean(x_true, dim=0)
 
         # covariance computations
-        c_y_predict_x_true = torch_cov(torch.cat([y_predict, x_true], dim=1), rowvar=False)
-        c_y_predict_y_predict = torch_cov(torch.cat([y_predict, y_predict], dim=1), rowvar=False)
-        c_x_true_y_predict = torch_cov(torch.cat([x_true, y_predict], dim=1), rowvar=False)
+        c_y_predict_x_true = sample_covariance_torch(y_predict - m_y_predict, x_true - m_x_true)
+        c_y_predict_y_predict = sample_covariance_torch(y_predict - m_y_predict, y_predict - m_y_predict)
+        c_x_true_y_predict = sample_covariance_torch(x_true - m_x_true, y_predict - m_y_predict)
 
         del y_predict
         del self.gen_embeds
 
         y_true = y_true.to('cuda:1')
         m_y_true = torch.mean(y_true, dim=0)
-        c_y_true_x_true = torch_cov(torch.cat([y_true, x_true], dim=1), rowvar=False)
-        c_x_true_y_true = torch_cov(torch.cat([x_true, y_true], dim=1), rowvar=False)
-        c_y_true_y_true = torch_cov(torch.cat([y_true, y_true], dim=1), rowvar=False)
+        c_y_true_x_true = sample_covariance_torch(y_true - m_y_true, x_true - m_x_true)
+        c_x_true_y_true = sample_covariance_torch(x_true - m_x_true, y_true - m_y_true)
+        c_y_true_y_true = sample_covariance_torch(y_true - m_y_true, y_true - m_y_true)
 
         del y_true
         del self.true_embeds
 
-        temp = torch.cat([x_true, x_true], dim=1)
-        temp2 = torch_cov(temp, rowvar=False)
-        inv_c_x_true_x_true = torch.cholesky_inverse(temp2)
+        temp = sample_covariance_torch(x_true - m_x_true, x_true - m_x_true)
+        inv_c_x_true_x_true = torch.cholesky_inverse(temp)
 
         # conditoinal mean and covariance estimations
         v = x_true - m_x_true
@@ -391,9 +403,6 @@ class FJDMetric:
 
         A = torch.mm(inv_c_x_true_x_true, torch.transpose(v, 0, 1))
 
-        print(inv_c_x_true_x_true.shape)
-        print(c_x_true_y_predict.shape)
-
         c_y_true_given_x_true = c_y_true_y_true - torch.mm(c_y_true_x_true,
                                                            torch.mm(inv_c_x_true_x_true, c_x_true_y_true))
 
@@ -401,7 +410,7 @@ class FJDMetric:
                                                                     torch.mm(inv_c_x_true_x_true, c_x_true_y_predict))
 
         m_y_given_x = m_y_true + torch.mm(c_y_true_x_true, A)
-        m_y_pred_given_x = m_y_predict + torch.mm(c_y_true_x_true, A)
+        m_y_pred_given_x = m_y_predict + torch.mm(c_y_predict_x_true, A)
 
         return torch_calculate_frechet_distance(m_y_given_x, c_y_true_given_x_true, m_y_pred_given_x,
                                                 c_y_predict_given_x_true)
