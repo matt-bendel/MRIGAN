@@ -248,7 +248,7 @@ def main(args):
                                        condition_loader=cond_loader,
                                        image_embedding=inception_embedding,
                                        condition_embedding=inception_embedding,
-                                       reference_stats_path=f'ref_stats_{i}.npz',
+                                       reference_stats_path=f'ref_stats_{args.num_patches}.npz' if args.patches else 'ref_stats.npz',
                                        save_reference_stats=True,
                                        samples_per_condition=num_samps,
                                        cuda=True,

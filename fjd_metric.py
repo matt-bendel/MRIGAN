@@ -235,7 +235,8 @@ class FJDMetric:
                             desc='Computing generated distribution',
                             total=len(self.condition_loader)):
             if self.args.inpaint:
-                condition, gt, condition_im, _ = data  # it is assumed data contains (image, condition)
+                condition, gt, condition_im, true_im = data  # it is assumed data contains (image, condition)
+                true_im = true_im.to(self.args.device, dtype=torch.float)
                 gt = gt.to(self.args.device, dtype=torch.float)
                 condition = condition.to(self.args.device, dtype=torch.float)
                 condition_im = condition_im.to(self.args.device, dtype=torch.float)
