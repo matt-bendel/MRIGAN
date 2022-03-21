@@ -45,8 +45,8 @@ def symmetric_matrix_square_root_torch(mat, eps=1e-10):
     u, s, v = torch.linalg.svd(mat)
     # sqrt is unstable around 0, just use 0 in such case
     si = s
-    si[s < eps] = 0
-    si[s != 0] = torch.sqrt(si[si != 0])
+    si[si < eps] = 0
+    si[si != 0] = torch.sqrt(si[si != 0])
     # Note that the v returned by Tensorflow is v = V
     # (when referencing the equation A = U S V^T)
     # This is unlike Numpy which returns v = V^T
