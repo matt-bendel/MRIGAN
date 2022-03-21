@@ -109,16 +109,19 @@ class GANWrapper:
         return final_im
 
     def patch_im(self, im):
-        new_im = torch.zeros(im.size(0), self.args.num_patches**2, 3, 128 // (self.args.num_patches), 128 // (self.args.num_patches))
+        new_im = torch.zeros(im.size(0), self.args.num_patches ** 2, 3, 128 // (self.args.num_patches),
+                             128 // (self.args.num_patches))
         col = 0
-        for i in range(self.args.num_patches**2):
+        for i in range(self.args.num_patches ** 2):
             ind = i % self.args.num_patches
             if i < self.args.num_patches and i % self.args.num_patches == 0:
                 col = 0
             elif i % self.args.num_patches == 0:
                 col += 128 // self.args.num_patches
 
-            new_im[:, i, :, :, :] = im[:, :, ind*128//(self.args.num_patches):(ind+1)*128//(self.args.num_patches), col:col+128//(self.args.num_patches)]
+            new_im[:, i, :, :, :] = im[:, :,
+                                    ind * 128 // (self.args.num_patches):(ind + 1) * 128 // (self.args.num_patches),
+                                    col:col + 128 // (self.args.num_patches)]
 
         return new_im
 
@@ -193,18 +196,18 @@ def main(args):
         args.patches = True
         for i in range(6):
             args.num_patches = 2 ** i
-            print("PATCHES ", args.num_patches**2)
+            print("PATCHES ", args.num_patches ** 2)
             ref_loader, cond_loader = prepare_data_fid_langevin.create_data_loaders(args)
             fjd_metric = fjd_metric_langevin.FJDMetric(gan=None,
-                                   reference_loader=ref_loader,
-                                   condition_loader=cond_loader,
-                                   image_embedding=inception_embedding,
-                                   condition_embedding=inception_embedding,
-                                   reference_stats_path=f'ref_stats_mvue_{args.num_patches}.npz',
-                                   save_reference_stats=True,
-                                   samples_per_condition=32,
-                                   cuda=True,
-                                   args=args)
+                                                       reference_loader=ref_loader,
+                                                       condition_loader=cond_loader,
+                                                       image_embedding=inception_embedding,
+                                                       condition_embedding=inception_embedding,
+                                                       reference_stats_path=f'ref_stats_mvue_{args.num_patches}.npz',
+                                                       save_reference_stats=True,
+                                                       samples_per_condition=32,
+                                                       cuda=True,
+                                                       args=args)
             fid = fjd_metric.get_fid()
             fjd = fjd_metric.get_fjd(alpha=1.097)
             print('FID: ', fid)
@@ -218,13 +221,25 @@ def main(args):
 
     if args.patches and not args.inpaint:
         num_samps = 32
-        for i in range(1):
-            args.num_patches = 2 ** (i + 2)
+        for i in range(3):
+            args.num_patches = 2 ** i
+            if i == 0:
+                args.patches = False
+            else:
+                args.patches = True
             print("PATCHES ", args.num_patches)
             ref_loader, cond_loader = get_dataloaders(args)
-            for j in range(8):
-                args.z_location = j+1
-                args.adler = True if j > 5 else False
+            for j in range(9):
+                args.z_location = j + 1
+                args.adler = True if j > 5 and j != 8 else False
+                if j == 8:
+                    args.inpaint = True
+                    args.in_chans = 1
+                    args.out_chans = 1
+                else:
+                    args.inpaint = False
+                    args.in_chans = 16
+                    args.out_chans = 16
                 gan = get_gen(args)
                 gan = GANWrapper(gan, args)
                 print("COMPUTING METRIC")
@@ -262,7 +277,7 @@ def main(args):
 
     if args.noise_v_fjd:
         for i in range(6):
-            power = i-5
+            power = i - 5
             exponent = 10 ** power
             gan = None
             gan = GANWrapper(gan, args, noise_var=exponent)
@@ -300,7 +315,7 @@ def main(args):
     else:
         for i in range(1):
             num_samps = 32
-            args.z_location = i+1
+            args.z_location = i + 1
             args.inpaint = True
             gan = get_gen(args)
             gan = GANWrapper(gan, args)

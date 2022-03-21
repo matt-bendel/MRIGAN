@@ -443,7 +443,7 @@ class FJDMetric:
         del y_predict
         del self.gen_embeds
 
-        y_true = y_true.to('cuda:1')
+        y_true = y_true.to(x_true.device)
         m_y_true = torch.mean(y_true, dim=0)
         c_y_true_x_true = sample_covariance_torch(y_true - m_y_true, x_true - m_x_true)
         c_x_true_y_true = sample_covariance_torch(x_true - m_x_true, y_true - m_y_true)
