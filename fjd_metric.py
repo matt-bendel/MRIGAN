@@ -44,8 +44,7 @@ def symmetric_matrix_square_root_torch(mat, eps=1e-10):
     # Unlike numpy, tensorflow's return order is (s, u, v)
     u, s, v = torch.linalg.svd(mat)
     # sqrt is unstable around 0, just use 0 in such case
-    si = s
-    si[si >= eps] = torch.sqrt(si[si >= eps])
+    si = torch.sqrt(s)
 
     # Note that the v returned by Tensorflow is v = V
     # (when referencing the equation A = U S V^T)
@@ -452,8 +451,8 @@ class FJDMetric:
         del y_true
         del self.true_embeds
 
-        temp = sample_covariance_torch(x_true - m_x_true, x_true - m_x_true).cpu().numpy()
-        inv_c_x_true_x_true = torch.tensor(np.linalg.pinv(temp)).to('cuda:1')
+        temp = sample_covariance_torch(x_true - m_x_true, x_true - m_x_true)
+        inv_c_x_true_x_true = torch.linalg.pinv(temp)
 
         del x_true
         del self.cond_embeds
@@ -467,7 +466,7 @@ class FJDMetric:
         c_y_true_x_true_minus_c_y_predict_x_true = c_y_true_x_true - c_y_predict_x_true
         c_x_true_y_true_minus_c_x_true_y_predict = c_x_true_y_true - c_x_true_y_predict
 
-        m_dist = torch.dot(m_y_true - m_y_predict, m_y_true - m_y_predict)
+        m_dist = torch.einsum('...k,...k->...', m_y_true - m_y_predict, m_y_true - m_y_predict)
         c_dist1 = torch.trace(torch.mm(torch.mm(c_y_true_x_true_minus_c_y_predict_x_true, inv_c_x_true_x_true),
                                        c_x_true_y_true_minus_c_x_true_y_predict))
         c_dist2 = torch.trace(c_y_true_given_x_true + c_y_predict_given_x_true) - 2 * trace_sqrt_product_torch(
