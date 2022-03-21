@@ -46,7 +46,7 @@ def symmetric_matrix_square_root_torch(mat, eps=1e-10):
     # sqrt is unstable around 0, just use 0 in such case
     si = s
     si[si < eps] = 0
-    si[si != 0] = torch.sqrt(si[si != 0])
+    si = torch.sqrt(si)
     # Note that the v returned by Tensorflow is v = V
     # (when referencing the equation A = U S V^T)
     # This is unlike Numpy which returns v = V^T
@@ -454,9 +454,6 @@ class FJDMetric:
 
         temp = sample_covariance_torch(x_true - m_x_true, x_true - m_x_true)
         inv_c_x_true_x_true = torch.cholesky_inverse(temp)
-
-        # conditoinal mean and covariance estimations
-        v = x_true - m_x_true
 
         del x_true
         del self.cond_embeds
