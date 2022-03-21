@@ -474,6 +474,10 @@ class FJDMetric:
         c_dist2 = torch.trace(c_y_true_given_x_true + c_y_predict_given_x_true) - 2 * trace_sqrt_product_torch(
             c_y_predict_given_x_true, c_y_true_given_x_true)
 
+        print(m_dist)
+        print(c_dist1)
+        print(c_dist2)
+
         return m_dist + c_dist1 + c_dist2
 
     def get_cfid(self, resample=True):
@@ -526,6 +530,10 @@ class FJDMetric:
                                             c_x_true_y_true_minus_c_x_true_y_predict))
         c_dist2 = tf.linalg.trace(c_y_true_given_x_true + c_y_predict_given_x_true) - 2 * trace_sqrt_product(
             c_y_predict_given_x_true, c_y_true_given_x_true)
+
+        print(m_dist)
+        print(c_dist1)
+        print(c_dist2)
 
         return m_dist + c_dist1 + c_dist2
 
