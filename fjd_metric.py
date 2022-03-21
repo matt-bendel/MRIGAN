@@ -259,9 +259,9 @@ class FJDMetric:
                         true_e = self.image_embedding(true_im)
 
                         if self.cuda:
-                            true_embed.append(true_e)
-                            image_embed.append(img_e)
-                            cond_embed.append(cond_e)
+                            true_embed.append(true_e.to('cuda:2'))
+                            image_embed.append(img_e.to('cuda:1'))
+                            cond_embed.append(cond_e.to('cuda:1'))
                         else:
                             image_embed.append(img_e.cpu().numpy())
                             cond_embed.append(cond_e.cpu().numpy())
@@ -278,10 +278,6 @@ class FJDMetric:
                             else:
                                 image_embed.append(img_e.cpu().numpy())
                                 cond_embed.append(cond_e.cpu().numpy())
-
-                            del img_e
-                            del cond_e
-                            del true_e
 
         if self.cuda:
             true_embed = torch.cat(true_embed, dim=0)
