@@ -220,7 +220,7 @@ class FJDMetric:
                             del img_e
                             del cond_e
                             del true_e
-
+            break
         if self.cuda:
             true_embed = torch.cat(true_embed, dim=0)
             image_embed = torch.cat(image_embed, dim=0)
@@ -607,9 +607,9 @@ def sqrt_newton_schulz(A, numIters, dtype=None):
         batchSize = A.shape[0]
         dim = A.shape[1]
         normA = A.mul(A).sum(dim=1).sum(dim=1).sqrt()
-        Y = A.div(normA.view(batchSize, 1, 1).expand_as(A)).to('cuda:1')
-        I = torch.eye(dim, dim).view(1, dim, dim).repeat(batchSize, 1, 1).type(dtype).to('cuda:1')
-        Z = torch.eye(dim, dim).view(1, dim, dim).repeat(batchSize, 1, 1).type(dtype).to('cuda:1')
+        Y = A.div(normA.view(batchSize, 1, 1).expand_as(A)).to(A.device)
+        I = torch.eye(dim, dim).view(1, dim, dim).repeat(batchSize, 1, 1).type(dtype).to(A.device)
+        Z = torch.eye(dim, dim).view(1, dim, dim).repeat(batchSize, 1, 1).type(dtype).to(A.device)
         for i in range(numIters):
             T = 0.5 * (3.0 * I - Z.bmm(Y))
             Y = Y.bmm(T)
@@ -707,7 +707,7 @@ def torch_calculate_frechet_distance(mu1, sigma1, mu2, sigma2, eps=1e-6):
 
     # Add a tiny offset to the covariance matrices to make covmean estimate more stable
     # Will change the output by a couple decimal places compared to not doing this
-    offset = torch.eye(sigma1.size(0)).to('cuda:1').double() * eps
+    offset = torch.eye(sigma1.size(0)).to(sigma1.device).double() * eps
     sigma1, sigma2 = sigma1 + offset, sigma2 + offset
 
     diff = mu1 - mu2
