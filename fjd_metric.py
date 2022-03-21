@@ -6,6 +6,7 @@ from tqdm import tqdm
 from scipy import linalg
 import tensorflow as tf
 
+
 def symmetric_matrix_square_root(mat, eps=1e-10):
     """Compute square root of a symmetric matrix.
     Note that this is different from an elementwise square root. We want to
@@ -61,7 +62,6 @@ def trace_sqrt_product(sigma, sigma_v):
 
     # This is sqrt(A sigma_v A) above
     sqrt_a_sigmav_a = tf.matmul(sqrt_sigma, tf.matmul(sigma_v, sqrt_sigma))
-
 
     return tf.linalg.trace(symmetric_matrix_square_root(sqrt_a_sigmav_a))
 
@@ -191,7 +191,7 @@ class FJDMetric:
                             image_embed.append(img_e.cpu().numpy())
                             cond_embed.append(cond_e.cpu().numpy())
                     else:
-                        for j in range(self.args.num_patches**2):
+                        for j in range(self.args.num_patches ** 2):
                             img_e = self.image_embedding(image[:, j, :, :, :])
                             cond_e = self.condition_embedding(condition_im[:, j, :, :, :])
                             true_e = self.image_embedding(true_im[:, j, :, :, :])
@@ -216,7 +216,6 @@ class FJDMetric:
             image_embed = np.concatenate(image_embed, axis=0)
             cond_embed = np.concatenate(cond_embed, axis=0)
 
-
         mu_fake, sigma_fake = self._get_joint_statistics(image_embed, cond_embed)
 
         # self.gen_embeds = tf.convert_to_tensor(image_embed.cpu().numpy())
@@ -228,13 +227,13 @@ class FJDMetric:
         # self.true_embeds = true_embed.cpu().numpy()
         # del true_embed
 
-        self.gen_embeds = image_embed.to('cuda:1')
+        self.gen_embeds = image_embed
         del image_embed
 
-        self.cond_embeds = cond_embed.to('cuda:1')
+        self.cond_embeds = cond_embed
         del cond_embed
 
-        self.true_embeds = true_embed.to('cuda:2')
+        self.true_embeds = true_embed
         del true_embed
 
         self.mu_fake, self.sigma_fake = mu_fake, sigma_fake
@@ -379,7 +378,7 @@ class FJDMetric:
         del y_true
         del self.true_embeds
 
-        inv_c_x_true_x_true = torch.inverse(torch_cov(x_true, rowvar=False))
+        inv_c_x_true_x_true = torch.inverse(torch_cov(torch.cat([x_true, x_true], dim=1), rowvar=False))
 
         # conditoinal mean and covariance estimations
         v = x_true - m_x_true
@@ -390,14 +389,15 @@ class FJDMetric:
         A = torch.mm(inv_c_x_true_x_true, torch.transpose(v, 0, 1))
 
         c_y_true_given_x_true = c_y_true_y_true - torch.mm(c_y_true_x_true,
-                                                            torch.mm(inv_c_x_true_x_true, c_x_true_y_true))
+                                                           torch.mm(inv_c_x_true_x_true, c_x_true_y_true))
         c_y_predict_given_x_true = c_y_predict_y_predict - torch.mm(c_y_predict_x_true,
-                                                                     torch.mm(inv_c_x_true_x_true, c_x_true_y_predict))
+                                                                    torch.mm(inv_c_x_true_x_true, c_x_true_y_predict))
 
         m_y_given_x = m_y_true + torch.mm(c_y_true_x_true, A)
         m_y_pred_given_x = m_y_predict + torch.mm(c_y_true_x_true, A)
 
-        return torch_calculate_frechet_distance(m_y_given_x, c_y_true_given_x_true, m_y_pred_given_x, c_y_predict_given_x_true)
+        return torch_calculate_frechet_distance(m_y_given_x, c_y_true_given_x_true, m_y_pred_given_x,
+                                                c_y_predict_given_x_true)
 
     def get_cfid(self, resample=True):
         y_predict, x_true, y_true = self.gen_embeds, self.cond_embeds, self.true_embeds
