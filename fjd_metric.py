@@ -50,7 +50,7 @@ def symmetric_matrix_square_root_torch(mat, eps=1e-10):
     # Note that the v returned by Tensorflow is v = V
     # (when referencing the equation A = U S V^T)
     # This is unlike Numpy which returns v = V^T
-    return torch.mm(torch.mm(u, torch.diag(si)), v)
+    return torch.matmul(torch.matmul(u, torch.diag(si)), v)
 
 
 def trace_sqrt_product(sigma, sigma_v):
@@ -122,7 +122,7 @@ def trace_sqrt_product_torch(sigma, sigma_v):
     sqrt_sigma = symmetric_matrix_square_root_torch(sigma)
 
     # This is sqrt(A sigma_v A) above
-    sqrt_a_sigmav_a = torch.mm(sqrt_sigma, torch.mm(sigma_v, sqrt_sigma))
+    sqrt_a_sigmav_a = torch.matmul(sqrt_sigma, torch.matmul(sigma_v, sqrt_sigma))
 
     return torch.trace(symmetric_matrix_square_root_torch(sqrt_a_sigmav_a))
 
@@ -156,7 +156,7 @@ def sample_covariance_torch(a, b):
     assert (a.shape[1] == b.shape[1])
     m = a.shape[1]
     N = a.shape[0]
-    return torch.mm(torch.transpose(a, 0, 1), b) / N
+    return torch.matmul(torch.transpose(a, 0, 1), b) / N
 
 
 class FJDMetric:
@@ -453,30 +453,26 @@ class FJDMetric:
         del y_true
         del self.true_embeds
 
-        temp = sample_covariance_torch(x_true - m_x_true, x_true - m_x_true)
-        inv_c_x_true_x_true = torch.linalg.pinv(temp)
+        inv_c_x_true_x_true = torch.linalg.pinv(sample_covariance_torch(x_true - m_x_true, x_true - m_x_true))
 
         del x_true
         del self.cond_embeds
 
-        c_y_true_given_x_true = c_y_true_y_true - torch.mm(c_y_true_x_true,
-                                                           torch.mm(inv_c_x_true_x_true, c_x_true_y_true))
+        c_y_true_given_x_true = c_y_true_y_true - torch.matmul(c_y_true_x_true,
+                                                               torch.matmul(inv_c_x_true_x_true, c_x_true_y_true))
 
-        c_y_predict_given_x_true = c_y_predict_y_predict - torch.mm(c_y_predict_x_true,
-                                                                    torch.mm(inv_c_x_true_x_true, c_x_true_y_predict))
+        c_y_predict_given_x_true = c_y_predict_y_predict - torch.matmul(c_y_predict_x_true,
+                                                                        torch.matmul(inv_c_x_true_x_true,
+                                                                                     c_x_true_y_predict))
 
         c_y_true_x_true_minus_c_y_predict_x_true = c_y_true_x_true - c_y_predict_x_true
         c_x_true_y_true_minus_c_x_true_y_predict = c_x_true_y_true - c_x_true_y_predict
 
         m_dist = torch.einsum('...k,...k->...', m_y_true - m_y_predict, m_y_true - m_y_predict)
-        c_dist1 = torch.trace(torch.mm(torch.mm(c_y_true_x_true_minus_c_y_predict_x_true, inv_c_x_true_x_true),
-                                       c_x_true_y_true_minus_c_x_true_y_predict))
+        c_dist1 = torch.trace(torch.matmul(torch.matmul(c_y_true_x_true_minus_c_y_predict_x_true, inv_c_x_true_x_true),
+                                           c_x_true_y_true_minus_c_x_true_y_predict))
         c_dist2 = torch.trace(c_y_true_given_x_true + c_y_predict_given_x_true) - 2 * trace_sqrt_product_torch(
             c_y_predict_given_x_true, c_y_true_given_x_true)
-
-        print(m_dist)
-        print(c_dist1)
-        print(c_dist2)
 
         return m_dist + c_dist1 + c_dist2
 
@@ -530,10 +526,6 @@ class FJDMetric:
                                             c_x_true_y_true_minus_c_x_true_y_predict))
         c_dist2 = tf.linalg.trace(c_y_true_given_x_true + c_y_predict_given_x_true) - 2 * trace_sqrt_product(
             c_y_predict_given_x_true, c_y_true_given_x_true)
-
-        print(m_dist)
-        print(c_dist1)
-        print(c_dist2)
 
         return m_dist + c_dist1 + c_dist2
 
