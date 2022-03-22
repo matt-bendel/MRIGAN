@@ -264,6 +264,7 @@ class FJDMetric:
                         for k in range(self.args.num_patches):
                             if self.args.num_patches == 1:
                                 img_e = self.image_embedding(im_patches.float())
+                                print(cond_patches.dtype)
                                 cond_e = self.condition_embedding(cond_patches.float())
                                 true_e = self.image_embedding(true_patches.float())
                             else:
