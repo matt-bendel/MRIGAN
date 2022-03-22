@@ -221,27 +221,27 @@ def main(args):
 
     if args.patches and not args.inpaint:
         num_samps = 32
-        for i in range(1):
-            args.num_patches = 2
+        for i in range(2):
+            args.num_patches = 2**i
             if args.num_patches == 1:
                 args.patches = False
             else:
                 args.patches = True
             print("PATCHES ", args.num_patches)
             ref_loader, cond_loader = get_dataloaders(args)
-            for j in range(1):
+            for j in range(9):
                 # if j == 0 or j == 5 or j == 6:
                 #     continue
                 args.z_location = 7
-                args.adler = True #if j > 5 and j != 8 else False
-                # if j == 8:
-                #     args.inpaint = True
-                #     args.in_chans = 1
-                #     args.out_chans = 1
-                # else:
-                #     args.inpaint = False
-                #     args.in_chans = 16
-                #     args.out_chans = 16
+                args.adler = True if j > 5 and j != 8 else False
+                if j == 8:
+                    args.inpaint = True
+                    args.in_chans = 1
+                    args.out_chans = 1
+                else:
+                    args.inpaint = False
+                    args.in_chans = 16
+                    args.out_chans = 16
                 gan = get_gen(args)
                 gan = GANWrapper(gan, args)
                 print("COMPUTING METRIC")
