@@ -301,7 +301,7 @@ class FJDMetric:
         self.cond_embeds = tf.convert_to_tensor(cond_embed.cpu().numpy())
         del cond_embed
 
-        self.true_embeds = tf.convert_to_tensor(true_embed.cpu().numpy())
+        self.true_embeds = true_embed.cpu().numpy()
         del true_embed
 
         mu_fake, sigma_fake = self._get_joint_statistics(image_embed, cond_embed)
