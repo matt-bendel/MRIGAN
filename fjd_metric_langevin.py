@@ -237,7 +237,7 @@ class FJDMetric:
                 col += 384 // self.args.num_patches
 
             new_im[i, :, :, :] = im_tensor[:, ind * 384 // (self.args.num_patches):(ind + 1) * 384 // (
-                self.args.num_patches), col:col + 384 // (self.args.num_patches)].float()
+                self.args.num_patches), col:col + 384 // (self.args.num_patches)]
 
             return new_im
 
@@ -263,13 +263,13 @@ class FJDMetric:
 
                         for k in range(self.args.num_patches):
                             if self.args.num_patches == 1:
-                                img_e = self.image_embedding(im_patches)
-                                cond_e = self.condition_embedding(cond_patches)
-                                true_e = self.image_embedding(true_patches)
+                                img_e = self.image_embedding(im_patches.float())
+                                cond_e = self.condition_embedding(cond_patches.float())
+                                true_e = self.image_embedding(true_patches.float())
                             else:
-                                img_e = self.image_embedding(im_patches[:, k, :, :, :])
-                                cond_e = self.condition_embedding(cond_patches[:, k, :, :, :])
-                                true_e = self.image_embedding(true_patches[:, k, :, :, :])
+                                img_e = self.image_embedding(im_patches[:, k, :, :, :].float())
+                                cond_e = self.condition_embedding(cond_patches[:, k, :, :, :].float())
+                                true_e = self.image_embedding(true_patches[:, k, :, :, :].float())
 
                             if self.cuda:
                                 true_embed.append(true_e.to('cuda:2'))
