@@ -237,7 +237,7 @@ class FJDMetric:
                 col += 384 // self.args.num_patches
 
             new_im[i, :, :, :] = im_tensor[:, ind * 384 // (self.args.num_patches):(ind + 1) * 384 // (
-                self.args.num_patches), col:col + 384 // (self.args.num_patches)]
+                self.args.num_patches), col:col + 384 // (self.args.num_patches)].float()
 
             return new_im
 
@@ -339,8 +339,6 @@ class FJDMetric:
                 condition, image = data
                 image = image.cuda()
                 condition = condition.cuda()
-                print(image.shape)
-                print(condition.shape)
 
             with torch.no_grad():
                 if not self.args.patches or self.args.num_patches == 1:
