@@ -57,8 +57,9 @@ class DataTransform:
              240, 244, 248, 252, 257, 262, 266, 272, 277, 283, 289, 295, 301, 308, 315, 323, 330, 338, 347, 356, 365,
              374])
         # a = np.array(
-        #     [1, 9, 15, 21, 26, 31, 35, 39, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51, 52, 53, 54, 56, 59, 63, 67, 72, 77,
-        #      83, 89]
+        #     [1, 24, 45, 64, 81, 97, 111, 123, 134, 144, 153, 161, 168, 175, 181, 183, 184, 185, 186, 187, 188, 189, 190,
+        #      191, 192, 193, 194, 195, 196, 197, 198, 199, 200, 201, 205, 211, 218, 225, 233, 242, 252, 263, 275, 289,
+        #      305, 322, 341, 362]
         # )
         m = np.zeros((384, 384))
         m[:, a] = True
@@ -70,7 +71,7 @@ class DataTransform:
         # samp = m
         numcoil = 16
         mask = transforms.to_tensor(np.tile(samp, (numcoil, 1, 1)).astype(np.float32))
-        mask = torch.unsqueeze(mask,-1).repeat(1,1,1,2)
+        mask = torch.unsqueeze(mask, -1).repeat(1, 1, 1, 2)
 
         kspace = kspace.transpose(1, 2, 0)
 
@@ -104,8 +105,8 @@ class DataTransform:
                 rand_start_col = randrange(0, end)
                 rand_start_row = randrange(0, end)
             else:
-                rand_start_col = 5*n//8
-                rand_start_row = 5*n//8
+                rand_start_col = 5 * n // 8
+                rand_start_row = 5 * n // 8
 
             image[rand_start_row:rand_start_row + square_length, rand_start_col:rand_start_col + square_length, :] = 0
 
@@ -123,42 +124,42 @@ class DataTransform:
 
         ###################################
 
-        stacked_masked_zfr = torch.zeros(numcoil*2, 384, 384)
+        stacked_masked_zfr = torch.zeros(numcoil * 2, 384, 384)
 
         stacked_masked_zfr[0:numcoil, :, :] = torch.squeeze(zfr[:, :, :, 0])
-        stacked_masked_zfr[numcoil:numcoil*2, :, :] = torch.squeeze(zfr[:, :, :, 1])
+        stacked_masked_zfr[numcoil:numcoil * 2, :, :] = torch.squeeze(zfr[:, :, :, 1])
         stacked_masked_zfr, mean, std = transforms.normalize_instance(stacked_masked_zfr)
         # zfr, mean, std = transforms.normalize_instance(zfr)
 
-        stacked_image = torch.zeros(numcoil*2, 384, 384)
+        stacked_image = torch.zeros(numcoil * 2, 384, 384)
         stacked_image[0:numcoil, :, :] = torch.squeeze(true_image[:, :, :, 0])
-        stacked_image[numcoil:numcoil*2, :, :] = torch.squeeze(true_image[:, :, :, 1])
+        stacked_image[numcoil:numcoil * 2, :, :] = torch.squeeze(true_image[:, :, :, 1])
         stacked_image = transforms.normalize(stacked_image, mean, std)
         # target = transforms.normalize(true_image, mean, std)
         true_me = transforms.normalize(ifft2c_new(true_measures), mean, std)
 
-        temp = torch.zeros(numcoil, 384, 384,2)
-        stacked_masked_kspace = torch.zeros(numcoil*2, 384, 384)
+        temp = torch.zeros(numcoil, 384, 384, 2)
+        stacked_masked_kspace = torch.zeros(numcoil * 2, 384, 384)
         temp[:, :, :, 0] = stacked_masked_zfr[0:numcoil, :, :]
-        temp[:, :, :, 1] = stacked_masked_zfr[numcoil:numcoil*2, :, :]
+        temp[:, :, :, 1] = stacked_masked_zfr[numcoil:numcoil * 2, :, :]
         masked_kspace_normalized = fft2c_new(temp)
         stacked_masked_kspace[0:numcoil, :, :] = torch.squeeze(masked_kspace_normalized[:, :, :, 0])
-        stacked_masked_kspace[numcoil:numcoil*2, :, :] = torch.squeeze(masked_kspace_normalized[:, :, :, 1])
+        stacked_masked_kspace[numcoil:numcoil * 2, :, :] = torch.squeeze(masked_kspace_normalized[:, :, :, 1])
 
         temp = torch.zeros(numcoil, 384, 384, 2)
-        stacked_kspace = torch.zeros(numcoil*2, 384, 384)
+        stacked_kspace = torch.zeros(numcoil * 2, 384, 384)
         temp[:, :, :, 0] = stacked_image[0:numcoil, :, :]
-        temp[:, :, :, 1] = stacked_image[numcoil:numcoil*2, :, :]
+        temp[:, :, :, 1] = stacked_image[numcoil:numcoil * 2, :, :]
         kspace_normalized = fft2c_new(temp)
         stacked_kspace[0:numcoil, :, :] = torch.squeeze(kspace_normalized[:, :, :, 0])
-        stacked_kspace[numcoil:numcoil*2, :, :] = torch.squeeze(kspace_normalized[:, :, :, 1])
+        stacked_kspace[numcoil:numcoil * 2, :, :] = torch.squeeze(kspace_normalized[:, :, :, 1])
 
         temp = torch.zeros(numcoil, 384, 384, 2)
         temp[:, :, :, 0] = stacked_masked_zfr[0:numcoil, :, :]
-        temp[:, :, :, 1] = stacked_masked_zfr[numcoil:numcoil*2, :, :]
+        temp[:, :, :, 1] = stacked_masked_zfr[numcoil:numcoil * 2, :, :]
         true_measures_normal = fft2c_new(temp)
 
-        return stacked_masked_kspace.permute(1,2,0), stacked_kspace.permute(1,2,0), mean, std, true_measures_normal
+        return stacked_masked_kspace.permute(1, 2, 0), stacked_kspace.permute(1, 2, 0), mean, std, true_measures_normal
 
 
 def create_datasets(args, val_only):
