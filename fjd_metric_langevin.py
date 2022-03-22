@@ -257,16 +257,15 @@ class FJDMetric:
                         new_filename = recon_directory + fname + f'|langevin|slide_idx_{i}_R={R}_sample={j}_outputs.pt'
                         recon_object = torch.load(new_filename)
 
-                        im_patches = self._get_patches(complex_abs(recon_object['mvue'][0].permute(1, 2, 0)))
-                        cond_patches = self._get_patches(recon_object['zfr'][0].abs())
-                        true_patches = self._get_patches(recon_object['gt'][0][0].abs())
+                        im_patches = self._get_patches(complex_abs(recon_object['mvue'][0].permute(1, 2, 0))).to(dtype=torch.float)
+                        cond_patches = self._get_patches(recon_object['zfr'][0].abs()).to(dtype=torch.float)
+                        true_patches = self._get_patches(recon_object['gt'][0][0].abs()).to(dtype=torch.float)
 
                         for k in range(self.args.num_patches):
                             if self.args.num_patches == 1:
-                                img_e = self.image_embedding(im_patches.float())
-                                print(cond_patches.dtype)
-                                cond_e = self.condition_embedding(cond_patches.float())
-                                true_e = self.image_embedding(true_patches.float())
+                                img_e = self.image_embedding(im_patches)
+                                cond_e = self.condition_embedding(cond_patches)
+                                true_e = self.image_embedding(true_patches)
                             else:
                                 img_e = self.image_embedding(im_patches[:, k, :, :, :].float())
                                 cond_e = self.condition_embedding(cond_patches[:, k, :, :, :].float())
