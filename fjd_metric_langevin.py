@@ -250,7 +250,7 @@ class FJDMetric:
         R = 4
         recon_directory = f'/storage/fastMRI_brain/Langevin_Recons_R={R}/'
 
-        for fname in os.listdir(ref_directory):
+        for fname in tqdm(os.listdir(ref_directory), desc='Computing Generated Distribution'):
             with torch.no_grad():
                 for i in range(6):
                     for j in range(32):
