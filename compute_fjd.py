@@ -194,7 +194,7 @@ def main(args):
     if Langevin:
         print("COMPUTING METRIC")
         args.patches = True
-        for i in range(6):
+        for i in range(5):
             args.num_patches = 2 ** i
             print("PATCHES ", args.num_patches ** 2)
             ref_loader, cond_loader = prepare_data_fid_langevin.create_data_loaders(args)
@@ -212,7 +212,7 @@ def main(args):
             fjd = fjd_metric.get_fjd(alpha=1.097)
             print('FID: ', fid)
             print('FJD: ', fjd)
-            cfid_val = fjd_metric.get_cfid_torch()
+            cfid_val = fjd_metric.get_cfid()
             print('CFID: ', cfid_val)
             del fjd_metric
             del ref_loader
