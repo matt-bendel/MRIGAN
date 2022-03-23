@@ -164,6 +164,10 @@ def get_cfid_torch(y_predict, x_true, y_true):
     print('SHAPE X: ', x_true.shape)
     print('RANK X: ', torch.matrix_rank(x_true))
 
+    new_temp = torch.matmul(y_true.t() - y_predict.t(), y_true - y_predict)
+    print(new_temp.shape)
+    c_dist_2_temp = torch.trace(new_temp)
+
     # covariance computations
     c_y_predict_x_true = sample_covariance_torch(y_predict - m_y_predict, x_true - m_x_true)
     c_y_predict_y_predict = sample_covariance_torch(y_predict - m_y_predict, y_predict - m_y_predict)
@@ -193,7 +197,7 @@ def get_cfid_torch(y_predict, x_true, y_true):
     c_dist2 = torch.trace(c_y_true_given_x_true + c_y_predict_given_x_true) - 2 * trace_sqrt_product_torch(
         c_y_predict_given_x_true, c_y_true_given_x_true)
 
-    return m_dist + c_dist1 + c_dist2, inv_c_x_true_x_true.cpu().numpy()
+    return m_dist + c_dist1 + c_dist2, c_dist2.numpy(), c_dist_2_temp.numpy()
 
 
 def get_cfid(y_predict, x_true, y_true):
@@ -236,7 +240,7 @@ def get_cfid(y_predict, x_true, y_true):
     c_dist2 = tf.linalg.trace(c_y_true_given_x_true + c_y_predict_given_x_true) - 2 * trace_sqrt_product(
         c_y_predict_given_x_true, c_y_true_given_x_true)
 
-    return m_dist + c_dist1 + c_dist2, inv_c_x_true_x_true.numpy()
+    return m_dist + c_dist1 + c_dist2, c_dist1.numpy()
 
 
 # A pytorch implementation of cov, from Modar M. Alfadly
@@ -279,11 +283,13 @@ if __name__ == '__main__':
     cond_embeds = torch.load('cond_embeds_600.pt')
     gt_embeds = torch.load('true_embeds_600.pt')
 
-    cfid1, matrix1 = get_cfid_torch(recon_embeds, cond_embeds, gt_embeds)
+    cfid1, c_dist_torch, c_dist_theory = get_cfid_torch(recon_embeds, cond_embeds, gt_embeds)
     with tf.device('/gpu:3'):
-        cfid2, matrix2 = get_cfid(tf.convert_to_tensor(recon_embeds.cpu().numpy()),
+        cfid2, c_dist_tf = get_cfid(tf.convert_to_tensor(recon_embeds.cpu().numpy()),
                                   tf.convert_to_tensor(cond_embeds.cpu().numpy()), gt_embeds.cpu().numpy())
 
     print('CFID TORCH: ', cfid1)
     print('CFID TF: ', cfid2)
-    print('MATRIX ERROR: ', np.linalg.norm(matrix1 - matrix2) ** 2)
+    print('CDIST TORCH: ', c_dist_torch)
+    print('CDIST TF: ', c_dist_tf)
+    print('CDIST THEORY: ', c_dist_theory)
