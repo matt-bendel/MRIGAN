@@ -208,7 +208,7 @@ def main(args):
                                condition_embedding=inception_embedding,
                                reference_stats_path=f'ref_stats_{args.num_patches}.npz' if args.patches else 'ref_stats.npz',
                                save_reference_stats=True,
-                               samples_per_condition=4,
+                               samples_per_condition=1,
                                cuda=True,
                                args=args)
 
