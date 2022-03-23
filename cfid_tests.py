@@ -134,12 +134,12 @@ def trace_sqrt_product_torch(sigma, sigma_v):
     """
 
     # Note sqrt_sigma is called "A" in the proof above
-    sqrt_sigma = sqrt_newton_schulz(sigma.unsqueeze(0), 50).squeeze() #symmetric_matrix_square_root_torch(sigma)
+    sqrt_sigma = symmetric_matrix_square_root_torch(sigma)
 
     # This is sqrt(A sigma_v A) above
     sqrt_a_sigmav_a = torch.matmul(sqrt_sigma, torch.matmul(sigma_v, sqrt_sigma))
 
-    return torch.trace(sqrt_newton_schulz(sqrt_a_sigmav_a.unsqueeze(0), 50).squeeze())#torch.trace(symmetric_matrix_square_root_torch(sqrt_a_sigmav_a))
+    return torch.trace(symmetric_matrix_square_root_torch(sqrt_a_sigmav_a))
 
 
 # **Estimators**
@@ -174,7 +174,7 @@ def sample_covariance_torch(a, b):
     return torch.matmul(torch.transpose(a, 0, 1), b) / N
 
 
-def get_cfid_torch(y_predict, x_true, y_true, np_inv=False):
+def get_cfid_torch(y_predict, x_true, y_true, np_inv=False, mat=False):
     # mean estimations
     m_y_predict = torch.mean(y_predict, dim=0)
     m_x_true = torch.mean(x_true, dim=0)
@@ -200,6 +200,9 @@ def get_cfid_torch(y_predict, x_true, y_true, np_inv=False):
     x_t_x = sample_covariance_torch(x_true - m_x_true, x_true - m_x_true)
     inv_c_x_true_x_true = torch.tensor(np.linalg.pinv(x_t_x.cpu().numpy())).to(y_true.device) if np_inv else torch.linalg.pinv(x_t_x)
 
+    if mat:
+        return c_y_predict_x_true.cpu().numpy(), c_y_predict_y_predict.cpu().numpy(), c_x_true_y_predict.cpu().numpy(), c_y_true_x_true.cpu().numpy(), c_x_true_y_true.cpu().numpy(), c_y_true_y_true.cpu().numpy()
+
     c_y_true_given_x_true = c_y_true_y_true - torch.matmul(c_y_true_x_true,
                                                            torch.matmul(inv_c_x_true_x_true, c_x_true_y_true))
 
@@ -219,7 +222,7 @@ def get_cfid_torch(y_predict, x_true, y_true, np_inv=False):
     return m_dist + c_dist1 + c_dist2, c_dist1.cpu().numpy(), other_temp.cpu().numpy(), c_dist2.cpu().numpy(), inv_c_x_true_x_true.cpu().numpy(), c_x_true_y_true_minus_c_x_true_y_predict.cpu().numpy()
 
 
-def get_cfid(y_predict, x_true, y_true, np_inv=False, torch_inv_matrix=None):
+def get_cfid(y_predict, x_true, y_true, np_inv=False, torch_inv_matrix=None, mat=False):
     assert ((y_predict.shape[0] == y_true.shape[0]) and (y_predict.shape[0] == x_true.shape[0]))
     assert ((y_predict.shape[1] == y_true.shape[1]) and (y_predict.shape[1] == x_true.shape[1]))
 
@@ -242,6 +245,8 @@ def get_cfid(y_predict, x_true, y_true, np_inv=False, torch_inv_matrix=None):
     inv_c_x_true_x_true = tf.convert_to_tensor(np.linalg.pinv(x_t_x.numpy())) if np_inv else sample_covariance(x_true - m_x_true, x_true - m_x_true, invert=True)
 
     # inv_c_x_true_x_true = tf.convert_to_tensor(torch_inv_matrix)
+    if mat:
+        return c_y_predict_x_true.numpy(), c_y_predict_y_predict.numpy(), c_x_true_y_predict.numpy(), c_y_true_x_true.numpy(), c_x_true_y_true.numpy(), c_y_true_y_true.numpy()
 
     # conditoinal mean and covariance estimations
     v = x_true - m_x_true
@@ -301,9 +306,24 @@ def torch_cov(m, rowvar=False):
 
 
 if __name__ == '__main__':
+    mat_test = False
     recon_embeds = torch.load('image_embeds_1100.pt')
     cond_embeds = torch.load('cond_embeds_1100.pt')
     gt_embeds = torch.load('true_embeds_1100.pt')
+
+    if mat_test:
+        m1_1, m2_1, m3_1, m4_1, m5_1, m6_1 = get_cfid_torch(recon_embeds, cond_embeds, gt_embeds, mat=mat_test)
+        m1_2, m2_2, m3_2, m4_2, m5_2, m6_2 = get_cfid(tf.convert_to_tensor(recon_embeds.cpu().numpy()),
+                                                        tf.convert_to_tensor(cond_embeds.cpu().numpy()),
+                                                        gt_embeds.cpu().numpy(), mat=mat_test)
+        print(np.linalg.norm(m1_1 - m1_2))
+        print(np.linalg.norm(m2_1 - m2_2))
+        print(np.linalg.norm(m3_1 - m3_2))
+        print(np.linalg.norm(m4_1 - m4_2))
+        print(np.linalg.norm(m5_1 - m5_2))
+        print(np.linalg.norm(m6_1 - m6_2))
+
+        exit()
 
     cfid1, c_dist_torch, c_dist_fro_norm, c_dist_2_pt, torch_mat, temp1 = get_cfid_torch(recon_embeds, cond_embeds, gt_embeds)
     cfid_np, c_dist_np, _, c_dist_2_np, _, _ = get_cfid_torch(recon_embeds, cond_embeds, gt_embeds, np_inv=True)
