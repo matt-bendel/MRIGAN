@@ -179,7 +179,7 @@ def get_cfid_torch(y_predict, x_true, y_true):
     n_m_y_pred = y_predict - m_y_predict
     new_temp = torch.matmul(no_m_y_true.t() - n_m_y_pred.t(), no_m_y_true - n_m_y_pred) / y_true.shape[0]
     c_dist_2_temp = torch.trace(new_temp)
-    other_temp = torch.norm((no_m_y_true.t() - n_m_y_pred.t()) / y_true.shape[0])**2
+    other_temp = torch.norm((no_m_y_true.t() - n_m_y_pred.t()))**2 / y_true.shape[0]
 
     inv_c_x_true_x_true = torch.linalg.pinv(sample_covariance_torch(x_true - m_x_true, x_true - m_x_true))
 
@@ -199,7 +199,7 @@ def get_cfid_torch(y_predict, x_true, y_true):
     c_dist2 = torch.trace(c_y_true_given_x_true + c_y_predict_given_x_true) - 2 * trace_sqrt_product_torch(
         c_y_predict_given_x_true, c_y_true_given_x_true)
 
-    return m_dist + c_dist1 + c_dist2, c_dist1.cpu().numpy(), c_dist_2_temp.cpu().numpy(), other_temp.cpu().numpy()
+    return m_dist + c_dist1 + c_dist2, c_dist1.cpu().numpy(), c_dist_2_temp.cpu().numpy(), other_temp.cpu().numpy(), inv_c_x_true_x_true.cpu().numpy(), c_y_true_y_true.cpu().numpy()
 
 
 def get_cfid(y_predict, x_true, y_true):
@@ -242,7 +242,7 @@ def get_cfid(y_predict, x_true, y_true):
     c_dist2 = tf.linalg.trace(c_y_true_given_x_true + c_y_predict_given_x_true) - 2 * trace_sqrt_product(
         c_y_predict_given_x_true, c_y_true_given_x_true)
 
-    return m_dist + c_dist1 + c_dist2, c_dist1.numpy()
+    return m_dist + c_dist1 + c_dist2, c_dist1.numpy(), inv_c_x_true_x_true.numpy(), c_y_true_y_true.numpy()
 
 
 # A pytorch implementation of cov, from Modar M. Alfadly
@@ -285,9 +285,9 @@ if __name__ == '__main__':
     cond_embeds = torch.load('cond_embeds_600.pt')
     gt_embeds = torch.load('true_embeds_600.pt')
 
-    cfid1, c_dist_torch, c_dist_theory, c_dist_fro_norm = get_cfid_torch(recon_embeds, cond_embeds, gt_embeds)
+    cfid1, c_dist_torch, c_dist_theory, c_dist_fro_norm, mat1_1, mat1_2 = get_cfid_torch(recon_embeds, cond_embeds, gt_embeds)
     with tf.device('/gpu:3'):
-        cfid2, c_dist_tf = get_cfid(tf.convert_to_tensor(recon_embeds.cpu().numpy()),
+        cfid2, c_dist_tf, mat2_1, mat2_2 = get_cfid(tf.convert_to_tensor(recon_embeds.cpu().numpy()),
                                   tf.convert_to_tensor(cond_embeds.cpu().numpy()), gt_embeds.cpu().numpy())
 
     print('CFID TORCH: ', cfid1)
@@ -296,3 +296,5 @@ if __name__ == '__main__':
     print('CDIST TF: ', c_dist_tf)
     print('CDIST THEORY: ', c_dist_theory)
     print('CDIST FRO NORM: ', c_dist_fro_norm)
+    print('INV MATRIX DIST: ', np.linalg.norm(mat1_1, mat2_1))
+    print('ARB MATRIX DIST: ', np.linalg.norm(mat1_2, mat2_2))
