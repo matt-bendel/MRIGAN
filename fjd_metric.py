@@ -289,14 +289,12 @@ class FJDMetric:
 
         mu_fake, sigma_fake = self._get_joint_statistics(image_embed, cond_embed)
 
-        # self.gen_embeds = tf.convert_to_tensor(image_embed.cpu().numpy())
-        # del image_embed
-        #
-        # self.cond_embeds = tf.convert_to_tensor(cond_embed.cpu().numpy())
-        # del cond_embed
-        #
-        # self.true_embeds = true_embed.cpu().numpy()
-        # del true_embed
+        # TODO: REMOVE
+        torch.save(image_embed, 'image_embeds_600.pt')
+        torch.save(cond_embed, 'cond_embeds_600.pt')
+        torch.save(true_embed, 'true_embeds_600.pt')
+
+        exit()
 
         self.gen_embeds = tf.convert_to_tensor(image_embed.cpu().numpy())
         del image_embed

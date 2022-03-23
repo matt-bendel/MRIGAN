@@ -201,7 +201,7 @@ def main(args):
         gan = get_gen(args)
         gan = GANWrapper(gan, args)
         print("COMPUTING METRIC")
-        fjd_metric = cfid_tests.FJDMetric(gan=gan,
+        fjd_metric = FJDMetric(gan=gan,
                                reference_loader=ref_loader,
                                condition_loader=cond_loader,
                                image_embedding=inception_embedding,
