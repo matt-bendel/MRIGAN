@@ -280,9 +280,9 @@ def torch_cov(m, rowvar=False):
 
 
 if __name__ == '__main__':
-    recon_embeds = torch.load('image_embeds_600.pt')
-    cond_embeds = torch.load('cond_embeds_600.pt')
-    gt_embeds = torch.load('true_embeds_600.pt')
+    recon_embeds = torch.load('image_embeds_800.pt')
+    cond_embeds = torch.load('cond_embeds_800.pt')
+    gt_embeds = torch.load('true_embeds_800.pt')
 
     cfid1, c_dist_torch, c_dist_fro_norm, c_dist_2_pt = get_cfid_torch(recon_embeds, cond_embeds, gt_embeds)
     cfid_np, c_dist_np, _, c_dist_2_np = get_cfid_torch(recon_embeds, cond_embeds, gt_embeds, np_inv=True)
