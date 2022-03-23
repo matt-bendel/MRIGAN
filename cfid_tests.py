@@ -177,9 +177,9 @@ def get_cfid_torch(y_predict, x_true, y_true):
 
     no_m_y_true = y_true - m_y_true
     n_m_y_pred = y_predict - m_y_predict
-    new_temp = torch.matmul(no_m_y_true.t() - n_m_y_pred.t(), no_m_y_true - n_m_y_pred)
+    new_temp = torch.matmul(no_m_y_true.t() - n_m_y_pred.t(), no_m_y_true - n_m_y_pred) / y_true.shape[0]
     c_dist_2_temp = torch.trace(new_temp)
-    other_temp = torch.norm(no_m_y_true.t() - n_m_y_pred.t())**2
+    other_temp = torch.norm((no_m_y_true.t() - n_m_y_pred.t()) / y_true.shape[0])**2
 
     inv_c_x_true_x_true = torch.linalg.pinv(sample_covariance_torch(x_true - m_x_true, x_true - m_x_true))
 
