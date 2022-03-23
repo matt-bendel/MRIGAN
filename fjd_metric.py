@@ -293,9 +293,9 @@ class FJDMetric:
         mu_fake, sigma_fake = self._get_joint_statistics(image_embed, cond_embed)
 
         # TODO: REMOVE
-        torch.save(image_embed, 'image_embeds_600.pt')
-        torch.save(cond_embed, 'cond_embeds_600.pt')
-        torch.save(true_embed, 'true_embeds_600.pt')
+        torch.save(image_embed, 'image_embeds_800.pt')
+        torch.save(cond_embed, 'cond_embeds_800.pt')
+        torch.save(true_embed, 'true_embeds_800.pt')
 
         exit()
 
