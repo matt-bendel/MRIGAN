@@ -156,7 +156,7 @@ def sample_covariance_torch(a, b):
     return torch.matmul(torch.transpose(a, 0, 1), b) / N
 
 
-def get_cfid_torch(y_predict, x_true, y_true):
+def get_cfid_torch(y_predict, x_true, y_true, np_inv=False):
     # mean estimations
     m_y_predict = torch.mean(y_predict, dim=0)
     m_x_true = torch.mean(x_true, dim=0)
@@ -180,7 +180,7 @@ def get_cfid_torch(y_predict, x_true, y_true):
     other_temp = torch.norm((no_m_y_true.t() - n_m_y_pred.t()))**2 / y_true.shape[0]
 
     x_t_x = sample_covariance_torch(x_true - m_x_true, x_true - m_x_true)
-    inv_c_x_true_x_true = torch.tensor(np.linalg.pinv(x_t_x.cpu().numpy())).to(y_true.device)#torch.linalg.pinv(x_t_x)
+    inv_c_x_true_x_true = torch.tensor(np.linalg.pinv(x_t_x.cpu().numpy())).to(y_true.device) if np_inv else torch.linalg.pinv(x_t_x)
 
     c_y_true_given_x_true = c_y_true_y_true - torch.matmul(c_y_true_x_true,
                                                            torch.matmul(inv_c_x_true_x_true, c_x_true_y_true))
@@ -198,7 +198,7 @@ def get_cfid_torch(y_predict, x_true, y_true):
     c_dist2 = torch.trace(c_y_true_given_x_true + c_y_predict_given_x_true) - 2 * trace_sqrt_product_torch(
         c_y_predict_given_x_true, c_y_true_given_x_true)
 
-    return m_dist + c_dist1 + c_dist2, c_dist1.cpu().numpy(), other_temp.cpu().numpy(), inv_c_x_true_x_true.cpu().numpy(), x_t_x.cpu().numpy()
+    return m_dist + c_dist1 + c_dist2, c_dist1.cpu().numpy(), other_temp.cpu().numpy(), c_dist2.cpu().numpy()
 
 
 def get_cfid(y_predict, x_true, y_true):
@@ -241,7 +241,7 @@ def get_cfid(y_predict, x_true, y_true):
     c_dist2 = tf.linalg.trace(c_y_true_given_x_true + c_y_predict_given_x_true) - 2 * trace_sqrt_product(
         c_y_predict_given_x_true, c_y_true_given_x_true)
 
-    return m_dist + c_dist1 + c_dist2, c_dist1.numpy(), inv_c_x_true_x_true.numpy()
+    return m_dist + c_dist1 + c_dist2, c_dist1.numpy(), c_dist2.numpy()
 
 
 # A pytorch implementation of cov, from Modar M. Alfadly
@@ -284,16 +284,27 @@ if __name__ == '__main__':
     cond_embeds = torch.load('cond_embeds_600.pt')
     gt_embeds = torch.load('true_embeds_600.pt')
 
-    cfid1, c_dist_torch, c_dist_fro_norm, mat1_1, np_mat = get_cfid_torch(recon_embeds, cond_embeds, gt_embeds)
+    cfid1, c_dist_torch, c_dist_fro_norm, c_dist_2_pt = get_cfid_torch(recon_embeds, cond_embeds, gt_embeds)
+    cfid_np, c_dist_np, _, c_dist_2_np = get_cfid_torch(recon_embeds, cond_embeds, gt_embeds)
     with tf.device('/gpu:3'):
-        cfid2, c_dist_tf, mat2_1 = get_cfid(tf.convert_to_tensor(recon_embeds.cpu().numpy()),
+        cfid2, c_dist_tf, c_dist_2_tf = get_cfid(tf.convert_to_tensor(recon_embeds.cpu().numpy()),
                                   tf.convert_to_tensor(cond_embeds.cpu().numpy()), gt_embeds.cpu().numpy())
 
-    print('CFID TORCH: ', cfid1)
-    print('CFID TF: ', cfid2)
-    print('CDIST TORCH: ', c_dist_torch)
-    print('CDIST TF: ', c_dist_tf)
-    print('CDIST FRO NORM: ', c_dist_fro_norm)
-    print('INV MATRIX DIST TF-PT: ', np.linalg.norm(mat1_1 - mat2_1))
-    print('INV MATRIX DIST TF-NP: ', np.linalg.norm(np.linalg.pinv(np_mat) - mat2_1))
-    print('INV MATRIX DIST PT-NP: ', np.linalg.norm(np.linalg.pinv(np_mat) - mat1_1))
+    print('CFID TORCH: ', cfid1.cpu().numpy())
+    print('CFID NP: ', cfid_np.cpu().numpy())
+    print('CFID TF: ', cfid2.numpy())
+
+    print('\n\n\n')
+
+    print('CDIST_1 TORCH: ', c_dist_torch)
+    print('CDIST_1 TF: ', c_dist_tf)
+    print('CDIST_1 NP: ', c_dist_np)
+    print('CDIST_1 FRO NORM: ', c_dist_fro_norm)
+
+    print('\n\n\n')
+
+    print('CDIST_2 TORCH: ', c_dist_2_pt)
+    print('CDIST_2 TF: ', c_dist_2_tf)
+    print('CDIST_2 NP: ', c_dist_2_np)
+
+    print('\n\n\n')
