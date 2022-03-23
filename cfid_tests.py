@@ -197,7 +197,7 @@ def get_cfid_torch(y_predict, x_true, y_true):
     c_dist2 = torch.trace(c_y_true_given_x_true + c_y_predict_given_x_true) - 2 * trace_sqrt_product_torch(
         c_y_predict_given_x_true, c_y_true_given_x_true)
 
-    return m_dist + c_dist1 + c_dist2, c_dist2.numpy(), c_dist_2_temp.numpy()
+    return m_dist + c_dist1 + c_dist2, c_dist2.cpu().numpy(), c_dist_2_temp.cpu().numpy()
 
 
 def get_cfid(y_predict, x_true, y_true):
