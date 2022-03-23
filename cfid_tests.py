@@ -201,7 +201,7 @@ def get_cfid_torch(y_predict, x_true, y_true, np_inv=False):
     return m_dist + c_dist1 + c_dist2, c_dist1.cpu().numpy(), other_temp.cpu().numpy(), c_dist2.cpu().numpy()
 
 
-def get_cfid(y_predict, x_true, y_true):
+def get_cfid(y_predict, x_true, y_true, np_inv=False):
     assert ((y_predict.shape[0] == y_true.shape[0]) and (y_predict.shape[0] == x_true.shape[0]))
     assert ((y_predict.shape[1] == y_true.shape[1]) and (y_predict.shape[1] == x_true.shape[1]))
 
@@ -220,7 +220,8 @@ def get_cfid(y_predict, x_true, y_true):
     c_x_true_y_true = sample_covariance(x_true - m_x_true, y_true - m_y_true)
     c_y_true_y_true = sample_covariance(y_true - m_y_true, y_true - m_y_true)
 
-    inv_c_x_true_x_true = sample_covariance(x_true - m_x_true, x_true - m_x_true, invert=True)
+    x_t_x = sample_covariance(x_true - m_x_true, x_true - m_x_true)
+    inv_c_x_true_x_true = tf.convert_to_tensor(np.linalg.pinv(x_t_x.numpy())) if np_inv else sample_covariance(x_true - m_x_true, x_true - m_x_true, invert=True)
 
     # conditoinal mean and covariance estimations
     v = x_true - m_x_true
@@ -288,7 +289,7 @@ if __name__ == '__main__':
     cfid_np, c_dist_np, _, c_dist_2_np = get_cfid_torch(recon_embeds, cond_embeds, gt_embeds, np_inv=True)
     with tf.device('/gpu:3'):
         cfid2, c_dist_tf, c_dist_2_tf = get_cfid(tf.convert_to_tensor(recon_embeds.cpu().numpy()),
-                                  tf.convert_to_tensor(cond_embeds.cpu().numpy()), gt_embeds.cpu().numpy())
+                                  tf.convert_to_tensor(cond_embeds.cpu().numpy()), gt_embeds.cpu().numpy(), np_inv=True)
 
     print('CFID TORCH: ', cfid1.cpu().numpy())
     print('CFID NP: ', cfid_np.cpu().numpy())
