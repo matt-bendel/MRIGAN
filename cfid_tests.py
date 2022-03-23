@@ -164,10 +164,6 @@ def get_cfid_torch(y_predict, x_true, y_true):
     print('SHAPE X: ', x_true.shape)
     print('RANK X: ', torch.matrix_rank(x_true))
 
-    new_temp = torch.matmul(y_true.t() - y_predict.t(), y_true - y_predict)
-    print(new_temp.shape)
-    c_dist_2_temp = torch.trace(new_temp)
-
     # covariance computations
     c_y_predict_x_true = sample_covariance_torch(y_predict - m_y_predict, x_true - m_x_true)
     c_y_predict_y_predict = sample_covariance_torch(y_predict - m_y_predict, y_predict - m_y_predict)
@@ -178,6 +174,10 @@ def get_cfid_torch(y_predict, x_true, y_true):
     c_y_true_x_true = sample_covariance_torch(y_true - m_y_true, x_true - m_x_true)
     c_x_true_y_true = sample_covariance_torch(x_true - m_x_true, y_true - m_y_true)
     c_y_true_y_true = sample_covariance_torch(y_true - m_y_true, y_true - m_y_true)
+
+    new_temp = torch.matmul(y_true.t() - y_predict.t(), y_true - y_predict)
+    print(new_temp.shape)
+    c_dist_2_temp = torch.trace(new_temp)
 
     inv_c_x_true_x_true = torch.linalg.pinv(sample_covariance_torch(x_true - m_x_true, x_true - m_x_true))
 
