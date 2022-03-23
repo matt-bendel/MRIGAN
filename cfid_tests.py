@@ -1,9 +1,6 @@
 # Copyright (c) Facebook, Inc. and its affiliates. All Rights Reserved.
-import os
 import torch
 import numpy as np
-from tqdm import tqdm
-from scipy import linalg
 import tensorflow as tf
 
 
@@ -273,15 +270,17 @@ def torch_cov(m, rowvar=False):
     mt = m.t()  # if complex: mt = m.t().conj()
     return fact * m.matmul(mt).squeeze()
 
-if __name__ == 'main':
+
+if __name__ == '__main__':
     recon_embeds = torch.load('image_embeds.pt')
     cond_embeds = torch.load('cond_embeds.pt')
     gt_embeds = torch.load('true_embeds.pt')
 
     cfid1, matrix1 = get_cfid_torch(recon_embeds, cond_embeds, gt_embeds)
     with tf.device('/gpu:3'):
-        cfid2, matrix2 = get_cfid(tf.convert_to_tensor(recon_embeds.cpu().numpy()), tf.convert_to_tensor(cond_embeds.cpu().numpy()), gt_embeds.cpu().numpy())
+        cfid2, matrix2 = get_cfid(tf.convert_to_tensor(recon_embeds.cpu().numpy()),
+                                  tf.convert_to_tensor(cond_embeds.cpu().numpy()), gt_embeds.cpu().numpy())
 
     print('CFID TORCH: ', cfid1)
     print('CFID TF: ', cfid2)
-    print('MATRIX ERROR: ', np.linalg.norm(matrix1 - matrix2)**2)
+    print('MATRIX ERROR: ', np.linalg.norm(matrix1 - matrix2) ** 2)
