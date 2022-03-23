@@ -279,6 +279,9 @@ class FJDMetric:
                                 image_embed.append(img_e.cpu().numpy())
                                 cond_embed.append(cond_e.cpu().numpy())
 
+            if i > 50:
+                break
+
         if self.cuda:
             true_embed = torch.cat(true_embed, dim=0)
             image_embed = torch.cat(image_embed, dim=0)
