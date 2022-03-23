@@ -161,6 +161,7 @@ def get_cfid_torch(y_predict, x_true, y_true):
     m_y_predict = torch.mean(y_predict, dim=0)
     m_x_true = torch.mean(x_true, dim=0)
 
+    print('SHAPE X: ', x_true.shape)
     print('RANK X: ', torch.matrix_rank(x_true))
 
     # covariance computations
