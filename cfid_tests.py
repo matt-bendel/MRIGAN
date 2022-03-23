@@ -275,9 +275,9 @@ def torch_cov(m, rowvar=False):
 
 
 if __name__ == '__main__':
-    recon_embeds = torch.load('image_embeds.pt')
-    cond_embeds = torch.load('cond_embeds.pt')
-    gt_embeds = torch.load('true_embeds.pt')
+    recon_embeds = torch.load('image_embeds_600.pt')
+    cond_embeds = torch.load('cond_embeds_600.pt')
+    gt_embeds = torch.load('true_embeds_600.pt')
 
     cfid1, matrix1 = get_cfid_torch(recon_embeds, cond_embeds, gt_embeds)
     with tf.device('/gpu:3'):

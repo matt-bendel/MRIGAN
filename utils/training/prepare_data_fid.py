@@ -195,7 +195,7 @@ def create_datasets(args, val_only):
         use_top_slices=True,
         number_of_top_slices=args.num_of_top_slices,
         restrict_size=False,
-        big_test=False
+        big_test=True
     )
 
     return dev_data, train_data
