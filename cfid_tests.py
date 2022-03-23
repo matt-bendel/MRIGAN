@@ -198,7 +198,7 @@ def get_cfid_torch(y_predict, x_true, y_true, np_inv=False):
     c_dist2 = torch.trace(c_y_true_given_x_true + c_y_predict_given_x_true) - 2 * trace_sqrt_product_torch(
         c_y_predict_given_x_true, c_y_true_given_x_true)
 
-    return m_dist + c_dist1 + c_dist2, c_dist1.cpu().numpy(), other_temp.cpu().numpy(), c_dist2.cpu().numpy(), inv_c_x_true_x_true.cpu().numpy(), c_y_true_x_true_minus_c_y_predict_x_true.cpu().numpy()
+    return m_dist + c_dist1 + c_dist2, c_dist1.cpu().numpy(), other_temp.cpu().numpy(), c_dist2.cpu().numpy(), inv_c_x_true_x_true.cpu().numpy(), c_x_true_y_true_minus_c_x_true_y_predict.cpu().numpy()
 
 
 def get_cfid(y_predict, x_true, y_true, np_inv=False, torch_inv_matrix=None):
@@ -244,7 +244,7 @@ def get_cfid(y_predict, x_true, y_true, np_inv=False, torch_inv_matrix=None):
     c_dist2 = tf.linalg.trace(c_y_true_given_x_true + c_y_predict_given_x_true) - 2 * trace_sqrt_product(
         c_y_predict_given_x_true, c_y_true_given_x_true)
 
-    return m_dist + c_dist1 + c_dist2, c_dist1.numpy(), c_dist2.numpy(), c_y_true_x_true_minus_c_y_predict_x_true.numpy()
+    return m_dist + c_dist1 + c_dist2, c_dist1.numpy(), c_dist2.numpy(), c_x_true_y_true_minus_c_x_true_y_predict.numpy()
 
 
 # A pytorch implementation of cov, from Modar M. Alfadly
