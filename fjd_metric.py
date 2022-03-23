@@ -279,7 +279,7 @@ class FJDMetric:
                                 image_embed.append(img_e.cpu().numpy())
                                 cond_embed.append(cond_e.cpu().numpy())
 
-            if i > 50:
+            if i > 70:
                 break
 
         if self.cuda:
@@ -293,9 +293,9 @@ class FJDMetric:
         mu_fake, sigma_fake = self._get_joint_statistics(image_embed, cond_embed)
 
         # TODO: REMOVE
-        torch.save(image_embed, 'image_embeds_800.pt')
-        torch.save(cond_embed, 'cond_embeds_800.pt')
-        torch.save(true_embed, 'true_embeds_800.pt')
+        torch.save(image_embed, 'image_embeds_1100.pt')
+        torch.save(cond_embed, 'cond_embeds_1100.pt')
+        torch.save(true_embed, 'true_embeds_1100.pt')
 
         exit()
 
