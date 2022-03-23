@@ -3,6 +3,24 @@ import torch
 import numpy as np
 import tensorflow as tf
 
+# Pytorch implementation of matrix sqrt, from Tsung-Yu Lin, and Subhransu Maji
+# https://github.com/msubhransu/matrix-sqrt
+def sqrt_newton_schulz(A, numIters, dtype=None):
+    with torch.no_grad():
+        if dtype is None:
+            dtype = A.type()
+        batchSize = A.shape[0]
+        dim = A.shape[1]
+        normA = A.mul(A).sum(dim=1).sum(dim=1).sqrt()
+        Y = A.div(normA.view(batchSize, 1, 1).expand_as(A)).to(A.device)
+        I = torch.eye(dim, dim).view(1, dim, dim).repeat(batchSize, 1, 1).type(dtype).to(A.device)
+        Z = torch.eye(dim, dim).view(1, dim, dim).repeat(batchSize, 1, 1).type(dtype).to(A.device)
+        for i in range(numIters):
+            T = 0.5 * (3.0 * I - Z.bmm(Y))
+            Y = Y.bmm(T)
+            Z = T.bmm(Z)
+        sA = Y * torch.sqrt(normA).view(batchSize, 1, 1).expand_as(A)
+    return sA
 
 def symmetric_matrix_square_root(mat, eps=1e-10):
     """Compute square root of a symmetric matrix.
@@ -116,12 +134,12 @@ def trace_sqrt_product_torch(sigma, sigma_v):
     """
 
     # Note sqrt_sigma is called "A" in the proof above
-    sqrt_sigma = symmetric_matrix_square_root_torch(sigma)
+    sqrt_sigma = sqrt_newton_schulz(sigma.unsqueeze(0), 50).squeeze() #symmetric_matrix_square_root_torch(sigma)
 
     # This is sqrt(A sigma_v A) above
     sqrt_a_sigmav_a = torch.matmul(sqrt_sigma, torch.matmul(sigma_v, sqrt_sigma))
 
-    return torch.trace(symmetric_matrix_square_root_torch(sqrt_a_sigmav_a))
+    return torch.trace(sqrt_newton_schulz(sqrt_a_sigmav_a.unsqueeze(0), 50).squeeze())#torch.trace(symmetric_matrix_square_root_torch(sqrt_a_sigmav_a))
 
 
 # **Estimators**
@@ -291,7 +309,7 @@ if __name__ == '__main__':
     cfid_np, c_dist_np, _, c_dist_2_np, _, _ = get_cfid_torch(recon_embeds, cond_embeds, gt_embeds, np_inv=True)
     with tf.device('/gpu:3'):
         cfid2, c_dist_tf, c_dist_2_tf, temp2 = get_cfid(tf.convert_to_tensor(recon_embeds.cpu().numpy()),
-                                  tf.convert_to_tensor(cond_embeds.cpu().numpy()), gt_embeds.cpu().numpy(), np_inv=False, torch_inv_matrix=torch_mat)
+                                  tf.convert_to_tensor(cond_embeds.cpu().numpy()), gt_embeds.cpu().numpy(), torch_inv_matrix=torch_mat)
 
     print(np.linalg.norm(temp1 - temp2))
     print('CFID TORCH: ', cfid1.cpu().numpy())
