@@ -198,10 +198,10 @@ def get_cfid_torch(y_predict, x_true, y_true, np_inv=False):
     c_dist2 = torch.trace(c_y_true_given_x_true + c_y_predict_given_x_true) - 2 * trace_sqrt_product_torch(
         c_y_predict_given_x_true, c_y_true_given_x_true)
 
-    return m_dist + c_dist1 + c_dist2, c_dist1.cpu().numpy(), other_temp.cpu().numpy(), c_dist2.cpu().numpy()
+    return m_dist + c_dist1 + c_dist2, c_dist1.cpu().numpy(), other_temp.cpu().numpy(), c_dist2.cpu().numpy(), inv_c_x_true_x_true.cpu().numpy()
 
 
-def get_cfid(y_predict, x_true, y_true, np_inv=False):
+def get_cfid(y_predict, x_true, y_true, np_inv=False, torch_inv_matrix=None):
     assert ((y_predict.shape[0] == y_true.shape[0]) and (y_predict.shape[0] == x_true.shape[0]))
     assert ((y_predict.shape[1] == y_true.shape[1]) and (y_predict.shape[1] == x_true.shape[1]))
 
@@ -222,6 +222,9 @@ def get_cfid(y_predict, x_true, y_true, np_inv=False):
 
     x_t_x = sample_covariance(x_true - m_x_true, x_true - m_x_true)
     inv_c_x_true_x_true = tf.convert_to_tensor(np.linalg.pinv(x_t_x.numpy())) if np_inv else sample_covariance(x_true - m_x_true, x_true - m_x_true, invert=True)
+
+    if torch_inv_matrix:
+        inv_c_x_true_x_true = tf.convert_to_tensor(torch_inv_matrix)
 
     # conditoinal mean and covariance estimations
     v = x_true - m_x_true
@@ -285,11 +288,11 @@ if __name__ == '__main__':
     cond_embeds = torch.load('cond_embeds_1100.pt')
     gt_embeds = torch.load('true_embeds_1100.pt')
 
-    cfid1, c_dist_torch, c_dist_fro_norm, c_dist_2_pt = get_cfid_torch(recon_embeds, cond_embeds, gt_embeds)
-    cfid_np, c_dist_np, _, c_dist_2_np = get_cfid_torch(recon_embeds, cond_embeds, gt_embeds, np_inv=True)
+    cfid1, c_dist_torch, c_dist_fro_norm, c_dist_2_pt, torch_mat = get_cfid_torch(recon_embeds, cond_embeds, gt_embeds)
+    cfid_np, c_dist_np, _, c_dist_2_np, _ = get_cfid_torch(recon_embeds, cond_embeds, gt_embeds, np_inv=True)
     with tf.device('/gpu:3'):
         cfid2, c_dist_tf, c_dist_2_tf = get_cfid(tf.convert_to_tensor(recon_embeds.cpu().numpy()),
-                                  tf.convert_to_tensor(cond_embeds.cpu().numpy()), gt_embeds.cpu().numpy(), np_inv=True)
+                                  tf.convert_to_tensor(cond_embeds.cpu().numpy()), gt_embeds.cpu().numpy(), np_inv=False, torch_inv_matrix=torch_mat)
 
     print('CFID TORCH: ', cfid1.cpu().numpy())
     print('CFID NP: ', cfid_np.cpu().numpy())
