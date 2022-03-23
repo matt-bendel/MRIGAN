@@ -223,8 +223,7 @@ def get_cfid(y_predict, x_true, y_true, np_inv=False, torch_inv_matrix=None):
     x_t_x = sample_covariance(x_true - m_x_true, x_true - m_x_true)
     inv_c_x_true_x_true = tf.convert_to_tensor(np.linalg.pinv(x_t_x.numpy())) if np_inv else sample_covariance(x_true - m_x_true, x_true - m_x_true, invert=True)
 
-    if torch_inv_matrix:
-        inv_c_x_true_x_true = tf.convert_to_tensor(torch_inv_matrix)
+    inv_c_x_true_x_true = tf.convert_to_tensor(torch_inv_matrix)
 
     # conditoinal mean and covariance estimations
     v = x_true - m_x_true
