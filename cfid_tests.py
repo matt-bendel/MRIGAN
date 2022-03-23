@@ -279,7 +279,8 @@ if __name__ == 'main':
     gt_embeds = torch.load('true_embeds.pt')
 
     cfid1, matrix1 = get_cfid_torch(recon_embeds, cond_embeds, gt_embeds)
-    cfid2, matrix2 = get_cfid(tf.convert_to_tensor(recon_embeds.cpu().numpy()), tf.convert_to_tensor(cond_embeds.cpu().numpy()), gt_embeds.cpu().numpy())
+    with tf.device('/gpu:3'):
+        cfid2, matrix2 = get_cfid(tf.convert_to_tensor(recon_embeds.cpu().numpy()), tf.convert_to_tensor(cond_embeds.cpu().numpy()), gt_embeds.cpu().numpy())
 
     print('CFID TORCH: ', cfid1)
     print('CFID TF: ', cfid2)
