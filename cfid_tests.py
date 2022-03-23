@@ -285,7 +285,7 @@ if __name__ == '__main__':
     gt_embeds = torch.load('true_embeds_600.pt')
 
     cfid1, c_dist_torch, c_dist_fro_norm, c_dist_2_pt = get_cfid_torch(recon_embeds, cond_embeds, gt_embeds)
-    cfid_np, c_dist_np, _, c_dist_2_np = get_cfid_torch(recon_embeds, cond_embeds, gt_embeds)
+    cfid_np, c_dist_np, _, c_dist_2_np = get_cfid_torch(recon_embeds, cond_embeds, gt_embeds, np_inv=True)
     with tf.device('/gpu:3'):
         cfid2, c_dist_tf, c_dist_2_tf = get_cfid(tf.convert_to_tensor(recon_embeds.cpu().numpy()),
                                   tf.convert_to_tensor(cond_embeds.cpu().numpy()), gt_embeds.cpu().numpy())
