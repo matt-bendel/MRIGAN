@@ -10,6 +10,7 @@ import torch
 import matplotlib.pyplot as plt
 import numpy as np
 import fjd_metric_langevin
+import cfid_tests
 
 from utils.general.helper import readd_measures_im
 from utils.training.prepare_data_fid import create_data_loaders
@@ -200,7 +201,7 @@ def main(args):
         gan = get_gen(args)
         gan = GANWrapper(gan, args)
         print("COMPUTING METRIC")
-        fjd_metric = FJDMetric(gan=gan,
+        fjd_metric = cfid_tests.FJDMetric(gan=gan,
                                reference_loader=ref_loader,
                                condition_loader=cond_loader,
                                image_embedding=inception_embedding,
