@@ -313,9 +313,10 @@ if __name__ == '__main__':
 
     if mat_test:
         m1_1, m2_1, m3_1, m4_1, m5_1, m6_1 = get_cfid_torch(recon_embeds, cond_embeds, gt_embeds, mat=mat_test)
-        m1_2, m2_2, m3_2, m4_2, m5_2, m6_2 = get_cfid(tf.convert_to_tensor(recon_embeds.cpu().numpy()),
-                                                        tf.convert_to_tensor(cond_embeds.cpu().numpy()),
-                                                        gt_embeds.cpu().numpy(), mat=mat_test)
+        with tf.device('/gpu:3'):
+            m1_2, m2_2, m3_2, m4_2, m5_2, m6_2 = get_cfid(tf.convert_to_tensor(recon_embeds.cpu().numpy()),
+                                                            tf.convert_to_tensor(cond_embeds.cpu().numpy()),
+                                                            gt_embeds.cpu().numpy(), mat=mat_test)
         print(np.linalg.norm(m1_1 - m1_2))
         print(np.linalg.norm(m2_1 - m2_2))
         print(np.linalg.norm(m3_1 - m3_2))
