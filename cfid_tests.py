@@ -188,7 +188,7 @@ def get_cfid_torch_svd(y_predict, x_true, y_true, np_inv=False, mat=False):
 
     u, s, vh = torch.linalg.svd(no_m_x_true.t(), full_matrices=False)
     v = vh.t()
-    c_dist_1 = torch.norm(torch.matmul(no_m_y_true.t() - no_m_y_pred.t(), v)) ** 2 / y_true.shape[0]
+    c_dist_1 = torch.norm(torch.matmul(no_m_y_true.t() - no_m_y_pred.t(), vh)) ** 2 / y_true.shape[0]
 
     v_t_v = torch.matmul(v, vh)
     y_pred_w_v_t_v = torch.matmul(no_m_y_pred.t(), torch.matmul(v_t_v, no_m_y_pred))
@@ -225,7 +225,7 @@ def get_cfid_torch(y_predict, x_true, y_true, np_inv=False, mat=False):
     no_m_x_true = x_true - m_x_true
 
     other_temp = torch.norm((no_m_y_true.t() - n_m_y_pred.t()))**2 / y_true.shape[0]
-    u, s, vh = torch.linalg.svd(no_m_x_true, full_matrices=False)
+    u, s, vh = torch.linalg.svd(no_m_x_true.t(), full_matrices=False)
     v = vh.t()
     #TODO: REMOVE TRANSPOSE IN DATA RICH SCENARIO
     svd_temp = torch.norm(torch.matmul(no_m_y_true.t() - n_m_y_pred.t(), v))**2 / y_true.shape[0]
@@ -255,54 +255,54 @@ def get_cfid_torch(y_predict, x_true, y_true, np_inv=False, mat=False):
 
     return m_dist + c_dist1 + c_dist2, c_dist1.cpu().numpy(), other_temp.cpu().numpy(), c_dist2.cpu().numpy(), inv_c_x_true_x_true.cpu().numpy(), svd_temp
 
-
-def get_cfid(y_predict, x_true, y_true, np_inv=False, torch_inv_matrix=None, mat=False):
-    assert ((y_predict.shape[0] == y_true.shape[0]) and (y_predict.shape[0] == x_true.shape[0]))
-    assert ((y_predict.shape[1] == y_true.shape[1]) and (y_predict.shape[1] == x_true.shape[1]))
-
-    # mean estimations
-    m_y_predict = tf.reduce_mean(y_predict, axis=0)
-    m_x_true = tf.reduce_mean(x_true, axis=0)
-
-    # covariance computations
-    c_y_predict_x_true = sample_covariance(y_predict - m_y_predict, x_true - m_x_true)
-    c_y_predict_y_predict = sample_covariance(y_predict - m_y_predict, y_predict - m_y_predict)
-    c_x_true_y_predict = sample_covariance(x_true - m_x_true, y_predict - m_y_predict)
-
-    y_true = tf.convert_to_tensor(y_true)
-    m_y_true = tf.reduce_mean(y_true, axis=0)
-    c_y_true_x_true = sample_covariance(y_true - m_y_true, x_true - m_x_true)
-    c_x_true_y_true = sample_covariance(x_true - m_x_true, y_true - m_y_true)
-    c_y_true_y_true = sample_covariance(y_true - m_y_true, y_true - m_y_true)
-
-    x_t_x = sample_covariance(x_true - m_x_true, x_true - m_x_true)
-    dtype = np.float32
-    inv_c_x_true_x_true = tf.convert_to_tensor(np.linalg.pinv(x_t_x.numpy(), rcond=10.*2048*np.finfo(dtype).eps)) if np_inv else sample_covariance(x_true - m_x_true, x_true - m_x_true, invert=True)
-
-    # inv_c_x_true_x_true = tf.convert_to_tensor(torch_inv_matrix)
-    if mat:
-        return c_y_predict_x_true.numpy(), c_y_predict_y_predict.numpy(), c_x_true_y_predict.numpy(), c_y_true_x_true.numpy(), c_x_true_y_true.numpy(), c_y_true_y_true.numpy()
-
-    # conditoinal mean and covariance estimations
-    v = x_true - m_x_true
-
-    A = tf.matmul(inv_c_x_true_x_true, tf.transpose(v))
-
-    c_y_true_given_x_true = c_y_true_y_true - tf.matmul(c_y_true_x_true,
-                                                        tf.matmul(inv_c_x_true_x_true, c_x_true_y_true))
-    c_y_predict_given_x_true = c_y_predict_y_predict - tf.matmul(c_y_predict_x_true,
-                                                                 tf.matmul(inv_c_x_true_x_true, c_x_true_y_predict))
-    c_y_true_x_true_minus_c_y_predict_x_true = c_y_true_x_true - c_y_predict_x_true
-    c_x_true_y_true_minus_c_x_true_y_predict = c_x_true_y_true - c_x_true_y_predict
-
-    # Distance between Gaussians
-    m_dist = tf.einsum('...k,...k->...', m_y_true - m_y_predict, m_y_true - m_y_predict)
-    c_dist1 = tf.linalg.trace(tf.matmul(tf.matmul(c_y_true_x_true_minus_c_y_predict_x_true, inv_c_x_true_x_true),
-                                        c_x_true_y_true_minus_c_x_true_y_predict))
-    c_dist2 = tf.linalg.trace(c_y_true_given_x_true + c_y_predict_given_x_true) - 2 * trace_sqrt_product(
-        c_y_predict_given_x_true, c_y_true_given_x_true)
-
-    return m_dist + c_dist1 + c_dist2, c_dist1.numpy(), c_dist2.numpy()
+#
+# def get_cfid(y_predict, x_true, y_true, np_inv=False, torch_inv_matrix=None, mat=False):
+#     assert ((y_predict.shape[0] == y_true.shape[0]) and (y_predict.shape[0] == x_true.shape[0]))
+#     assert ((y_predict.shape[1] == y_true.shape[1]) and (y_predict.shape[1] == x_true.shape[1]))
+#
+#     # mean estimations
+#     m_y_predict = tf.reduce_mean(y_predict, axis=0)
+#     m_x_true = tf.reduce_mean(x_true, axis=0)
+#
+#     # covariance computations
+#     c_y_predict_x_true = sample_covariance(y_predict - m_y_predict, x_true - m_x_true)
+#     c_y_predict_y_predict = sample_covariance(y_predict - m_y_predict, y_predict - m_y_predict)
+#     c_x_true_y_predict = sample_covariance(x_true - m_x_true, y_predict - m_y_predict)
+#
+#     y_true = tf.convert_to_tensor(y_true)
+#     m_y_true = tf.reduce_mean(y_true, axis=0)
+#     c_y_true_x_true = sample_covariance(y_true - m_y_true, x_true - m_x_true)
+#     c_x_true_y_true = sample_covariance(x_true - m_x_true, y_true - m_y_true)
+#     c_y_true_y_true = sample_covariance(y_true - m_y_true, y_true - m_y_true)
+#
+#     x_t_x = sample_covariance(x_true - m_x_true, x_true - m_x_true)
+#     dtype = np.float32
+#     inv_c_x_true_x_true = tf.convert_to_tensor(np.linalg.pinv(x_t_x.numpy(), rcond=10.*2048*np.finfo(dtype).eps)) if np_inv else sample_covariance(x_true - m_x_true, x_true - m_x_true, invert=True)
+#
+#     # inv_c_x_true_x_true = tf.convert_to_tensor(torch_inv_matrix)
+#     if mat:
+#         return c_y_predict_x_true.numpy(), c_y_predict_y_predict.numpy(), c_x_true_y_predict.numpy(), c_y_true_x_true.numpy(), c_x_true_y_true.numpy(), c_y_true_y_true.numpy()
+#
+#     # conditoinal mean and covariance estimations
+#     v = x_true - m_x_true
+#
+#     A = tf.matmul(inv_c_x_true_x_true, tf.transpose(v))
+#
+#     c_y_true_given_x_true = c_y_true_y_true - tf.matmul(c_y_true_x_true,
+#                                                         tf.matmul(inv_c_x_true_x_true, c_x_true_y_true))
+#     c_y_predict_given_x_true = c_y_predict_y_predict - tf.matmul(c_y_predict_x_true,
+#                                                                  tf.matmul(inv_c_x_true_x_true, c_x_true_y_predict))
+#     c_y_true_x_true_minus_c_y_predict_x_true = c_y_true_x_true - c_y_predict_x_true
+#     c_x_true_y_true_minus_c_x_true_y_predict = c_x_true_y_true - c_x_true_y_predict
+#
+#     # Distance between Gaussians
+#     m_dist = tf.einsum('...k,...k->...', m_y_true - m_y_predict, m_y_true - m_y_predict)
+#     c_dist1 = tf.linalg.trace(tf.matmul(tf.matmul(c_y_true_x_true_minus_c_y_predict_x_true, inv_c_x_true_x_true),
+#                                         c_x_true_y_true_minus_c_x_true_y_predict))
+#     c_dist2 = tf.linalg.trace(c_y_true_given_x_true + c_y_predict_given_x_true) - 2 * trace_sqrt_product(
+#         c_y_predict_given_x_true, c_y_true_given_x_true)
+#
+#     return m_dist + c_dist1 + c_dist2, c_dist1.numpy(), c_dist2.numpy()
 
 
 # A pytorch implementation of cov, from Modar M. Alfadly
