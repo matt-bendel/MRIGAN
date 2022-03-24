@@ -188,10 +188,9 @@ def get_cfid_torch_svd(y_predict, x_true, y_true, np_inv=False, mat=False):
 
     u, s, vh = torch.linalg.svd(no_m_x_true.t(), full_matrices=False)
     v = vh.t()
-    print(v.shape)
     c_dist_1 = torch.norm(torch.matmul(no_m_y_true.t() - no_m_y_pred.t(), v)) ** 2 / y_true.shape[0]
 
-    v_t_v = torch.matmul(vh, v)
+    v_t_v = torch.matmul(v, vh)
     y_pred_w_v_t_v = torch.matmul(no_m_y_pred.t(), torch.matmul(v_t_v, no_m_y_pred))
     y_true_w_v_t_v = torch.matmul(no_m_y_true.t(), torch.matmul(v_t_v, no_m_y_true))
 
@@ -209,7 +208,6 @@ def get_cfid_torch(y_predict, x_true, y_true, np_inv=False, mat=False):
     m_x_true = torch.mean(x_true, dim=0)
 
     print('SHAPE X: ', x_true.shape)
-    print('RANK X: ', torch.matrix_rank(x_true))
 
     # covariance computations
     c_y_predict_x_true = sample_covariance_torch(y_predict - m_y_predict, x_true - m_x_true)
