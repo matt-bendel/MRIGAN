@@ -348,6 +348,7 @@ if __name__ == '__main__':
     print('CDIST_1 TF: ', c_dist_tf)
     print('CDIST_1 NP: ', c_dist_np)
     print('CDIST_1 FRO NORM: ', c_dist_fro_norm)
+    print('CDIST_1 SVD: ', c_dist_svd)
 
     print('\n\n\n')
 
