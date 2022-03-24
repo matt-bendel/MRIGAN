@@ -342,9 +342,9 @@ def torch_cov(m, rowvar=False):
 
 if __name__ == '__main__':
     mat_test = False
-    recon_embeds = torch.load('image_embeds_1100.pt').to(dtype=torch.float64)
-    cond_embeds = torch.load('cond_embeds_1100.pt').to(dtype=torch.float64)
-    gt_embeds = torch.load('true_embeds_1100.pt').to(dtype=torch.float64)
+    recon_embeds = torch.load('image_embeds_1800.pt').to(dtype=torch.float64)
+    cond_embeds = torch.load('cond_embeds_1800.pt').to(dtype=torch.float64)
+    gt_embeds = torch.load('true_embeds_1800.pt').to(dtype=torch.float64)
 
     if mat_test:
         m1_1, m2_1, m3_1, m4_1, m5_1, m6_1 = get_cfid_torch(recon_embeds, cond_embeds, gt_embeds, mat=mat_test)
