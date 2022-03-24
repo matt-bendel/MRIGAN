@@ -309,9 +309,9 @@ def torch_cov(m, rowvar=False):
 
 if __name__ == '__main__':
     mat_test = False
-    recon_embeds = torch.load('image_embeds_1100.pt')
-    cond_embeds = torch.load('cond_embeds_1100.pt')
-    gt_embeds = torch.load('true_embeds_1100.pt')
+    recon_embeds = torch.load('image_embeds_800.pt')
+    cond_embeds = torch.load('cond_embeds_800.pt')
+    gt_embeds = torch.load('true_embeds_800.pt')
 
     if mat_test:
         m1_1, m2_1, m3_1, m4_1, m5_1, m6_1 = get_cfid_torch(recon_embeds, cond_embeds, gt_embeds, mat=mat_test)
@@ -334,7 +334,6 @@ if __name__ == '__main__':
         cfid2, c_dist_tf, c_dist_2_tf, temp2 = get_cfid(tf.convert_to_tensor(recon_embeds.cpu().numpy()),
                                   tf.convert_to_tensor(cond_embeds.cpu().numpy()), gt_embeds.cpu().numpy(), torch_inv_matrix=torch_mat)
 
-    print(np.linalg.norm(temp1 - temp2))
     print('CFID TORCH: ', cfid1.cpu().numpy())
     print('CFID NP: ', cfid_np.cpu().numpy())
     print('CFID TF: ', cfid2.numpy())
