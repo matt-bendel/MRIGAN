@@ -197,7 +197,7 @@ def get_cfid_torch(y_predict, x_true, y_true, np_inv=False, mat=False):
     n_m_y_pred = y_predict - m_y_predict
     other_temp = torch.norm((no_m_y_true.t() - n_m_y_pred.t()))**2 / y_true.shape[0]
     u, s, vh = torch.linalg.svd(x_true, full_matrices=False)
-    v = vh.mH
+    v = vh.mT
     #TODO: REMOVE TRANSPOSE IN DATA RICH SCENARIO
     svd_temp = torch.norm(torch.matmul(no_m_y_true.t() - n_m_y_pred.t(), v))**2 / y_true.shape[0]
 
@@ -319,41 +319,41 @@ if __name__ == '__main__':
 
     if mat_test:
         m1_1, m2_1, m3_1, m4_1, m5_1, m6_1 = get_cfid_torch(recon_embeds, cond_embeds, gt_embeds, mat=mat_test)
-        with tf.device('/gpu:3'):
-            m1_2, m2_2, m3_2, m4_2, m5_2, m6_2 = get_cfid(tf.convert_to_tensor(recon_embeds.cpu().numpy()),
-                                                            tf.convert_to_tensor(cond_embeds.cpu().numpy()),
-                                                            gt_embeds.cpu().numpy(), mat=mat_test)
-        print(np.linalg.norm(m1_1 - m1_2))
-        print(np.linalg.norm(m2_1 - m2_2))
-        print(np.linalg.norm(m3_1 - m3_2))
-        print(np.linalg.norm(m4_1 - m4_2))
-        print(np.linalg.norm(m5_1 - m5_2))
-        print(np.linalg.norm(m6_1 - m6_2))
+        # with tf.device('/gpu:3'):
+        #     m1_2, m2_2, m3_2, m4_2, m5_2, m6_2 = get_cfid(tf.convert_to_tensor(recon_embeds.cpu().numpy()),
+        #                                                     tf.convert_to_tensor(cond_embeds.cpu().numpy()),
+        #                                                     gt_embeds.cpu().numpy(), mat=mat_test)
+        # print(np.linalg.norm(m1_1 - m1_2))
+        # print(np.linalg.norm(m2_1 - m2_2))
+        # print(np.linalg.norm(m3_1 - m3_2))
+        # print(np.linalg.norm(m4_1 - m4_2))
+        # print(np.linalg.norm(m5_1 - m5_2))
+        # print(np.linalg.norm(m6_1 - m6_2))
 
         exit()
 
     cfid1, c_dist_torch, c_dist_fro_norm, c_dist_2_pt, torch_mat, c_dist_svd = get_cfid_torch(recon_embeds, cond_embeds, gt_embeds)
-    cfid_np, c_dist_np, _, c_dist_2_np, _, _ = get_cfid_torch(recon_embeds, cond_embeds, gt_embeds, np_inv=True)
-    with tf.device('/gpu:3'):
-        cfid2, c_dist_tf, c_dist_2_tf = get_cfid(tf.convert_to_tensor(recon_embeds.cpu().numpy()),
-                                  tf.convert_to_tensor(cond_embeds.cpu().numpy()), gt_embeds.cpu().numpy(), torch_inv_matrix=torch_mat)
+    # cfid_np, c_dist_np, _, c_dist_2_np, _, _ = get_cfid_torch(recon_embeds, cond_embeds, gt_embeds, np_inv=True)
+    # with tf.device('/gpu:3'):
+    #     cfid2, c_dist_tf, c_dist_2_tf = get_cfid(tf.convert_to_tensor(recon_embeds.cpu().numpy()),
+    #                               tf.convert_to_tensor(cond_embeds.cpu().numpy()), gt_embeds.cpu().numpy(), torch_inv_matrix=torch_mat)
 
     print('CFID TORCH: ', cfid1.cpu().numpy())
-    print('CFID NP: ', cfid_np.cpu().numpy())
-    print('CFID TF: ', cfid2.numpy())
+    # print('CFID NP: ', cfid_np.cpu().numpy())
+    # print('CFID TF: ', cfid2.numpy())
 
-    print('\n\n\n')
+    print('\n')
 
     print('CDIST_1 TORCH: ', c_dist_torch)
-    print('CDIST_1 TF: ', c_dist_tf)
-    print('CDIST_1 NP: ', c_dist_np)
+    # print('CDIST_1 TF: ', c_dist_tf)
+    # print('CDIST_1 NP: ', c_dist_np)
     print('CDIST_1 FRO NORM: ', c_dist_fro_norm)
     print('CDIST_1 SVD: ', c_dist_svd)
 
-    print('\n\n\n')
+    print('\n')
 
     print('CDIST_2 TORCH: ', c_dist_2_pt)
-    print('CDIST_2 TF: ', c_dist_2_tf)
-    print('CDIST_2 NP: ', c_dist_2_np)
+    # print('CDIST_2 TF: ', c_dist_2_tf)
+    # print('CDIST_2 NP: ', c_dist_2_np)
 
-    print('\n\n\n')
+    print('\n')
