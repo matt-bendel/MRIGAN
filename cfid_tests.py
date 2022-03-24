@@ -223,7 +223,7 @@ def get_cfid_torch(y_predict, x_true, y_true, np_inv=False, mat=False):
 
     no_m_y_true = y_true - m_y_true
     n_m_y_pred = y_predict - m_y_predict
-    n_m_x_true = x_true - m_x_true
+    no_m_x_true = x_true - m_x_true
 
     other_temp = torch.norm((no_m_y_true.t() - n_m_y_pred.t()))**2 / y_true.shape[0]
     u, s, vh = torch.linalg.svd(no_m_x_true, full_matrices=False)
@@ -363,7 +363,7 @@ if __name__ == '__main__':
         exit()
 
     cfid1, c_dist_torch, c_dist_fro_norm, c_dist_2_pt, torch_mat, c_dist_svd = get_cfid_torch(recon_embeds, cond_embeds, gt_embeds)
-    cfid_svd, cdist1_svd, cdist2 = get_cfid_torch_svd(recon_embeds, cond_embeds, gt_embeds)
+    cfid_svd, cdist1_svd, cdist2_svd = get_cfid_torch_svd(recon_embeds, cond_embeds, gt_embeds)
     # cfid_np, c_dist_np, _, c_dist_2_np, _, _ = get_cfid_torch(recon_embeds, cond_embeds, gt_embeds, np_inv=True)
     # with tf.device('/gpu:3'):
     #     cfid2, c_dist_tf, c_dist_2_tf = get_cfid(tf.convert_to_tensor(recon_embeds.cpu().numpy()),
