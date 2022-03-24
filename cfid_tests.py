@@ -188,7 +188,7 @@ def get_cfid_torch_svd(y_predict, x_true, y_true, np_inv=False, mat=False):
 
     u, s, vh = torch.linalg.svd(no_m_x_true.t(), full_matrices=False)
     v = vh.t()
-    c_dist_1 = torch.norm(torch.matmul(no_m_y_true.t() - no_m_y_pred.t(), vh)) ** 2 / y_true.shape[0]
+    c_dist_1 = torch.norm(torch.matmul(no_m_y_true.t() - no_m_y_pred.t(), v)) ** 2 / y_true.shape[0]
 
     v_t_v = torch.matmul(v, vh)
     y_pred_w_v_t_v = torch.matmul(no_m_y_pred.t(), torch.matmul(v_t_v, no_m_y_pred))
