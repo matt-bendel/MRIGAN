@@ -242,7 +242,8 @@ def get_cfid(y_predict, x_true, y_true, np_inv=False, torch_inv_matrix=None, mat
     c_y_true_y_true = sample_covariance(y_true - m_y_true, y_true - m_y_true)
 
     x_t_x = sample_covariance(x_true - m_x_true, x_true - m_x_true)
-    inv_c_x_true_x_true = tf.convert_to_tensor(np.linalg.pinv(x_t_x.numpy())) if np_inv else sample_covariance(x_true - m_x_true, x_true - m_x_true, invert=True)
+    dtype = np.float32
+    inv_c_x_true_x_true = tf.convert_to_tensor(np.linalg.pinv(x_t_x.numpy(), rcond=10.*2048*np.finfo(dtype).eps)) if np_inv else sample_covariance(x_true - m_x_true, x_true - m_x_true, invert=True)
 
     # inv_c_x_true_x_true = tf.convert_to_tensor(torch_inv_matrix)
     if mat:
