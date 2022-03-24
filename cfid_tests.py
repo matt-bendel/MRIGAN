@@ -196,6 +196,10 @@ def get_cfid_torch(y_predict, x_true, y_true, np_inv=False, mat=False):
     no_m_y_true = y_true - m_y_true
     n_m_y_pred = y_predict - m_y_predict
     other_temp = torch.norm((no_m_y_true.t() - n_m_y_pred.t()))**2 / y_true.shape[0]
+    u, s, vh = torch.linalg.svd(x_true, full_matrices=False)
+    v = vh.mH
+    #TODO: REMOVE TRANSPOSE IN DATA RICH SCENARIO
+    svd_temp = torch.norm(torch.matmul(no_m_y_true.t() - n_m_y_pred.t(), v))**2 / y_true.shape[0]
 
     x_t_x = sample_covariance_torch(x_true - m_x_true, x_true - m_x_true)
     dtype = np.float32
@@ -220,7 +224,7 @@ def get_cfid_torch(y_predict, x_true, y_true, np_inv=False, mat=False):
     c_dist2 = torch.trace(c_y_true_given_x_true + c_y_predict_given_x_true) - 2 * trace_sqrt_product_torch(
         c_y_predict_given_x_true, c_y_true_given_x_true)
 
-    return m_dist + c_dist1 + c_dist2, c_dist1.cpu().numpy(), other_temp.cpu().numpy(), c_dist2.cpu().numpy(), inv_c_x_true_x_true.cpu().numpy(), c_x_true_y_true_minus_c_x_true_y_predict.cpu().numpy()
+    return m_dist + c_dist1 + c_dist2, c_dist1.cpu().numpy(), other_temp.cpu().numpy(), c_dist2.cpu().numpy(), inv_c_x_true_x_true.cpu().numpy(), svd_temp
 
 
 def get_cfid(y_predict, x_true, y_true, np_inv=False, torch_inv_matrix=None, mat=False):
@@ -269,7 +273,7 @@ def get_cfid(y_predict, x_true, y_true, np_inv=False, torch_inv_matrix=None, mat
     c_dist2 = tf.linalg.trace(c_y_true_given_x_true + c_y_predict_given_x_true) - 2 * trace_sqrt_product(
         c_y_predict_given_x_true, c_y_true_given_x_true)
 
-    return m_dist + c_dist1 + c_dist2, c_dist1.numpy(), c_dist2.numpy(), c_x_true_y_true_minus_c_x_true_y_predict.numpy()
+    return m_dist + c_dist1 + c_dist2, c_dist1.numpy(), c_dist2.numpy()
 
 
 # A pytorch implementation of cov, from Modar M. Alfadly
@@ -309,9 +313,9 @@ def torch_cov(m, rowvar=False):
 
 if __name__ == '__main__':
     mat_test = False
-    recon_embeds = torch.load('image_embeds_800.pt')
-    cond_embeds = torch.load('cond_embeds_800.pt')
-    gt_embeds = torch.load('true_embeds_800.pt')
+    recon_embeds = torch.load('image_embeds_800.pt').to(dtype=torch.float64)
+    cond_embeds = torch.load('cond_embeds_800.pt').to(dtype=torch.float64)
+    gt_embeds = torch.load('true_embeds_800.pt').to(dtype=torch.float64)
 
     if mat_test:
         m1_1, m2_1, m3_1, m4_1, m5_1, m6_1 = get_cfid_torch(recon_embeds, cond_embeds, gt_embeds, mat=mat_test)
@@ -328,10 +332,10 @@ if __name__ == '__main__':
 
         exit()
 
-    cfid1, c_dist_torch, c_dist_fro_norm, c_dist_2_pt, torch_mat, temp1 = get_cfid_torch(recon_embeds, cond_embeds, gt_embeds)
+    cfid1, c_dist_torch, c_dist_fro_norm, c_dist_2_pt, torch_mat, c_dist_svd = get_cfid_torch(recon_embeds, cond_embeds, gt_embeds)
     cfid_np, c_dist_np, _, c_dist_2_np, _, _ = get_cfid_torch(recon_embeds, cond_embeds, gt_embeds, np_inv=True)
     with tf.device('/gpu:3'):
-        cfid2, c_dist_tf, c_dist_2_tf, temp2 = get_cfid(tf.convert_to_tensor(recon_embeds.cpu().numpy()),
+        cfid2, c_dist_tf, c_dist_2_tf = get_cfid(tf.convert_to_tensor(recon_embeds.cpu().numpy()),
                                   tf.convert_to_tensor(cond_embeds.cpu().numpy()), gt_embeds.cpu().numpy(), torch_inv_matrix=torch_mat)
 
     print('CFID TORCH: ', cfid1.cpu().numpy())

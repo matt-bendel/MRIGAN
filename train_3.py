@@ -488,8 +488,8 @@ def main(args):
                         output = output.cpu().numpy()
                         target = target.cpu().numpy()
 
-                        losses['ssim'].append(ssim(target, output))
-                        losses['psnr'].append(psnr(target, output))
+                        losses['ssim'].append(ssim(target, ims[k]))
+                        losses['psnr'].append(psnr(target, ims[k]))
 
                         if i + 1 == 1 and k == 2:
                             gen_im_list = []
