@@ -197,7 +197,7 @@ def main(args):
         args.patches = False
         ref_loader, cond_loader = create_data_loaders(args)
 
-        args.z_location = 1
+        args.z_location = 8
         gan = get_gen(args)
         gan = GANWrapper(gan, args)
         print("COMPUTING METRIC")
