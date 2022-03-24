@@ -197,7 +197,7 @@ def get_cfid_torch(y_predict, x_true, y_true, np_inv=False, mat=False):
     n_m_y_pred = y_predict - m_y_predict
     other_temp = torch.norm((no_m_y_true.t() - n_m_y_pred.t()))**2 / y_true.shape[0]
     u, s, vh = torch.linalg.svd(x_true, full_matrices=False)
-    v = vh.mT
+    v = vh.t()
     #TODO: REMOVE TRANSPOSE IN DATA RICH SCENARIO
     svd_temp = torch.norm(torch.matmul(no_m_y_true.t() - n_m_y_pred.t(), v))**2 / y_true.shape[0]
 
