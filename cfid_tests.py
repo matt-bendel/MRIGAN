@@ -199,7 +199,7 @@ def get_cfid_torch(y_predict, x_true, y_true, np_inv=False, mat=False):
 
     x_t_x = sample_covariance_torch(x_true - m_x_true, x_true - m_x_true)
     dtype = np.float32
-    inv_c_x_true_x_true = torch.tensor(np.linalg.pinv(x_t_x.cpu().numpy(), rcond=10.*2048*np.finfo(dtype).eps)).to(y_true.device) if np_inv else torch.linalg.pinv(x_t_x, rtol=10.*2048*np.finfo(dtype).eps)
+    inv_c_x_true_x_true = torch.tensor(np.linalg.pinv(x_t_x.cpu().numpy(), rcond=10.*2048*np.finfo(dtype).eps)).to(y_true.device) if np_inv else torch.linalg.pinv(x_t_x, rcond=10.*2048*np.finfo(dtype).eps)
 
     if mat:
         return c_y_predict_x_true.cpu().numpy(), c_y_predict_y_predict.cpu().numpy(), c_x_true_y_predict.cpu().numpy(), c_y_true_x_true.cpu().numpy(), c_x_true_y_true.cpu().numpy(), c_y_true_y_true.cpu().numpy()
