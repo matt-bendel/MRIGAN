@@ -173,6 +173,34 @@ def sample_covariance_torch(a, b):
     N = a.shape[0]
     return torch.matmul(torch.transpose(a, 0, 1), b) / N
 
+def get_cfid_torch_svd(y_predict, x_true, y_true, np_inv=False, mat=False):
+    # mean estimations
+    y_true = y_true.to(x_true.device)
+    m_y_predict = torch.mean(y_predict, dim=0)
+    m_x_true = torch.mean(x_true, dim=0)
+    m_y_true = torch.mean(y_true, dim=0)
+
+    no_m_y_true = y_true - m_y_true
+    no_m_y_pred = y_predict - m_y_predict
+    no_m_x_true = x_true - m_x_true
+
+    m_dist = torch.einsum('...k,...k->...', m_y_true - m_y_predict, m_y_true - m_y_predict)
+
+    u, s, vh = torch.linalg.svd(no_m_x_true, full_matrices=False)
+    v = vh.t()
+    c_dist_1 = torch.norm(torch.matmul(no_m_y_true.t() - no_m_y_pred.t(), v)) ** 2 / y_true.shape[0]
+
+    v_t_v = torch.matmul(vh, v)
+    y_pred_w_v_t_v = torch.matmul(no_m_y_pred.t(), torch.matmul(v_t_v, no_m_y_pred))
+    y_true_w_v_t_v = torch.matmul(no_m_y_true.t(), torch.matmul(v_t_v, no_m_y_true))
+
+    c_y_true_given_x_true = 1 / y_true.shape[0] * (torch.matmul(no_m_y_true.t(), no_m_y_true) - y_true_w_v_t_v)
+    c_y_predict_given_x_true = 1 / y_true.shape[0] * (torch.matmul(no_m_y_pred.t(), no_m_y_pred) - y_pred_w_v_t_v)
+
+    c_dist_2 = torch.trace(c_y_true_given_x_true + c_y_predict_given_x_true) - 2 * trace_sqrt_product_torch(
+        c_y_predict_given_x_true, c_y_true_given_x_true)
+
+    return m_dist + c_dist_1 + c_dist_2, c_dist_1.cpu().numpy(), c_dist_2.cpu().numpy()
 
 def get_cfid_torch(y_predict, x_true, y_true, np_inv=False, mat=False):
     # mean estimations
@@ -195,8 +223,10 @@ def get_cfid_torch(y_predict, x_true, y_true, np_inv=False, mat=False):
 
     no_m_y_true = y_true - m_y_true
     n_m_y_pred = y_predict - m_y_predict
+    n_m_x_true = x_true - m_x_true
+
     other_temp = torch.norm((no_m_y_true.t() - n_m_y_pred.t()))**2 / y_true.shape[0]
-    u, s, vh = torch.linalg.svd(x_true, full_matrices=False)
+    u, s, vh = torch.linalg.svd(no_m_x_true, full_matrices=False)
     v = vh.t()
     #TODO: REMOVE TRANSPOSE IN DATA RICH SCENARIO
     svd_temp = torch.norm(torch.matmul(no_m_y_true.t() - n_m_y_pred.t(), v))**2 / y_true.shape[0]
@@ -333,19 +363,20 @@ if __name__ == '__main__':
         exit()
 
     cfid1, c_dist_torch, c_dist_fro_norm, c_dist_2_pt, torch_mat, c_dist_svd = get_cfid_torch(recon_embeds, cond_embeds, gt_embeds)
+    cfid_svd, cdist1_svd, cdist2 = get_cfid_torch_svd(recon_embeds, cond_embeds, gt_embeds)
     # cfid_np, c_dist_np, _, c_dist_2_np, _, _ = get_cfid_torch(recon_embeds, cond_embeds, gt_embeds, np_inv=True)
     # with tf.device('/gpu:3'):
     #     cfid2, c_dist_tf, c_dist_2_tf = get_cfid(tf.convert_to_tensor(recon_embeds.cpu().numpy()),
     #                               tf.convert_to_tensor(cond_embeds.cpu().numpy()), gt_embeds.cpu().numpy(), torch_inv_matrix=torch_mat)
 
     print('CFID TORCH: ', cfid1.cpu().numpy())
-    # print('CFID NP: ', cfid_np.cpu().numpy())
+    print('CFID TORCH SVD: ', cfid_svd.cpu().numpy())
     # print('CFID TF: ', cfid2.numpy())
 
     print('\n')
 
     print('CDIST_1 TORCH: ', c_dist_torch)
-    # print('CDIST_1 TF: ', c_dist_tf)
+    print('CDIST_1 TORCH SVD: ', cdist1_svd)
     # print('CDIST_1 NP: ', c_dist_np)
     print('CDIST_1 FRO NORM: ', c_dist_fro_norm)
     print('CDIST_1 SVD: ', c_dist_svd)
@@ -353,6 +384,7 @@ if __name__ == '__main__':
     print('\n')
 
     print('CDIST_2 TORCH: ', c_dist_2_pt)
+    print('CDIST_2 TORCH SVD: ', cdist2_svd)
     # print('CDIST_2 TF: ', c_dist_2_tf)
     # print('CDIST_2 NP: ', c_dist_2_np)
 
