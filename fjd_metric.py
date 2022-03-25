@@ -291,7 +291,7 @@ class FJDMetric:
         mu_fake, sigma_fake = self._get_joint_statistics(image_embed, cond_embed)
 
         # TODO: REMOVE
-        out_dir = f'/storage/fatMRI_brain_T2_embeddings/{self.samples_per_condition}_sample/{self.args.num_patches**2}_patch/'
+        out_dir = f'/storage/fastMRI_brain_T2_embeddings/{self.samples_per_condition}_sample/{self.args.num_patches**2}_patch/'
         for l in range(26):
             torch.save(image_embed[l*72:(l+1):72], out_dir + f'image_embeds_model={self.args.z_location}_fold={l+1}.pt')
             torch.save(cond_embed[l*72:(l+1):72], out_dir + f'cond_embeds__model={self.args.z_location}_fold={l+1}.pt')
