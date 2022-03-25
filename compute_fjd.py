@@ -268,7 +268,7 @@ def main(args):
                 args.patches = True
             print("PATCHES ", args.num_patches)
             ref_loader, cond_loader = get_dataloaders(args)
-            for j in range(9):
+            for j in range(8):
                 # if j == 0 or j == 5 or j == 6:
                 #     continue
                 args.z_location = j+1
