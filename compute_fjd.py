@@ -271,7 +271,7 @@ def main(args):
             for j in range(9):
                 # if j == 0 or j == 5 or j == 6:
                 #     continue
-                args.z_location = 7
+                args.z_location = j+1
                 args.adler = True if j > 5 and j != 8 else False
                 if j == 8:
                     args.inpaint = True
