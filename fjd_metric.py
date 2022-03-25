@@ -219,7 +219,7 @@ class FJDMetric:
         else:
             joint_embed = np.concatenate([image_embed, cond_embed], axis=1)
         mu, sigma = get_embedding_statistics(joint_embed, cuda=self.cuda)
-        del joint_embed
+
         return mu, sigma
 
     def _calculate_alpha(self, image_embed, cond_embed):
@@ -307,6 +307,8 @@ class FJDMetric:
         del true_embed
 
         self.mu_fake, self.sigma_fake = mu_fake, sigma_fake
+        print(torch.isnan(self.mu_fake))
+        print(torch.isnan(self.sigma_fake))
         return mu_fake, sigma_fake
 
     def _get_reference_distribution(self):
@@ -323,6 +325,8 @@ class FJDMetric:
             mu_real, sigma_real = self._compute_reference_distribution()
 
         self.mu_real, self.sigma_real = mu_real.to('cuda:3'), sigma_real.to('cuda:3')
+        print(torch.isnan(self.mu_real))
+        print(torch.isnan(self.sigma_real))
         return mu_real, sigma_real
 
     def _compute_reference_distribution(self, cfid=False):
