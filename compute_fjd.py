@@ -197,7 +197,7 @@ def main(args):
         args.patches = False
         ref_loader, cond_loader = create_data_loaders(args)
 
-        args.z_location = 8
+        args.z_location = 1
         gan = get_gen(args)
         gan = GANWrapper(gan, args)
         print("COMPUTING METRIC")
@@ -208,7 +208,7 @@ def main(args):
                                condition_embedding=inception_embedding,
                                reference_stats_path=f'ref_stats_{args.num_patches}.npz' if args.patches else 'ref_stats.npz',
                                save_reference_stats=True,
-                               samples_per_condition=1,
+                               samples_per_condition=8,
                                cuda=True,
                                args=args)
 
