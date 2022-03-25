@@ -191,7 +191,7 @@ def main(args):
     print("GETTING GENERATOR")
     max = 6 if not args.inpaint and not args.adler else 1
     Langevin = False
-    cfid_test = True
+    cfid_test = False
 
     if cfid_test:
         args.patches = False
@@ -260,7 +260,7 @@ def main(args):
 
     if args.patches and not args.inpaint:
         num_samps = 32
-        for i in range(2):
+        for i in range(3):
             args.num_patches = 2**i
             if args.num_patches == 1:
                 args.patches = False
@@ -307,7 +307,7 @@ def main(args):
                 del fjd_metric.reference_loader
                 del fjd_metric.condition_loader
                 del fjd_metric.gan
-                cfid_val = fjd_metric.get_cfid()
+                cfid_val = fjd_metric.get_cfid_torch()
                 print('CFID: ', cfid_val)
                 del fjd_metric
             del ref_loader
@@ -354,7 +354,7 @@ def main(args):
             del fjd_metric
 
     else:
-        for i in range(1):
+        for i in range(8):
             num_samps = 32
             args.z_location = i + 1
             args.inpaint = True
