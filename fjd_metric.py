@@ -297,8 +297,6 @@ class FJDMetric:
             torch.save(cond_embed[l*72:(l+1):72], out_dir + f'cond_embeds__model={self.args.z_location}_fold={l+1}.pt')
             torch.save(true_embed[l*72:(l+1):72], out_dir + f'true_embeds__model={self.args.z_location}_fold={l+1}.pt')
 
-        exit()
-
         self.gen_embeds = image_embed
         del image_embed
 
@@ -309,8 +307,6 @@ class FJDMetric:
         del true_embed
 
         self.mu_fake, self.sigma_fake = mu_fake, sigma_fake
-        print(torch.isnan(self.mu_fake))
-        print(torch.isnan(self.sigma_fake))
         return mu_fake, sigma_fake
 
     def _get_reference_distribution(self):
@@ -327,8 +323,7 @@ class FJDMetric:
             mu_real, sigma_real = self._compute_reference_distribution()
 
         self.mu_real, self.sigma_real = mu_real.to('cuda:3'), sigma_real.to('cuda:3')
-        print(torch.isnan(self.mu_real))
-        print(torch.isnan(self.sigma_real))
+
         return mu_real, sigma_real
 
     def _compute_reference_distribution(self, cfid=False):
