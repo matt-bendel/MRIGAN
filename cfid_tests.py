@@ -201,7 +201,9 @@ def get_cfid_torch_svd(y_predict, x_true, y_true, np_inv=False, mat=False):
     c_dist_2 = torch.trace(c_y_true_given_x_true + c_y_predict_given_x_true) - 2 * trace_sqrt_product_torch(
         c_y_predict_given_x_true, c_y_true_given_x_true)
 
-    return m_dist + c_dist_1 + c_dist_2, c_dist_1.cpu().numpy(), c_dist_2.cpu().numpy()
+    cfid = m_dist + c_dist_1 + c_dist_2
+
+    return cfid.cpu().numpy(), c_dist_1.cpu().numpy(), c_dist_2.cpu().numpy()
 
 def get_cfid_torch(y_predict, x_true, y_true, np_inv=False, mat=False):
     # mean estimations
