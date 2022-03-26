@@ -259,7 +259,7 @@ def main(args):
         exit()
 
     if args.patches and not args.inpaint:
-        num_samps = 1
+        num_samps = 4
         for i in range(3):
             args.num_patches = 2**i
             if args.num_patches == 1:
