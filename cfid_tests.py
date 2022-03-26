@@ -424,7 +424,7 @@ if __name__ == '__main__':
                 print('Mean CFID: ', temp_mean)
                 print('Std. Dev. CFID: ', temp_std)
                 print('\n')
-                metrics_for_plot[z_loc]['mean'].append(temp_mean)
+                metrics_for_plot[z_loc]['means'].append(temp_mean)
                 metrics_for_plot[z_loc]['std_devs'].append(temp_std)
 
             print('\n')
