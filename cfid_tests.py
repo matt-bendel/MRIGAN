@@ -208,8 +208,6 @@ def get_cfid_torch(y_predict, x_true, y_true, np_inv=False, mat=False):
     m_y_predict = torch.mean(y_predict, dim=0)
     m_x_true = torch.mean(x_true, dim=0)
 
-    print('SHAPE X: ', x_true.shape)
-
     # covariance computations
     c_y_predict_x_true = sample_covariance_torch(y_predict - m_y_predict, x_true - m_x_true)
     c_y_predict_y_predict = sample_covariance_torch(y_predict - m_y_predict, y_predict - m_y_predict)
