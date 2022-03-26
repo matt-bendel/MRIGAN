@@ -387,7 +387,7 @@ if __name__ == '__main__':
             }
         }
         for j in range(3):
-            num_patches = j**2
+            num_patches = (j+1)**2
             second_title = f'{num_patches} Patch(es)'
             print(second_title)
             metrics = {
