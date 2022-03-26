@@ -411,8 +411,8 @@ if __name__ == '__main__':
                 for l in range(26):
                     read_dir = out_dir + f'image_embeds_model={z_loc}_fold={l+1}.pt'
                     recon_embeds = torch.load(out_dir + f'image_embeds_model={z_loc}_fold={l+1}.pt').to(dtype=torch.float64)
-                    cond_embeds = torch.load(out_dir + f'cond_embeds_model={z_loc}_fold={l+1}.pt').to(dtype=torch.float64)
-                    gt_embeds = torch.load(out_dir + f'true_embeds_model={z_loc}_fold={l+1}.pt').to(dtype=torch.float64)
+                    cond_embeds = torch.load(out_dir + f'cond_embeds__model={z_loc}_fold={l+1}.pt').to(dtype=torch.float64)
+                    gt_embeds = torch.load(out_dir + f'true_embeds__model={z_loc}_fold={l+1}.pt').to(dtype=torch.float64)
 
                     cfid_svd, cdist1_svd, cdist2_svd = get_cfid_torch_svd(recon_embeds, cond_embeds, gt_embeds)
                     metrics[z_loc].append(cfid_svd)
