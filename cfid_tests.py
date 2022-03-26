@@ -434,7 +434,7 @@ if __name__ == '__main__':
             plt.errorbar(x_axis, metrics_for_plot[z_loc]['mean'], yerr=metrics_for_plot[z_loc]['std_devs'])
 
         plt.xlabel('Number of Patches')
-        plt.ylabel('CFID')
+        plt.ylabel('Mean CFID (26 Folds)')
         plt.title(f'CFID vs. Number of Patches for {num_samps} Sample(s)')
         plt.legend(labels, loc='upper right')
         plt.savefig(f'/home/bendel.8/Git_Repos/full_scale_mrigan/MRIGAN/ablation_plots/cfid_{num_samps}.png')
