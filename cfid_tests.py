@@ -2,6 +2,7 @@
 import torch
 import numpy as np
 import tensorflow as tf
+import matplotlib.pyplot as plt
 
 # Pytorch implementation of matrix sqrt, from Tsung-Yu Lin, and Subhransu Maji
 # https://github.com/msubhransu/matrix-sqrt
@@ -253,7 +254,8 @@ def get_cfid_torch(y_predict, x_true, y_true, np_inv=False, mat=False):
     c_dist2 = torch.trace(c_y_true_given_x_true + c_y_predict_given_x_true) - 2 * trace_sqrt_product_torch(
         c_y_predict_given_x_true, c_y_true_given_x_true)
 
-    return m_dist + c_dist1 + c_dist2, c_dist1.cpu().numpy(), other_temp.cpu().numpy(), c_dist2.cpu().numpy(), inv_c_x_true_x_true.cpu().numpy(), svd_temp
+    cfid = m_dist + c_dist1 + c_dist2
+    return cfid.cpu().numpy(), c_dist1.cpu().numpy(), other_temp.cpu().numpy(), c_dist2.cpu().numpy(), inv_c_x_true_x_true.cpu().numpy(), svd_temp
 
 #
 # def get_cfid(y_predict, x_true, y_true, np_inv=False, torch_inv_matrix=None, mat=False):
@@ -341,50 +343,99 @@ def torch_cov(m, rowvar=False):
 
 
 if __name__ == '__main__':
-    mat_test = False
-    recon_embeds = torch.load('image_embeds_14000.pt').to(dtype=torch.float64)
-    cond_embeds = torch.load('cond_embeds_14000.pt').to(dtype=torch.float64)
-    gt_embeds = torch.load('true_embeds_14000.pt').to(dtype=torch.float64)
+    rows = 1
+    cols = 3
+    labels = ['Full', '-Adversarial', '-Supervised', '-Variance Reward', '-DC', '-DI', 'Full (2)', 'Adler']
+    x_axis = [1, 4, 16]
+    # Number of Samples
+    for i in range(1):
+        num_samps = 1 if i == 0 else (4 if i == 1 else 8)
+        top_title = f'{num_samps} Sample(s)'
+        print(top_title)
+        # Number of Patches
+        fig = plt.figure()
+        metrics_for_plot = {
+            '1': {
+                'means': [],
+                'std_devs': []
+            },
+            '2': {
+                'means': [],
+                'std_devs': []
+            },
+            '3': {
+                'means': [],
+                'std_devs': []
+            },
+            '4': {
+                'means': [],
+                'std_devs': []
+            },
+            '5': {
+                'means': [],
+                'std_devs': []
+            },
+            '6': {
+                'means': [],
+                'std_devs': []
+            },
+            '7': {
+                'means': [],
+                'std_devs': []
+            },
+            '8': {
+                'means': [],
+                'std_devs': []
+            }
+        }
+        for j in range(3):
+            num_patches = j**2
+            second_title = f'{num_patches} Patch(es)'
+            print(second_title)
+            metrics = {
+                '1': [],
+                '2': [],
+                '3': [],
+                '4': [],
+                '5': [],
+                '6': [],
+                '7': [],
+                '8': []
+            }
 
-    if mat_test:
-        m1_1, m2_1, m3_1, m4_1, m5_1, m6_1 = get_cfid_torch(recon_embeds, cond_embeds, gt_embeds, mat=mat_test)
-        # with tf.device('/gpu:3'):
-        #     m1_2, m2_2, m3_2, m4_2, m5_2, m6_2 = get_cfid(tf.convert_to_tensor(recon_embeds.cpu().numpy()),
-        #                                                     tf.convert_to_tensor(cond_embeds.cpu().numpy()),
-        #                                                     gt_embeds.cpu().numpy(), mat=mat_test)
-        # print(np.linalg.norm(m1_1 - m1_2))
-        # print(np.linalg.norm(m2_1 - m2_2))
-        # print(np.linalg.norm(m3_1 - m3_2))
-        # print(np.linalg.norm(m4_1 - m4_2))
-        # print(np.linalg.norm(m5_1 - m5_2))
-        # print(np.linalg.norm(m6_1 - m6_2))
+            # Models
+            for k in range(8):
+                out_dir = f'/storage/fastMRI_brain_T2_embeddings/{num_samps}_sample/{num_patches}_patch/'
+                z_loc = str(k+1)
+                print('Model: ' + z_loc)
 
-        exit()
+                # Folds
+                for l in range(26):
+                    read_dir = out_dir + f'image_embeds_model={z_loc}_fold={l+1}.pt'
+                    recon_embeds = torch.load(out_dir + f'image_embeds_model={z_loc}_fold={l+1}.pt').to(dtype=torch.float64)
+                    cond_embeds = torch.load(out_dir + f'cond_embeds_model={z_loc}_fold={l+1}.pt').to(dtype=torch.float64)
+                    gt_embeds = torch.load(out_dir + f'true_embeds_model={z_loc}_fold={l+1}.pt').to(dtype=torch.float64)
 
-    cfid1, c_dist_torch, c_dist_fro_norm, c_dist_2_pt, torch_mat, c_dist_svd = get_cfid_torch(recon_embeds, cond_embeds, gt_embeds)
-    cfid_svd, cdist1_svd, cdist2_svd = get_cfid_torch_svd(recon_embeds, cond_embeds, gt_embeds)
-    # cfid_np, c_dist_np, _, c_dist_2_np, _, _ = get_cfid_torch(recon_embeds, cond_embeds, gt_embeds, np_inv=True)
-    # with tf.device('/gpu:3'):
-    #     cfid2, c_dist_tf, c_dist_2_tf = get_cfid(tf.convert_to_tensor(recon_embeds.cpu().numpy()),
-    #                               tf.convert_to_tensor(cond_embeds.cpu().numpy()), gt_embeds.cpu().numpy(), torch_inv_matrix=torch_mat)
+                    cfid_svd, cdist1_svd, cdist2_svd = get_cfid_torch_svd(recon_embeds, cond_embeds, gt_embeds)
+                    metrics[z_loc].append(cfid_svd)
 
-    print('CFID TORCH: ', cfid1.cpu().numpy())
-    print('CFID TORCH SVD: ', cfid_svd.cpu().numpy())
-    # print('CFID TF: ', cfid2.numpy())
+                temp_mean = np.mean(metrics[z_loc])
+                temp_std = np.std(metrics[z_loc])
+                print('Mean CFID: ', temp_mean)
+                print('Std. Dev. CFID: ', temp_std)
+                print('\n')
+                metrics_for_plot[z_loc]['mean'].append(temp_mean)
+                metrics_for_plot[z_loc]['std_devs'].append(temp_std)
 
-    print('\n')
+            print('\n')
 
-    print('CDIST_1 TORCH: ', c_dist_torch)
-    print('CDIST_1 TORCH SVD: ', cdist1_svd)
-    # print('CDIST_1 NP: ', c_dist_np)
-    print('CDIST_1 FRO NORM: ', c_dist_fro_norm)
-    print('CDIST_1 SVD: ', c_dist_svd)
+        for k in range(8):
+            z_loc = str(k+1)
+            plt.errorbar(x_axis, metrics_for_plot[z_loc]['mean'], yerr=metrics_for_plot[z_loc]['std_devs'])
 
-    print('\n')
-
-    print('CDIST_2 TORCH: ', c_dist_2_pt)
-    print('CDIST_2 TORCH SVD: ', cdist2_svd)
-    # print('CDIST_2 TF: ', c_dist_2_tf)
-    # print('CDIST_2 NP: ', c_dist_2_np)
-
-    print('\n')
+        plt.xlabel('Number of Patches')
+        plt.ylabel('CFID')
+        plt.title(f'CFID vs. Number of Patches for {num_samps} Sample(s)')
+        plt.legend(labels, loc='upper right')
+        plt.savefig(f'/home/bendel.8/Git_Repos/full_scale_mrigan/MRIGAN/ablation_plots/cfid_{num_samps}.png')
+        print('\n')
