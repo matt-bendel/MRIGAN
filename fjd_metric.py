@@ -294,14 +294,15 @@ class FJDMetric:
         # TODO: REMOVE
         out_dir = f'/storage/fastMRI_brain_T2_embeddings/{self.samples_per_condition}_sample/{self.args.num_patches**2}_patch/'
         for l in range(26):
+            mult_num = 72*self.samples_per_condition*(self.args.num_patches**2)
             if self.print:
                 self.print = False
                 print(image_embed.shape)
-                print(image_embed[l*72:(l+1)*72].shape)
+                print(image_embed[l*mult_num:(l+1)*mult_num].shape)
 
-            torch.save(image_embed[l*72:(l+1)*72], out_dir + f'image_embeds_model={self.args.z_location}_fold={l+1}.pt')
-            torch.save(cond_embed[l*72:(l+1)*72], out_dir + f'cond_embeds__model={self.args.z_location}_fold={l+1}.pt')
-            torch.save(true_embed[l*72:(l+1)*72], out_dir + f'true_embeds__model={self.args.z_location}_fold={l+1}.pt')
+            torch.save(image_embed[l*mult_num:(l+1)*mult_num], out_dir + f'image_embeds_model={self.args.z_location}_fold={l+1}.pt')
+            torch.save(cond_embed[l*mult_num:(l+1)*mult_num], out_dir + f'cond_embeds__model={self.args.z_location}_fold={l+1}.pt')
+            torch.save(true_embed[l*mult_num:(l+1)*mult_num], out_dir + f'true_embeds__model={self.args.z_location}_fold={l+1}.pt')
 
         self.gen_embeds = image_embed
         del image_embed
