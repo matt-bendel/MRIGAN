@@ -307,8 +307,8 @@ def main(args):
                 del fjd_metric.reference_loader
                 del fjd_metric.condition_loader
                 del fjd_metric.gan
-                cfid_val = fjd_metric.get_cfid_torch()
-                print('CFID: ', cfid_val)
+                # cfid_val = fjd_metric.get_cfid_torch()
+                # print('CFID: ', cfid_val)
                 del fjd_metric
             del ref_loader
             del cond_loader
