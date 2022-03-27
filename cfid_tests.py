@@ -355,16 +355,12 @@ if __name__ == '__main__':
         gt_embeds = []
         for l in range(26):
             read_dir = out_dir + f'image_embeds_model={1}_fold={l + 1}.pt'
-            recon_embeds.append(torch.load(out_dir + f'image_embeds_model={1}_fold={l + 1}.pt').to(dtype=torch.float64))
-            cond_embeds.append(torch.load(out_dir + f'cond_embeds__model={1}_fold={l + 1}.pt').to(dtype=torch.float64))
-            gt_embeds.append(torch.load(out_dir + f'true_embeds__model={1}_fold={l + 1}.pt').to(dtype=torch.float64))
+            recon_embeds = torch.load(out_dir + f'image_embeds_model={1}_fold={l + 1}.pt').to(dtype=torch.float64)
+            cond_embeds = torch.load(out_dir + f'cond_embeds__model={1}_fold={l + 1}.pt').to(dtype=torch.float64)
+            gt_embeds = torch.load(out_dir + f'true_embeds__model={1}_fold={l + 1}.pt').to(dtype=torch.float64)
+            cfid_svd, cdist1_svd, cdist2_svd = get_cfid_torch_svd(recon_embeds, cond_embeds, gt_embeds)
+            print(cfid_svd)
 
-        recon_embeds = torch.cat(recon_embeds, dim=0)
-        cond_embeds = torch.cat(cond_embeds, dim=0)
-        gt_embeds = torch.cat(gt_embeds, dim=0)
-
-        cfid_svd, cdist1_svd, cdist2_svd = get_cfid_torch_svd(recon_embeds, cond_embeds, gt_embeds)
-        print(cfid_svd)
         exit()
 
     # Number of Samples
