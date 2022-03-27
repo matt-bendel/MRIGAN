@@ -347,7 +347,7 @@ if __name__ == '__main__':
     cols = 3
     labels = ['Full', '-Adversarial', '-Supervised', '-Variance Reward', '-DC', '-DI', 'Full (2)', 'Adler']
     x_axis = [1, 4, 16]
-    if True:
+    if False:
         out_dir = f'/storage/fastMRI_brain_T2_embeddings/1_sample/4_patch/'
 
         recon_embeds = []
