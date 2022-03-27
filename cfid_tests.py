@@ -362,7 +362,7 @@ if __name__ == '__main__':
             cond_embeds.append(torch.load(out_dir + f'cond_embeds__model={1}_fold={l + 1}.pt').to(dtype=torch.float64))
             gt_embeds.append(torch.load(out_dir + f'true_embeds__model={1}_fold={l + 1}.pt').to(dtype=torch.float64))
             # cfid_svd, cdist1_svd, cdist2_svd = get_cfid_torch_svd(recon_embeds, cond_embeds, gt_embeds)
-            if l == 1:
+            if l == 3:
                 break
 
         recon_embeds = torch.cat(recon_embeds, dim=0)
