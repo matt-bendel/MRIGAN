@@ -447,7 +447,7 @@ if __name__ == '__main__':
 
         for k in range(8):
             z_loc = str(k+1)
-            plt.errorbar(x_axis, metrics_for_plot[z_loc]['mean'], yerr=metrics_for_plot[z_loc]['std_devs'])
+            plt.errorbar(x_axis, metrics_for_plot[z_loc]['means'], yerr=metrics_for_plot[z_loc]['std_devs'])
 
         plt.xlabel('Number of Patches')
         plt.ylabel('Mean CFID (26 Folds)')
