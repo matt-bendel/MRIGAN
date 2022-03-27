@@ -365,6 +365,7 @@ if __name__ == '__main__':
 
     # Number of Samples
     for i in range(1):
+        i = 1
         num_samps = 1 if i == 0 else (4 if i == 1 else 8)
         top_title = f'{num_samps} Sample(s)'
         print(top_title)
