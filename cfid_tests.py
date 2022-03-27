@@ -354,10 +354,10 @@ if __name__ == '__main__':
         cond_embeds = []
         gt_embeds = []
         for l in range(26):
-            read_dir = out_dir + f'image_embeds_model={z_loc}_fold={l + 1}.pt'
-            recon_embeds.append(torch.load(out_dir + f'image_embeds_model={z_loc}_fold={l + 1}.pt').to(dtype=torch.float64))
-            cond_embeds.append(torch.load(out_dir + f'cond_embeds__model={z_loc}_fold={l + 1}.pt').to(dtype=torch.float64))
-            gt_embeds.append(torch.load(out_dir + f'true_embeds__model={z_loc}_fold={l + 1}.pt').to(dtype=torch.float64))
+            read_dir = out_dir + f'image_embeds_model={1}_fold={l + 1}.pt'
+            recon_embeds.append(torch.load(out_dir + f'image_embeds_model={1}_fold={l + 1}.pt').to(dtype=torch.float64))
+            cond_embeds.append(torch.load(out_dir + f'cond_embeds__model={1}_fold={l + 1}.pt').to(dtype=torch.float64))
+            gt_embeds.append(torch.load(out_dir + f'true_embeds__model={1}_fold={l + 1}.pt').to(dtype=torch.float64))
 
         recon_embeds = torch.cat(recon_embeds, dim=0)
         cond_embeds = torch.cat(cond_embeds, dim=0)
