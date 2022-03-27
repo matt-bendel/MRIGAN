@@ -259,16 +259,16 @@ def main(args):
         exit()
 
     if args.patches and not args.inpaint:
-        num_samps = 1
-        for i in range(1):
-            args.num_patches = 2
+        num_samps = 8
+        for i in range(3):
+            args.num_patches = 2**i
             if args.num_patches == 1:
                 args.patches = False
             else:
                 args.patches = True
             print("PATCHES ", args.num_patches)
             ref_loader, cond_loader = get_dataloaders(args)
-            for j in range(1):
+            for j in range(8):
                 # if j == 0 or j == 5 or j == 6:
                 #     continue
                 args.z_location = j+1
@@ -307,8 +307,8 @@ def main(args):
                 del fjd_metric.reference_loader
                 del fjd_metric.condition_loader
                 del fjd_metric.gan
-                cfid_val = fjd_metric.get_cfid_torch()
-                print('CFID: ', cfid_val)
+                # cfid_val = fjd_metric.get_cfid_torch()
+                # print('CFID: ', cfid_val)
                 del fjd_metric
             del ref_loader
             del cond_loader
