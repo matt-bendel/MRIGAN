@@ -371,7 +371,7 @@ if __name__ == '__main__':
         gt_embeds = torch.cat(gt_embeds, dim=0)
 
         cfid_svd, cdist1_svd, cdist2_svd = get_cfid_torch_svd(recon_embeds, cond_embeds, gt_embeds)
-            print(cfid_svd)
+        print(cfid_svd)
 
         exit()
 
