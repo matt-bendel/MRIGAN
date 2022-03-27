@@ -44,7 +44,7 @@ def ssim(
 
     return ssim
 
-R = 4
+R = 8
 
 # assign directory
 ref_directory = '/storage/fastMRI_brain/data/small_T2_test'
