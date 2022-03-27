@@ -347,7 +347,7 @@ if __name__ == '__main__':
     cols = 3
     labels = ['Full', '-Adversarial', '-Supervised', '-Variance Reward', '-DC', '-DI', 'Full (2)', 'Adler']
     x_axis = [1, 4, 16]
-    if False:
+    if True:
         out_dir = f'/storage/fastMRI_brain_T2_embeddings/1_sample/4_patch/'
 
         recon_embeds = []
@@ -355,10 +355,22 @@ if __name__ == '__main__':
         gt_embeds = []
         for l in range(26):
             read_dir = out_dir + f'image_embeds_model={1}_fold={l + 1}.pt'
-            recon_embeds = torch.load(out_dir + f'image_embeds_model={1}_fold={l + 1}.pt').to(dtype=torch.float64)
-            cond_embeds = torch.load(out_dir + f'cond_embeds__model={1}_fold={l + 1}.pt').to(dtype=torch.float64)
-            gt_embeds = torch.load(out_dir + f'true_embeds__model={1}_fold={l + 1}.pt').to(dtype=torch.float64)
-            cfid_svd, cdist1_svd, cdist2_svd = get_cfid_torch_svd(recon_embeds, cond_embeds, gt_embeds)
+            # recon_embeds = torch.load(out_dir + f'image_embeds_model={1}_fold={l + 1}.pt').to(dtype=torch.float64)
+            # cond_embeds = torch.load(out_dir + f'cond_embeds__model={1}_fold={l + 1}.pt').to(dtype=torch.float64)
+            # gt_embeds = torch.load(out_dir + f'true_embeds__model={1}_fold={l + 1}.pt').to(dtype=torch.float64)
+            recon_embeds.append(torch.load(out_dir + f'image_embeds_model={1}_fold={l + 1}.pt').to(dtype=torch.float64))
+            cond_embeds.append(torch.load(out_dir + f'cond_embeds__model={1}_fold={l + 1}.pt').to(dtype=torch.float64))
+            gt_embeds.append(torch.load(out_dir + f'true_embeds__model={1}_fold={l + 1}.pt').to(dtype=torch.float64))
+            # cfid_svd, cdist1_svd, cdist2_svd = get_cfid_torch_svd(recon_embeds, cond_embeds, gt_embeds)
+            if l == 1:
+                break
+
+        recon_embeds = torch.cat(recon_embeds, dim=0)
+        print(recon_embeds.shape)
+        cond_embeds = torch.cat(cond_embeds, dim=0)
+        gt_embeds = torch.cat(gt_embeds, dim=0)
+
+        cfid_svd, cdist1_svd, cdist2_svd = get_cfid_torch_svd(recon_embeds, cond_embeds, gt_embeds)
             print(cfid_svd)
 
         exit()
