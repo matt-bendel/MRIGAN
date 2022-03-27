@@ -48,7 +48,7 @@ R = 4
 
 # assign directory
 ref_directory = '/storage/fastMRI_brain/data/small_T2_test'
-recon_directory = f'/storage/fastMRI_brain/Langevin_Recons_R={R}/'
+recon_directory = f'/storage/fastMRI_brain/Langevin_Recons_R={8}/'
 # iterate over files in
 # that directory
 
