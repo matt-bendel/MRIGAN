@@ -509,7 +509,7 @@ class FJDMetric:
         return fjd
 
     def get_cfid_torch(self, resample=True):
-        y_predict, x_true, y_true = self.gen_embeds, self.cond_embeds, self.true_embeds
+        y_predict, x_true, y_true = self.gen_embeds.to(dtype=torch.float64), self.cond_embeds.to(dtype=torch.float64), self.true_embeds.to(dtype=torch.float64)
 
         # mean estimations
         y_true = y_true.to(x_true.device)
