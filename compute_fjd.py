@@ -190,7 +190,7 @@ def main(args):
     inception_embedding = InceptionEmbedding(parallel=True)
     print("GETTING GENERATOR")
     max = 6 if not args.inpaint and not args.adler else 1
-    Langevin = True
+    Langevin = False
     cfid_test = False
 
     if Langevin:
