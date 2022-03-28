@@ -192,8 +192,8 @@ def main(args, num, generator, dev_loader):
 
         # save_str = f"[Avg. PSNR: {np.mean(metrics['psnr']):.2f}] [Avg. SNR: {np.mean(metrics['snr']):.2f}] [Avg. SSIM: {np.mean(metrics['ssim']):.4f}], [Avg. APSD: {np.mean(metrics['apsd'])}], [Avg. Time: {np.mean(metrics['time']):.3f}]"
         print(f'PSNR: {np.mean(fold_psnr)} \\pm {np.std(fold_psnr)}')
-        print(f'PSNR: {np.mean(fold_snr)} \\pm {np.std(fold_snr)}')
-        print(f'PSNR: {np.mean(fold_ssim)} \\pm {np.std(fold_ssim)}')
+        print(f'SNR: {np.mean(fold_snr)} \\pm {np.std(fold_snr)}')
+        print(f'SSIM: {np.mean(fold_ssim)} \\pm {np.std(fold_ssim)}')
         print(f'APSD: {np.mean(metrics["apsd"])} \\pm {np.std(metrics["apsd"])}')
 
 
