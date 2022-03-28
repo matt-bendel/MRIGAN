@@ -267,19 +267,18 @@ class FJDMetric:
                             image_embed.append(img_e.cpu().numpy())
                             cond_embed.append(cond_e.cpu().numpy())
                     else:
-                        for l in range(image.size(0)):
-                            for j in range(self.args.num_patches ** 2):
-                                img_e = self.image_embedding(image[l, j, :, :, :])
-                                cond_e = self.condition_embedding(condition_im[l, j, :, :, :])
-                                true_e = self.image_embedding(true_im[l, j, :, :, :])
+                        for j in range(self.args.num_patches ** 2):
+                            img_e = self.image_embedding(image[:, j, :, :, :])
+                            cond_e = self.condition_embedding(condition_im[:, j, :, :, :])
+                            true_e = self.image_embedding(true_im[:, j, :, :, :])
 
-                                if self.cuda:
-                                    true_embed.append(true_e.to('cuda:2'))
-                                    image_embed.append(img_e.to('cuda:1'))
-                                    cond_embed.append(cond_e.to('cuda:1'))
-                                else:
-                                    image_embed.append(img_e.cpu().numpy())
-                                    cond_embed.append(cond_e.cpu().numpy())
+                            if self.cuda:
+                                true_embed.append(true_e.to('cuda:2'))
+                                image_embed.append(img_e.to('cuda:1'))
+                                cond_embed.append(cond_e.to('cuda:1'))
+                            else:
+                                image_embed.append(img_e.cpu().numpy())
+                                cond_embed.append(cond_e.cpu().numpy())
 
         if self.cuda:
             true_embed = torch.cat(true_embed, dim=0)
