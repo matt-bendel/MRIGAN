@@ -314,7 +314,7 @@ class FJDMetric:
             if os.path.isfile(self.reference_stats_path):
                 stats = self._get_statistics_from_file(self.reference_stats_path)
                 mu_real, sigma_real, alpha = stats
-                self.alpha = alpha
+                self.alpha = alpha.to('cuda:3')
             else:
                 mu_real, sigma_real = self._compute_reference_distribution()
                 if self.save_reference_stats:
@@ -323,7 +323,7 @@ class FJDMetric:
             mu_real, sigma_real = self._compute_reference_distribution()
 
         self.mu_real, self.sigma_real = mu_real, sigma_real
-        return mu_real, sigma_real
+        return mu_real.to('cuda:3'), sigma_real.to('cuda:3')
 
     def _compute_reference_distribution(self, cfid=False):
         image_embed = []
@@ -743,6 +743,11 @@ def torch_calculate_frechet_distance(mu1, sigma1, mu2, sigma2, eps=1e-6):
         'Training and test covariances have different dimensions'
 
     # Using double precision instead of float seems to make the GPU FD more stable
+    print(mu1.device)
+    print(sigma1.device)
+    print(mu2.device)
+    print(sigma2.device)
+
     mu1, mu2 = mu1.double(), mu2.double()
     sigma1, sigma2 = sigma1.double(), sigma2.double()
 
