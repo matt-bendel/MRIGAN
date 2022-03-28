@@ -304,7 +304,7 @@ class FJDMetric:
         self.true_embeds = true_embed
         del true_embed
 
-        mu_fake, sigma_fake = self._get_joint_statistics(image_embed, cond_embed)
+        mu_fake, sigma_fake = self._get_joint_statistics(self.gen_embeds, self.cond_embeds)
 
         self.mu_fake, self.sigma_fake = mu_fake, sigma_fake
         return mu_fake, sigma_fake
