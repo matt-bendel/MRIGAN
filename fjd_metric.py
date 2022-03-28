@@ -208,7 +208,7 @@ class FJDMetric:
         self.samples_per_condition = samples_per_condition
         self.cuda = cuda
         self.eps = eps
-        self.print=True
+        self.print = True
         self.gen_embeds, self.cond_embeds, self.true_embeds = None, None, None
 
         self.mu_fake, self.sigma_fake = None, None
@@ -267,19 +267,19 @@ class FJDMetric:
                             image_embed.append(img_e.cpu().numpy())
                             cond_embed.append(cond_e.cpu().numpy())
                     else:
-                        for j in range(self.args.num_patches ** 2):
-                            img_e = self.image_embedding(image[:, j, :, :, :])
-                            cond_e = self.condition_embedding(condition_im[:, j, :, :, :])
-                            true_e = self.image_embedding(true_im[:, j, :, :, :])
+                        for l in range(image.size(0)):
+                            for j in range(self.args.num_patches ** 2):
+                                img_e = self.image_embedding(image[l, j, :, :, :])
+                                cond_e = self.condition_embedding(condition_im[l, j, :, :, :])
+                                true_e = self.image_embedding(true_im[l, j, :, :, :])
 
-                            if self.cuda:
-                                true_embed.append(true_e.to('cuda:2'))
-                                image_embed.append(img_e.to('cuda:1'))
-                                cond_embed.append(cond_e.to('cuda:1'))
-                            else:
-                                image_embed.append(img_e.cpu().numpy())
-                                cond_embed.append(cond_e.cpu().numpy())
-
+                                if self.cuda:
+                                    true_embed.append(true_e.to('cuda:2'))
+                                    image_embed.append(img_e.to('cuda:1'))
+                                    cond_embed.append(cond_e.to('cuda:1'))
+                                else:
+                                    image_embed.append(img_e.cpu().numpy())
+                                    cond_embed.append(cond_e.cpu().numpy())
 
         if self.cuda:
             true_embed = torch.cat(true_embed, dim=0)
@@ -292,17 +292,17 @@ class FJDMetric:
         mu_fake, sigma_fake = self._get_joint_statistics(image_embed, cond_embed)
 
         # TODO: REMOVE
-        out_dir = f'/storage/fastMRI_brain_T2_embeddings/{self.samples_per_condition}_sample/{self.args.num_patches**2}_patch/'
-        for l in range(26):
-            mult_num = 72*self.samples_per_condition*(self.args.num_patches**2)
-            if self.print:
-                self.print = False
-                print(image_embed.shape)
-                print(image_embed[l*mult_num:(l+1)*mult_num].shape)
-
-            torch.save(image_embed[l*mult_num:(l+1)*mult_num], out_dir + f'image_embeds_model={self.args.z_location}_fold={l+1}.pt')
-            torch.save(cond_embed[l*mult_num:(l+1)*mult_num], out_dir + f'cond_embeds__model={self.args.z_location}_fold={l+1}.pt')
-            torch.save(true_embed[l*mult_num:(l+1)*mult_num], out_dir + f'true_embeds__model={self.args.z_location}_fold={l+1}.pt')
+        # out_dir = f'/storage/fastMRI_brain_T2_embeddings/{self.samples_per_condition}_sample/{self.args.num_patches**2}_patch/'
+        # for l in range(26):
+        #     mult_num = 72*self.samples_per_condition*(self.args.num_patches**2)
+        #     if self.print:
+        #         self.print = False
+        #         print(image_embed.shape)
+        #         print(image_embed[l*mult_num:(l+1)*mult_num].shape)
+        #
+        #     torch.save(image_embed[l*mult_num:(l+1)*mult_num], out_dir + f'image_embeds_model={self.args.z_location}_fold={l+1}.pt')
+        #     torch.save(cond_embed[l*mult_num:(l+1)*mult_num], out_dir + f'cond_embeds__model={self.args.z_location}_fold={l+1}.pt')
+        #     torch.save(true_embed[l*mult_num:(l+1)*mult_num], out_dir + f'true_embeds__model={self.args.z_location}_fold={l+1}.pt')
 
         self.gen_embeds = image_embed
         del image_embed
@@ -433,7 +433,8 @@ class FJDMetric:
         return mu1, sigma1, mu2, sigma2
 
     def get_cfid_torch(self, resample=True):
-        y_predict, x_true, y_true = self.gen_embeds.to(dtype=torch.float64), self.cond_embeds.to(dtype=torch.float64), self.true_embeds.to(dtype=torch.float64)
+        y_predict, x_true, y_true = self.gen_embeds.to(dtype=torch.float64), self.cond_embeds.to(
+            dtype=torch.float64), self.true_embeds.to(dtype=torch.float64)
 
         # mean estimations
         y_true = y_true.to(x_true.device)

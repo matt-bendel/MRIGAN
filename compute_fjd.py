@@ -197,7 +197,7 @@ def main(args):
         print("COMPUTING METRIC")
         args.patches = True
         for i in range(4):
-            args.num_patches = 1
+            args.num_patches = 2
             num_samps = 1 if i == 0 or i == 2 else 32
             args.z_location = 4 if i < 2 else 8
             print("PATCHES ", args.num_patches ** 2)
@@ -226,7 +226,7 @@ def main(args):
         exit()
 
     if args.patches and not args.inpaint:
-        num_samps = 8
+        num_samps = 1
         for i in range(3):
             args.num_patches = 2**i
             if args.num_patches == 1:

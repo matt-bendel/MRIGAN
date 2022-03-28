@@ -348,7 +348,7 @@ if __name__ == '__main__':
     labels = ['Full', '-Adversarial', '-Supervised', '-Variance Reward', '-DC', '-DI', 'Full (2)', 'Adler']
     x_axis = [1, 4, 16]
     if True:
-        out_dir = f'/storage/fastMRI_brain_T2_embeddings/4_sample/4_patch/'
+        out_dir = f'/storage/fastMRI_brain_T2_embeddings/1_sample/4_patch/'
 
         recon_embeds = []
         cond_embeds = []
@@ -377,7 +377,7 @@ if __name__ == '__main__':
 
     # Number of Samples
     for i in range(1):
-        i = 2
+        i = 0
         num_samps = 1 if i == 0 else (4 if i == 1 else 8)
         top_title = f'{num_samps} Sample(s)'
         print(top_title)
