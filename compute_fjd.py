@@ -196,8 +196,8 @@ def main(args):
     if Langevin:
         print("COMPUTING METRIC")
         args.patches = True
-        for i in range(1):
-            args.num_patches = 2
+        for i in range(4):
+            args.num_patches = 1
             num_samps = 1 if i == 0 or i == 2 else 32
             args.z_location = 4 if i < 2 else 8
             print("PATCHES ", args.num_patches ** 2)
