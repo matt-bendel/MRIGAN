@@ -194,6 +194,7 @@ def main(args, num, generator, dev_loader):
         print(f'PSNR: {np.mean(fold_psnr)} \\pm {np.std(fold_psnr)}')
         print(f'PSNR: {np.mean(fold_snr)} \\pm {np.std(fold_snr)}')
         print(f'PSNR: {np.mean(fold_ssim)} \\pm {np.std(fold_ssim)}')
+        print(f'APSD: {np.mean(metrics["apsd"])} \\pm {np.std(metrics["apsd"])}')
 
 
 if __name__ == '__main__':
