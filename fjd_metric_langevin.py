@@ -247,13 +247,13 @@ class FJDMetric:
         true_embed = []
 
         ref_directory = '/storage/fastMRI_brain/data/small_T2_test'
-        R = 8
+        R = self.args.z_location
         recon_directory = f'/storage/fastMRI_brain/Langevin_Recons_R={R}/'
 
         for fname in tqdm(os.listdir(ref_directory), desc='Computing Generated Distribution'):
             with torch.no_grad():
                 for i in range(6):
-                    for j in range(1):
+                    for j in range(self.samples_per_condition):
                         new_filename = recon_directory + fname + f'|langevin|slide_idx_{i}_R={R}_sample={j}_outputs.pt'
                         recon_object = torch.load(new_filename)
 

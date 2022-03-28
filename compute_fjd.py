@@ -196,9 +196,13 @@ def main(args):
     if Langevin:
         print("COMPUTING METRIC")
         args.patches = True
-        for i in range(1):
-            args.num_patches = 2 ** i
+        for i in range(4):
+            args.num_patches = 1
+            num_samps = 1 if i == 0 or i == 2 else 32
+            args.z_location = 4 if i < 2 else 8
             print("PATCHES ", args.num_patches ** 2)
+            print('NUM SAMPS: ', num_samps)
+            print('R=', args.z_location)
             ref_loader, cond_loader = prepare_data_fid_langevin.create_data_loaders(args)
             fjd_metric = fjd_metric_langevin.FJDMetric(gan=None,
                                                        reference_loader=ref_loader,
@@ -207,7 +211,7 @@ def main(args):
                                                        condition_embedding=inception_embedding,
                                                        reference_stats_path=f'ref_stats_mvue_{args.num_patches}.npz',
                                                        save_reference_stats=True,
-                                                       samples_per_condition=32,
+                                                       samples_per_condition=num_samps,
                                                        cuda=True,
                                                        args=args)
             fid = fjd_metric.get_fid()
