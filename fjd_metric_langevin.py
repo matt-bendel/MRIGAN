@@ -223,8 +223,9 @@ class FJDMetric:
         return self.alpha
 
     def _get_patches(self, im_tensor):
+        im_tensor = 2*(im_tensor - torch.min(im_tensor))/(torch.max(im_tensor) - torch.min(im_tensor)) - 1
         if self.args.num_patches == 1:
-            return im_tensor
+            return im_tensor.repeat(3, 1, 1)
 
         new_im = torch.zeros(self.args.num_patches ** 2, 3, 384 // (self.args.num_patches),
                              384 // (self.args.num_patches))
