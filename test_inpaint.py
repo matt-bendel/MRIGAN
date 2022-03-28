@@ -131,20 +131,30 @@ def main(args, power_num, generator, dev_loader):
                 batch_metrics['ssim'].append(ssim(true_im_np, generated_im_np, np.max(true_im_np)))
                 batch_metrics['snr'].append(snr(true_im_np, generated_im_np))
 
-            metrics['psnr'].append(np.mean(batch_metrics['psnr']))
-            metrics['snr'].append(np.mean(batch_metrics['snr']))
-            metrics['ssim'].append(np.mean(batch_metrics['ssim']))
+            for j in range(len(batch_metrics['psnr'])):
+                metrics['psnr'].append(batch_metrics['psnr'][j])
+                metrics['snr'].append(batch_metrics['snr'][j])
+                metrics['ssim'].append(batch_metrics['ssim'][j])
 
-            print(
-                "[Avg. Batch PSNR %.2f] [Avg. Batch SNR %.2f]  [Avg. Batch SSIM %.4f]"
-                % (np.mean(batch_metrics['psnr']), np.mean(batch_metrics['snr']), np.mean(batch_metrics['ssim']))
-            )
+            # print(
+            #     "[Avg. Batch PSNR %.2f] [Avg. Batch SNR %.2f]  [Avg. Batch SSIM %.4f]"
+            #     % (np.mean(batch_metrics['psnr']), np.mean(batch_metrics['snr']), np.mean(batch_metrics['ssim']))
+            # )
 
-    save_str = f"[Avg. PSNR: {np.mean(metrics['psnr'])}] [Avg. SNR: {np.mean(metrics['snr'])}] [Avg. SSIM: {np.mean(metrics['ssim'])}], [Avg. APSD: {np.mean(metrics['apsd'])}], [Avg. Time: {np.mean(metrics['time'])}]"
-    print(f"[Median PSNR {np.median(metrics['psnr']):.2f}")
-    print(f"[Median SNR {np.median(metrics['snr']):.2f}")
-    print(f"[Median SSIM {np.median(metrics['ssim']):.4f}")
-    print(save_str)
+    fold_psnr = []
+    fold_ssim = []
+    fold_snr = []
+    print(len(metrics['psnr']))
+    for l in range(26):
+        fold_psnr.append(metrics['psnr'][l * 72:(l + 1) * 72])
+        fold_snr.append(metrics['snr'][l * 72:(l + 1) * 72])
+        fold_ssim.append(metrics['ssim'][l * 72:(l + 1) * 72])
+
+    # save_str = f"[Avg. PSNR: {np.mean(metrics['psnr']):.2f}] [Avg. SNR: {np.mean(metrics['snr']):.2f}] [Avg. SSIM: {np.mean(metrics['ssim']):.4f}], [Avg. APSD: {np.mean(metrics['apsd'])}], [Avg. Time: {np.mean(metrics['time']):.3f}]"
+    print(f'PSNR: {np.mean(fold_psnr)} \\pm {np.std(fold_psnr)}')
+    print(f'SNR: {np.mean(fold_snr)} \\pm {np.std(fold_snr)}')
+    print(f'SSIM: {np.mean(fold_ssim)} \\pm {np.std(fold_ssim)}')
+    print(f'APSD: {np.mean(metrics["apsd"])} \\pm {np.std(metrics["apsd"])}')
 
 
 if __name__ == '__main__':
