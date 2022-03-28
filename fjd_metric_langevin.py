@@ -224,8 +224,9 @@ class FJDMetric:
 
     def _get_patches(self, im_tensor):
         im_tensor = 2*(im_tensor - torch.min(im_tensor))/(torch.max(im_tensor) - torch.min(im_tensor)) - 1
+        im_tensor = im_tensor.repeat(3, 1, 1)
         if self.args.num_patches == 1:
-            return im_tensor.repeat(3, 1, 1)
+            return im_tensor
 
         new_im = torch.zeros(self.args.num_patches ** 2, 3, 384 // (self.args.num_patches),
                              384 // (self.args.num_patches))
@@ -268,9 +269,9 @@ class FJDMetric:
                                 cond_e = self.condition_embedding(cond_patches)
                                 true_e = self.image_embedding(true_patches)
                             else:
-                                img_e = self.image_embedding(im_patches[:, k, :, :, :].float())
-                                cond_e = self.condition_embedding(cond_patches[:, k, :, :, :].float())
-                                true_e = self.image_embedding(true_patches[:, k, :, :, :].float())
+                                img_e = self.image_embedding(im_patches[k, :, :, :].float())
+                                cond_e = self.condition_embedding(cond_patches[k, :, :, :].float())
+                                true_e = self.image_embedding(true_patches[k, :, :, :].float())
 
                             if self.cuda:
                                 true_embed.append(true_e.to('cuda:2'))
