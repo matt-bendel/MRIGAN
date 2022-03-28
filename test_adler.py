@@ -95,9 +95,12 @@ def average_gen(generator, input_w_z, z, old_input, args, true_measures, num_cod
     return ret, finish, apsd
 
 
-def get_gen(args, type='image'):
+def get_gen(args, type='image', actual_ad=True):
     checkpoint_file_gen = pathlib.Path(
         f'/home/bendel.8/Git_Repos/full_scale_mrigan/MRIGAN/trained_models/ablation/image/7/generator_best_model.pt')
+    if actual_ad:
+        checkpoint_file_gen = pathlib.Path(
+            f'/home/bendel.8/Git_Repos/full_scale_mrigan/MRIGAN/trained_models/adler/generator_best_model.pt')
     checkpoint_gen = torch.load(checkpoint_file_gen, map_location=torch.device('cuda'))
 
     generator = build_model(args)
@@ -168,22 +171,29 @@ def main(args, num, generator, dev_loader):
 
                 del refined_out
 
-                metrics['psnr'].append(np.mean(batch_metrics['psnr']))
-                metrics['snr'].append(np.mean(batch_metrics['snr']))
-                metrics['ssim'].append(np.mean(batch_metrics['ssim']))
+                for j in range(len(batch_metrics['psnr'])):
+                    metrics['psnr'].append(batch_metrics['psnr'][j])
+                    metrics['snr'].append(batch_metrics['snr'][j])
+                    metrics['ssim'].append(batch_metrics['ssim'][j])
 
                 # print(
                 #     "[Avg. Batch PSNR %.2f] [Avg. Batch SNR %.2f]  [Avg. Batch SSIM %.4f]"
                 #     % (np.mean(batch_metrics['psnr']), np.mean(batch_metrics['snr']), np.mean(batch_metrics['ssim']))
                 # )
 
-        print(f"RESULTS FOR {num} CODE VECTORS")
-        save_str = f"[Avg. PSNR: {np.mean(metrics['psnr']):.2f}] [Avg. SNR: {np.mean(metrics['snr']):.2f}] [Avg. SSIM: {np.mean(metrics['ssim']):.4f}], [Avg. APSD: {np.mean(metrics['apsd'])}], [Avg. Time: {np.mean(metrics['time']):.3f}]"
-        metric_file.write(save_str)
-        print(f"[Median PSNR {np.median(metrics['psnr']):.2f}")
-        print(f"[Median SNR {np.median(metrics['snr']):.2f}")
-        print(f"[Median SSIM {np.median(metrics['ssim']):.4f}")
-        print(save_str)
+        fold_psnr = []
+        fold_ssim = []
+        fold_snr = []
+        print(len(metrics['psnr']))
+        for l in range(26):
+            fold_psnr.append(metrics['psnr'][l * 72:(l + 1) * 72])
+            fold_snr.append(metrics['snr'][l * 72:(l + 1) * 72])
+            fold_ssim.append(metrics['ssim'][l * 72:(l + 1) * 72])
+
+        # save_str = f"[Avg. PSNR: {np.mean(metrics['psnr']):.2f}] [Avg. SNR: {np.mean(metrics['snr']):.2f}] [Avg. SSIM: {np.mean(metrics['ssim']):.4f}], [Avg. APSD: {np.mean(metrics['apsd'])}], [Avg. Time: {np.mean(metrics['time']):.3f}]"
+        print(f'PSNR: {np.mean(fold_psnr)} \\pm {np.std(fold_psnr)}')
+        print(f'PSNR: {np.mean(fold_snr)} \\pm {np.std(fold_snr)}')
+        print(f'PSNR: {np.mean(fold_ssim)} \\pm {np.std(fold_ssim)}')
 
 
 if __name__ == '__main__':
@@ -210,9 +220,10 @@ if __name__ == '__main__':
     args.adler = True
     args.data_consistency = True
 
-    gen = get_gen(args)
-    gen.eval()
+    for i in range(2):
+        gen = get_gen(args, actual_ad=True if i == 0 else False)
+        gen.eval()
 
-    power = 128
-    print(f"VALIDATING NUM CODE VECTORS: {power}")
-    main(args, power, gen, loader)
+        power = 128
+        print(f"VALIDATING ", "ADLER" if i == 0  else "(7)")
+        main(args, power, gen, loader)

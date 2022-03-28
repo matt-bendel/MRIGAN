@@ -173,22 +173,29 @@ def main(args, num, generator, dev_loader):
 
                 del refined_out
 
-                metrics['psnr'].append(np.mean(batch_metrics['psnr']))
-                metrics['snr'].append(np.mean(batch_metrics['snr']))
-                metrics['ssim'].append(np.mean(batch_metrics['ssim']))
+                for j in range(len(batch_metrics['psnr'])):
+                    metrics['psnr'].append(batch_metrics['psnr'][j])
+                    metrics['snr'].append(batch_metrics['snr'][j])
+                    metrics['ssim'].append(batch_metrics['ssim'][j])
 
                 # print(
                 #     "[Avg. Batch PSNR %.2f] [Avg. Batch SNR %.2f]  [Avg. Batch SSIM %.4f]"
                 #     % (np.mean(batch_metrics['psnr']), np.mean(batch_metrics['snr']), np.mean(batch_metrics['ssim']))
                 # )
 
-        print(f"RESULTS FOR {num} CODE VECTORS")
-        save_str = f"[Avg. PSNR: {np.mean(metrics['psnr']):.2f}] [Avg. SNR: {np.mean(metrics['snr']):.2f}] [Avg. SSIM: {np.mean(metrics['ssim']):.4f}], [Avg. APSD: {np.mean(metrics['apsd'])}], [Avg. Time: {np.mean(metrics['time']):.3f}]"
-        metric_file.write(save_str)
-        print(f"[Median PSNR {np.median(metrics['psnr']):.2f}")
-        print(f"[Median SNR {np.median(metrics['snr']):.2f}")
-        print(f"[Median SSIM {np.median(metrics['ssim']):.4f}")
-        print(save_str)
+        fold_psnr = []
+        fold_ssim = []
+        fold_snr = []
+        print(len(metrics['psnr']))
+        for l in range(26):
+            fold_psnr.append(metrics['psnr'][l*72:(l+1)*72])
+            fold_snr.append(metrics['snr'][l*72:(l+1)*72])
+            fold_ssim.append(metrics['ssim'][l*72:(l+1)*72])
+
+        # save_str = f"[Avg. PSNR: {np.mean(metrics['psnr']):.2f}] [Avg. SNR: {np.mean(metrics['snr']):.2f}] [Avg. SSIM: {np.mean(metrics['ssim']):.4f}], [Avg. APSD: {np.mean(metrics['apsd'])}], [Avg. Time: {np.mean(metrics['time']):.3f}]"
+        print(f'PSNR: {np.mean(fold_psnr)} \\pm {np.std(fold_psnr)}')
+        print(f'PSNR: {np.mean(fold_snr)} \\pm {np.std(fold_snr)}')
+        print(f'PSNR: {np.mean(fold_ssim)} \\pm {np.std(fold_ssim)}')
 
 
 if __name__ == '__main__':
@@ -209,8 +216,8 @@ if __name__ == '__main__':
     np.random.seed(args.seed)
     torch.manual_seed(args.seed)
     _, loader = create_data_loaders(args, val_only=True, big_test=True)
-    for net in range(1):
-        net = 6
+    for net in range(6):
+        net = net + 1
         print(f"VALIDATING ABLATION NETWORK {net}")
         args.in_chans = 16
         args.out_chans = 16
