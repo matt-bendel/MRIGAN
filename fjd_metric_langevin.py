@@ -261,7 +261,6 @@ class FJDMetric:
                         im_patches = self._get_patches(complex_abs(recon_object['mvue'][0].permute(1, 2, 0))).to(dtype=torch.float)
                         cond_patches = self._get_patches(recon_object['zfr'][0].abs()).to(dtype=torch.float)
                         true_patches = self._get_patches(recon_object['gt'][0][0].abs()).to(dtype=torch.float)
-                        print(im_patches.shape)
 
                         for k in range(self.args.num_patches):
                             if self.args.num_patches == 1:
