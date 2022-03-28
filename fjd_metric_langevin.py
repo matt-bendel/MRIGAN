@@ -253,7 +253,7 @@ class FJDMetric:
         for fname in tqdm(os.listdir(ref_directory), desc='Computing Generated Distribution'):
             with torch.no_grad():
                 for i in range(6):
-                    for j in range(32):
+                    for j in range(1):
                         new_filename = recon_directory + fname + f'|langevin|slide_idx_{i}_R={R}_sample={j}_outputs.pt'
                         recon_object = torch.load(new_filename)
 
@@ -295,13 +295,13 @@ class FJDMetric:
             image_embed = np.concatenate(image_embed, axis=0)
             cond_embed = np.concatenate(cond_embed, axis=0)
 
-        self.gen_embeds = tf.convert_to_tensor(image_embed.cpu().numpy())
+        self.gen_embeds = image_embed
         del image_embed
 
-        self.cond_embeds = tf.convert_to_tensor(cond_embed.cpu().numpy())
+        self.cond_embeds = cond_embed
         del cond_embed
 
-        self.true_embeds = true_embed.cpu().numpy()
+        self.true_embeds = true_embed
         del true_embed
 
         mu_fake, sigma_fake = self._get_joint_statistics(image_embed, cond_embed)
@@ -512,50 +512,32 @@ class FJDMetric:
         y_predict, x_true, y_true = self.gen_embeds, self.cond_embeds, self.true_embeds
 
         # mean estimations
+        y_true = y_true.to(x_true.device)
         m_y_predict = torch.mean(y_predict, dim=0)
         m_x_true = torch.mean(x_true, dim=0)
-
-        # covariance computations
-        c_y_predict_x_true = sample_covariance_torch(y_predict - m_y_predict, x_true - m_x_true)
-        c_y_predict_y_predict = sample_covariance_torch(y_predict - m_y_predict, y_predict - m_y_predict)
-        c_x_true_y_predict = sample_covariance_torch(x_true - m_x_true, y_predict - m_y_predict)
-
-        del y_predict
-        del self.gen_embeds
-
-        y_true = y_true.to(x_true.device)
         m_y_true = torch.mean(y_true, dim=0)
-        c_y_true_x_true = sample_covariance_torch(y_true - m_y_true, x_true - m_x_true)
-        c_x_true_y_true = sample_covariance_torch(x_true - m_x_true, y_true - m_y_true)
-        c_y_true_y_true = sample_covariance_torch(y_true - m_y_true, y_true - m_y_true)
 
-        del y_true
-        del self.true_embeds
-
-        temp = sample_covariance_torch(x_true - m_x_true, x_true - m_x_true)
-        inv_c_x_true_x_true = torch.linalg.pinv(temp)
-
-        # conditoinal mean and covariance estimations
-
-        del x_true
-        del self.cond_embeds
-
-        c_y_true_given_x_true = c_y_true_y_true - torch.matmul(c_y_true_x_true,
-                                                           torch.matmul(inv_c_x_true_x_true, c_x_true_y_true))
-
-        c_y_predict_given_x_true = c_y_predict_y_predict - torch.matmul(c_y_predict_x_true,
-                                                                    torch.matmul(inv_c_x_true_x_true, c_x_true_y_predict))
-
-        c_y_true_x_true_minus_c_y_predict_x_true = c_y_true_x_true - c_y_predict_x_true
-        c_x_true_y_true_minus_c_x_true_y_predict = c_x_true_y_true - c_x_true_y_predict
+        no_m_y_true = y_true - m_y_true
+        no_m_y_pred = y_predict - m_y_predict
+        no_m_x_true = x_true - m_x_true
 
         m_dist = torch.einsum('...k,...k->...', m_y_true - m_y_predict, m_y_true - m_y_predict)
-        c_dist1 = torch.trace(torch.matmul(torch.matmul(c_y_true_x_true_minus_c_y_predict_x_true, inv_c_x_true_x_true),
-                                       c_x_true_y_true_minus_c_x_true_y_predict))
-        c_dist2 = torch.trace(c_y_true_given_x_true + c_y_predict_given_x_true) - 2 * trace_sqrt_product_torch(
+
+        u, s, vh = torch.linalg.svd(no_m_x_true.t(), full_matrices=False)
+        v = vh.t()
+        c_dist_1 = torch.norm(torch.matmul(no_m_y_true.t() - no_m_y_pred.t(), v)) ** 2 / y_true.shape[0]
+
+        v_t_v = torch.matmul(v, vh)
+        y_pred_w_v_t_v = torch.matmul(no_m_y_pred.t(), torch.matmul(v_t_v, no_m_y_pred))
+        y_true_w_v_t_v = torch.matmul(no_m_y_true.t(), torch.matmul(v_t_v, no_m_y_true))
+
+        c_y_true_given_x_true = 1 / y_true.shape[0] * (torch.matmul(no_m_y_true.t(), no_m_y_true) - y_true_w_v_t_v)
+        c_y_predict_given_x_true = 1 / y_true.shape[0] * (torch.matmul(no_m_y_pred.t(), no_m_y_pred) - y_pred_w_v_t_v)
+
+        c_dist_2 = torch.trace(c_y_true_given_x_true + c_y_predict_given_x_true) - 2 * trace_sqrt_product_torch(
             c_y_predict_given_x_true, c_y_true_given_x_true)
 
-        return m_dist + c_dist1 + c_dist2
+        return m_dist + c_dist_1 + c_dist_2
 
     def get_fid(self, resample=False):
         """Calculate FID (equivalent to FJD at alpha = 0).

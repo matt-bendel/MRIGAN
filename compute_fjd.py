@@ -190,50 +190,13 @@ def main(args):
     inception_embedding = InceptionEmbedding(parallel=True)
     print("GETTING GENERATOR")
     max = 6 if not args.inpaint and not args.adler else 1
-    Langevin = False
+    Langevin = True
     cfid_test = False
-
-    if cfid_test:
-        args.patches = False
-        ref_loader, cond_loader = create_data_loaders(args)
-
-        args.z_location = 1
-        gan = get_gen(args)
-        gan = GANWrapper(gan, args)
-        print("COMPUTING METRIC")
-        fjd_metric = FJDMetric(gan=gan,
-                               reference_loader=ref_loader,
-                               condition_loader=cond_loader,
-                               image_embedding=inception_embedding,
-                               condition_embedding=inception_embedding,
-                               reference_stats_path=f'ref_stats_{args.num_patches}.npz' if args.patches else 'ref_stats.npz',
-                               save_reference_stats=True,
-                               samples_per_condition=8,
-                               cuda=True,
-                               args=args)
-
-        print(f"FID FOR NETWORK {args.z_location}")
-        fid = fjd_metric.get_fid()
-        fjd = fjd_metric.get_fjd(alpha=1.097)
-        print('FID: ', fid)
-        print('FJD: ', fjd)
-        gan.free_memory()
-        del gan
-        del fjd_metric.image_embedding
-        del fjd_metric.condition_embedding
-        del fjd_metric.reference_loader
-        del fjd_metric.condition_loader
-        del fjd_metric.gan
-        cfid_val, cov1 = fjd_metric.get_cfid_torch()
-        cfid_val_tf, cov2 = fjd_metric.get_cfid()
-
-        print('CFID-Torch: ', cfid_val)
-        print('CFID-Tensorflow: ', cfid_val_tf)
 
     if Langevin:
         print("COMPUTING METRIC")
         args.patches = True
-        for i in range(5):
+        for i in range(1):
             args.num_patches = 2 ** i
             print("PATCHES ", args.num_patches ** 2)
             ref_loader, cond_loader = prepare_data_fid_langevin.create_data_loaders(args)
@@ -251,7 +214,7 @@ def main(args):
             fjd = fjd_metric.get_fjd(alpha=1.097)
             print('FID: ', fid)
             print('FJD: ', fjd)
-            cfid_val = fjd_metric.get_cfid()
+            cfid_val = fjd_metric.get_cfid_torch()
             print('CFID: ', cfid_val)
             del fjd_metric
             del ref_loader
