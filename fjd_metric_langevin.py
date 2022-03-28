@@ -247,7 +247,7 @@ class FJDMetric:
         true_embed = []
 
         ref_directory = '/storage/fastMRI_brain/data/small_T2_test'
-        R = 4
+        R = 8
         recon_directory = f'/storage/fastMRI_brain/Langevin_Recons_R={R}/'
 
         for fname in tqdm(os.listdir(ref_directory), desc='Computing Generated Distribution'):
@@ -743,11 +743,6 @@ def torch_calculate_frechet_distance(mu1, sigma1, mu2, sigma2, eps=1e-6):
         'Training and test covariances have different dimensions'
 
     # Using double precision instead of float seems to make the GPU FD more stable
-    print(mu1.device)
-    print(sigma1.device)
-    print(mu2.device)
-    print(sigma2.device)
-
     mu1, mu2 = mu1.double(), mu2.double()
     sigma1, sigma2 = sigma1.double(), sigma2.double()
 
