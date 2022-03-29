@@ -255,7 +255,7 @@ def get_cfid_torch(y_predict, x_true, y_true, np_inv=False, mat=False):
         c_y_predict_given_x_true, c_y_true_given_x_true)
 
     cfid = m_dist + c_dist1 + c_dist2
-    return cfid.cpu().numpy(), c_dist1.cpu().numpy(), other_temp.cpu().numpy(), c_dist2.cpu().numpy(), inv_c_x_true_x_true.cpu().numpy(), svd_temp
+    return cfid.cpu().numpy(), c_dist1.cpu().numpy(), c_dist2.cpu().numpy()
 
 #
 # def get_cfid(y_predict, x_true, y_true, np_inv=False, torch_inv_matrix=None, mat=False):
@@ -363,7 +363,7 @@ if __name__ == '__main__':
             recon_embeds.append(torch.load(out_dir + f'image_embeds_model={1}_fold={l + 1}.pt').to(dtype=torch.float64))
             cond_embeds.append(torch.load(out_dir + f'cond_embeds__model={1}_fold={l + 1}.pt').to(dtype=torch.float64))
             gt_embeds.append(torch.load(out_dir + f'true_embeds__model={1}_fold={l + 1}.pt').to(dtype=torch.float64))
-            cfid_svd, cdist1_svd, cdist2_svd = get_cfid_torch_svd(torch.cat(recon_embeds, dim=0), torch.cat(cond_embeds, dim=0), torch.cat(gt_embeds, dim=0))
+            cfid_svd, cdist1_svd, cdist2_svd = get_cfid_torch(torch.cat(recon_embeds, dim=0), torch.cat(cond_embeds, dim=0), torch.cat(gt_embeds, dim=0))
             cfids.append(cfid_svd)
             num_images.append(l*72 + 72)
 
