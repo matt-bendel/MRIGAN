@@ -403,9 +403,14 @@ def main(args):
             refined_out_1 = refined_out_1.permute(1, 0, 2, 3, 4)
             refined_out_2 = refined_out_2.permute(1, 0, 2, 3, 4)
 
-            avg_recon_1 = torch.mean(refined_out_1, dim=1) if args.supervised else None
-            avg_recon_2 = torch.mean(refined_out_2, dim=1) if args.supervised else None
-            avg_recon = torch.div(avg_recon_1 + avg_recon_2, 2)
+            num_z_times_2_out = torch.zeros(input_w_z.size(0), args.num_z*2, input_w_z.size(2), input_w_z.size(3), input_w_z.size(4)).to(args.device)
+            for k in range (args.num_z*2):
+                if k < args.num_z:
+                    num_z_times_2_out[:, k, :, :, :] = refined_out_1[:, k, :, :, :]
+                else:
+                    num_z_times_2_out[:, k, :, :, :] = refined_out_2[:, k - args.num_z, :, :, :]
+
+            avg_recon = torch.mean(num_z_times_2_out, dim=1) if args.supervised else None
 
             # Loss measures generator's ability to fool the discriminator
             # Train on fake images
@@ -425,7 +430,7 @@ def main(args):
             g_loss = -adv_weight*torch.mean(gen_pred_loss) if args.adv_only else 0
             g_loss += (1 - ssim_weight) * F.l1_loss(target_full, avg_recon) - ssim_weight * mssim_tensor(target_full,
                                                                                                          avg_recon) if args.supervised else 0
-            g_loss += - var_weight * torch.mean(torch.var(refined_out_1, dim=1), dim=(0, 1, 2, 3)) if args.var_loss else 0
+            g_loss += - var_weight * torch.mean(torch.var(num_z_times_2_out, dim=1), dim=(0, 1, 2, 3)) if args.var_loss else 0
 
             if g_loss.item() < -10:
                 exit()
