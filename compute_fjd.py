@@ -254,7 +254,7 @@ def main(args):
                 print("COMPUTING METRIC")
                 fjd_metric = FJDMetric(gan=gan,
                                        reference_loader=ref_loader,
-                                       condition_loader=ref_loader,
+                                       condition_loader=cond_loader,
                                        image_embedding=inception_embedding,
                                        condition_embedding=inception_embedding,
                                        reference_stats_path=f'ref_stats_{args.num_patches}.npz' if args.patches else 'ref_stats.npz',
