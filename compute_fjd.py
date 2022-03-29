@@ -238,7 +238,7 @@ def main(args):
             for j in range(1):
                 # if j == 0 or j == 5 or j == 6:
                 #     continue
-                j = 8
+                # j = 8
                 args.z_location = j+1
                 args.adler = True if j > 5 and j != 8 else False
                 if j == 8:
@@ -254,7 +254,7 @@ def main(args):
                 print("COMPUTING METRIC")
                 fjd_metric = FJDMetric(gan=gan,
                                        reference_loader=ref_loader,
-                                       condition_loader=cond_loader,
+                                       condition_loader=ref_loader,
                                        image_embedding=inception_embedding,
                                        condition_embedding=inception_embedding,
                                        reference_stats_path=f'ref_stats_{args.num_patches}.npz' if args.patches else 'ref_stats.npz',
