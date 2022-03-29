@@ -377,7 +377,7 @@ if __name__ == '__main__':
 
     # Number of Samples
     for i in range(1):
-        i = 2
+        i = 0
         num_samps = 1 if i == 0 else (4 if i == 1 else 8)
         top_title = f'{num_samps} Sample(s)'
         print(top_title)
@@ -416,8 +416,12 @@ if __name__ == '__main__':
                 'means': [],
                 'std_devs': []
             }
+            '9': {
+                'means': [],
+                'std_devs': []
+            }
         }
-        for j in range(3):
+        for j in range(1):
             num_patches = (j+1)**2 if j < 2 else 16
             second_title = f'{num_patches} Patch(es)'
             print(second_title)
@@ -433,9 +437,9 @@ if __name__ == '__main__':
             }
 
             # Models
-            for k in range(8):
+            for k in range(1):
                 out_dir = f'/storage/fastMRI_brain_T2_embeddings/{num_samps}_sample/{num_patches}_patch/'
-                z_loc = str(k+1)
+                z_loc = str(9)
                 print('Model: ' + z_loc)
 
                 # Folds
@@ -457,6 +461,7 @@ if __name__ == '__main__':
                 metrics_for_plot[z_loc]['std_devs'].append(temp_std)
 
             print('\n')
+            exit()
 
         for k in range(8):
             z_loc = str(k+1)
