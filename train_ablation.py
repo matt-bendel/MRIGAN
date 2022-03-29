@@ -414,7 +414,7 @@ def main(args):
 
             # Loss measures generator's ability to fool the discriminator
             # Train on fake images
-            fake_pred = torch.zeros((old_input.shape[0], args.num_z)).to(args.device)
+            fake_pred = torch.zeros((args.num_z, old_input.shape[0])).to(args.device)
             for k in range(args.num_z):
                 x_posterior_concat = torch.cat([refined_out_1[:, k, :, :, :], refined_out_2[:, k, :, :, :]], dim=1)
                 temp = discriminator(input=x_posterior_concat, y=old_input)
