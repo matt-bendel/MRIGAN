@@ -422,7 +422,7 @@ if __name__ == '__main__':
             }
         }
         for j in range(1):
-            num_patches = (j+1)**2 if j < 2 else 16
+            num_patches = 4 if j < 2 else 16
             second_title = f'{num_patches} Patch(es)'
             print(second_title)
             metrics = {
