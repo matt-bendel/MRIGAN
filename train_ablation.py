@@ -416,7 +416,7 @@ def main(args):
             # Train on fake images
             fake_pred = torch.zeros((old_input.shape[0], args.num_z)).to(args.device)
             for k in range(args.num_z):
-                x_posterior_concat = torch.cat([refined_out_1[:, k, :, :, :], refined_out_2][:, k, :, :, :], dim=1)
+                x_posterior_concat = torch.cat([refined_out_1[:, k, :, :, :], refined_out_2[:, k, :, :, :]], dim=1)
                 temp = discriminator(input=x_posterior_concat, y=old_input)
                 fake_pred[k] = temp[:, 0]
 
