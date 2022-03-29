@@ -403,7 +403,7 @@ def main(args):
             refined_out_1 = refined_out_1.permute(1, 0, 2, 3, 4)
             refined_out_2 = refined_out_2.permute(1, 0, 2, 3, 4)
 
-            num_z_times_2_out = torch.zeros(input_w_z.size(0), args.num_z*2, input_w_z.size(2), input_w_z.size(3), input_w_z.size(4)).to(args.device)
+            num_z_times_2_out = torch.zeros(input_w_z.size(0), args.num_z*2, input_w_z.size(1), input_w_z.size(2), input_w_z.size(3)).to(args.device)
             for k in range (args.num_z*2):
                 if k < args.num_z:
                     num_z_times_2_out[:, k, :, :, :] = refined_out_1[:, k, :, :, :]
