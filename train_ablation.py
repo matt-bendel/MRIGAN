@@ -421,7 +421,7 @@ def main(args):
                 fake_pred[k] = temp[:, 0]
 
             gen_pred_loss = torch.mean(fake_pred[0])
-            for k in range(old_input.shape[0] - 1):
+            for k in range(args.num_z - 1):
                 gen_pred_loss += torch.mean(fake_pred[k + 1])
 
             var_weight = 0.02
