@@ -280,6 +280,54 @@ class FJDMetric:
                                 image_embed.append(img_e.cpu().numpy())
                                 cond_embed.append(cond_e.cpu().numpy())
 
+        for i, data in tqdm(enumerate(self.reference_loader),
+                            desc='Computing generated distribution',
+                            total=len(self.reference_loader)):
+            if self.args.inpaint:
+                condition, gt, condition_im, true_im = data  # it is assumed data contains (image, condition)
+                true_im = true_im.to(self.args.device, dtype=torch.float)
+                gt = gt.to(self.args.device, dtype=torch.float)
+                condition = condition.to(self.args.device, dtype=torch.float)
+                condition_im = condition_im.to(self.args.device, dtype=torch.float)
+            else:
+                condition, condition_im, true_im = data  # it is assumed data contains (image, condition)
+                true_im = true_im.cuda()
+                condition = condition.cuda()
+                condition_im = condition_im.cuda()
+
+            with torch.no_grad():
+                for n in range(self.samples_per_condition):
+                    if self.args.noise_v_fjd:
+                        image = self.gan(true_im)
+                    else:
+                        image = self.gan(condition) if not self.args.inpaint else self.gan(condition, gt)
+
+                    if not self.args.patches:
+                        img_e = self.image_embedding(image)
+                        cond_e = self.condition_embedding(condition_im)
+                        true_e = self.image_embedding(true_im)
+
+                        if self.cuda:
+                            true_embed.append(true_e.to('cuda:2'))
+                            image_embed.append(img_e.to('cuda:1'))
+                            cond_embed.append(cond_e.to('cuda:1'))
+                        else:
+                            image_embed.append(img_e.cpu().numpy())
+                            cond_embed.append(cond_e.cpu().numpy())
+                    else:
+                        for j in range(self.args.num_patches ** 2):
+                            img_e = self.image_embedding(image[:, j, :, :, :])
+                            cond_e = self.condition_embedding(condition_im[:, j, :, :, :])
+                            true_e = self.image_embedding(true_im[:, j, :, :, :])
+
+                            if self.cuda:
+                                true_embed.append(true_e.to('cuda:2'))
+                                image_embed.append(img_e.to('cuda:1'))
+                                cond_embed.append(cond_e.to('cuda:1'))
+                            else:
+                                image_embed.append(img_e.cpu().numpy())
+                                cond_embed.append(cond_e.cpu().numpy())
+
         if self.cuda:
             true_embed = torch.cat(true_embed, dim=0)
             image_embed = torch.cat(image_embed, dim=0)
@@ -291,8 +339,8 @@ class FJDMetric:
         mu_fake, sigma_fake = self._get_joint_statistics(image_embed, cond_embed)
 
         # TODO: REMOVE
-        out_dir = f'/storage/fastMRI_brain_T2_embeddings/{self.samples_per_condition}_sample/{self.args.num_patches**2}_patch/'
-        for l in range(26):
+        out_dir = f'/storage/fastMRI_brain_T2_embeddings/test/'
+        for l in range(117):
             mult_num = 72*self.samples_per_condition*(self.args.num_patches**2)
             if self.print:
                 self.print = False
@@ -302,6 +350,8 @@ class FJDMetric:
             torch.save(image_embed[l*mult_num:(l+1)*mult_num], out_dir + f'image_embeds_model={self.args.z_location}_fold={l+1}.pt')
             torch.save(cond_embed[l*mult_num:(l+1)*mult_num], out_dir + f'cond_embeds__model={self.args.z_location}_fold={l+1}.pt')
             torch.save(true_embed[l*mult_num:(l+1)*mult_num], out_dir + f'true_embeds__model={self.args.z_location}_fold={l+1}.pt')
+
+        exit()
 
         self.gen_embeds = image_embed
         del image_embed
