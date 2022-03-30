@@ -97,7 +97,7 @@ def average_gen(generator, input_w_z, z, old_input, args, true_measures, num_cod
 
 def get_gen(args, type='image', actual_ad=True):
     checkpoint_file_gen = pathlib.Path(
-        f'/home/bendel.8/Git_Repos/full_scale_mrigan/MRIGAN/trained_models/ablation/image/7/generator_best_model.pt')
+        f'/home/bendel.8/Git_Repos/full_scale_mrigan/MRIGAN/trained_models/ablation/image/-1/generator_best_model.pt')
     if actual_ad:
         checkpoint_file_gen = pathlib.Path(
             f'/home/bendel.8/Git_Repos/full_scale_mrigan/MRIGAN/trained_models/adler/generator_best_model.pt')
@@ -137,7 +137,8 @@ def main(args, num, generator, dev_loader):
             with torch.no_grad():
                 input_w_z = input.to(args.device)
                 # refined_out, finish = non_average_gen(generator, input_w_z, z, old_input)
-                refined_out, finish, apsd = average_gen(generator, input_w_z, z, old_input, args, true_measures, num_code=num)
+                refined_out, finish, apsd = average_gen(generator, input_w_z, z, old_input, args, true_measures,
+                                                        num_code=num)
 
                 target_batch = prep_input_2_chan(target_full, args.network_input, args, disc=True).to(args.device)
                 output_batch = prep_input_2_chan(refined_out, args.network_input, args, disc=True).to(args.device)
@@ -221,10 +222,10 @@ if __name__ == '__main__':
     args.adler = True
     args.data_consistency = True
 
-    for i in range(2):
-        gen = get_gen(args, actual_ad=True if i == 0 else False)
+    for i in range(1):
+        gen = get_gen(args, actual_ad=True if i != 0 else False)
         gen.eval()
 
         power = 128
-        print(f"VALIDATING ", "ADLER" if i == 0  else "(7)")
+        print(f"VALIDATING ", "ADLER" if i != 0 else "(-1)")
         main(args, power, gen, loader)
