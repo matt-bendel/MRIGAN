@@ -348,14 +348,14 @@ if __name__ == '__main__':
     labels = ['Full', '-Adversarial', '-Supervised', '-Variance Reward', '-DC', '-DI', 'Full (2)', 'Adler']
     x_axis = [1, 4, 16]
     if True:
-        out_dir = f'/storage/fastMRI_brain_T2_embeddings/1_sample/1_patch/'
+        out_dir = f'/storage/fastMRI_brain_T2_embeddings/test/'
 
         recon_embeds = []
         cond_embeds = []
         gt_embeds = []
         cfids = []
         num_images = []
-        for l in range(26):
+        for l in range(117):
             read_dir = out_dir + f'image_embeds_model={1}_fold={l + 1}.pt'
             # recon_embeds = torch.load(out_dir + f'image_embeds_model={1}_fold={l + 1}.pt').to(dtype=torch.float64)
             # cond_embeds = torch.load(out_dir + f'cond_embeds__model={1}_fold={l + 1}.pt').to(dtype=torch.float64)
@@ -363,12 +363,14 @@ if __name__ == '__main__':
             recon_embeds.append(torch.load(out_dir + f'image_embeds_model={1}_fold={l + 1}.pt').to(dtype=torch.float64))
             cond_embeds.append(torch.load(out_dir + f'cond_embeds__model={1}_fold={l + 1}.pt').to(dtype=torch.float64))
             gt_embeds.append(torch.load(out_dir + f'true_embeds__model={1}_fold={l + 1}.pt').to(dtype=torch.float64))
-            cfid_svd, cdist1_svd, cdist2_svd = get_cfid_torch(torch.cat(recon_embeds, dim=0), torch.cat(cond_embeds, dim=0), torch.cat(gt_embeds, dim=0))
+            # cfid_svd, cdist1_svd, cdist2_svd = get_cfid_torch(torch.cat(recon_embeds, dim=0), torch.cat(cond_embeds, dim=0), torch.cat(gt_embeds, dim=0))
+            cfid_svd, cdist1_svd, cdist2_svd = get_cfid_torch(recon_embeds[l], cond_embeds[l], gt_embeds[l])
             cfids.append(cfid_svd)
             num_images.append(l*72 + 72)
 
-        plt.stem(num_images, cfids)
-        plt.savefig('acfid_v_num_ims.png')
+        print(f'CFID: {np.mean(cfids)} +/- {np.std(cfids)}')
+        # plt.stem(num_images, cfids)
+        # plt.savefig('acfid_v_num_ims.png')
         # recon_embeds = torch.cat(recon_embeds, dim=0)
         # print(recon_embeds.shape)
         # cond_embeds = torch.cat(cond_embeds, dim=0)
