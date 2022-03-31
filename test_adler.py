@@ -72,12 +72,12 @@ def non_average_gen(generator, input_w_z, z, old_input, args, true_measures):
     return refined_out, finish
 
 
-def average_gen(generator, input_w_z, z, old_input, args, true_measures, num_code=1024):
+def average_gen(generator, input_w_z, z, old_input, args, true_measures, num_code=1024, var=1):
     start = time.perf_counter()
     average_gen = torch.zeros((input_w_z.shape[0], num_code, 16, 128, 128)).to(args.device)
 
     for j in range(num_code):
-        z = torch.rand((input_w_z.size(0), 2, 128, 128)).cuda()
+        z = torch.empty((input_w_z.size(0), 2, 128, 128)).normal_(mean=0, std=np.sqrt(var)).cuda()
         output_gen = generator(torch.cat([input_w_z, z], dim=1))
 
         refined_out = readd_measures_im(output_gen, old_input, args,
@@ -97,7 +97,7 @@ def average_gen(generator, input_w_z, z, old_input, args, true_measures, num_cod
 
 def get_gen(args, type='image', actual_ad=True):
     checkpoint_file_gen = pathlib.Path(
-        f'/home/bendel.8/Git_Repos/full_scale_mrigan/MRIGAN/trained_models/ablation/image/-1/generator_best_model.pt')
+        f'/home/bendel.8/Git_Repos/full_scale_mrigan/MRIGAN/trained_models/ablation/image/7/generator_best_model.pt')
     if actual_ad:
         checkpoint_file_gen = pathlib.Path(
             f'/home/bendel.8/Git_Repos/full_scale_mrigan/MRIGAN/trained_models/adler/generator_best_model.pt')
@@ -113,7 +113,7 @@ def get_gen(args, type='image', actual_ad=True):
     return generator
 
 
-def main(args, num, generator, dev_loader):
+def main(args, num, generator, dev_loader, var=1):
     args.exp_dir.mkdir(parents=True, exist_ok=True)
 
     with open(f'trained_models/{args.network_input}/metrics_{args.z_location}.txt', 'w') as metric_file:
@@ -130,15 +130,14 @@ def main(args, num, generator, dev_loader):
 
             input = prep_input_2_chan(input, args.network_input, args)
             target_full = prep_input_2_chan(target_full, args.network_input, args)
-            z = torch.FloatTensor(np.random.normal(size=(input.shape[0], args.latent_size), scale=np.sqrt(1))).to(
-                args.device)
+            z = None
             old_input = input.to(args.device)
 
             with torch.no_grad():
                 input_w_z = input.to(args.device)
                 # refined_out, finish = non_average_gen(generator, input_w_z, z, old_input)
                 refined_out, finish, apsd = average_gen(generator, input_w_z, z, old_input, args, true_measures,
-                                                        num_code=num)
+                                                        num_code=num, var=var)
 
                 target_batch = prep_input_2_chan(target_full, args.network_input, args, disc=True).to(args.device)
                 output_batch = prep_input_2_chan(refined_out, args.network_input, args, disc=True).to(args.device)
@@ -227,5 +226,7 @@ if __name__ == '__main__':
         gen.eval()
 
         power = 128
-        print(f"VALIDATING ", "ADLER" if i != 0 else "(-1)")
-        main(args, power, gen, loader)
+        print(f"VALIDATING ", "ADLER" if i != 0 else "(7)")
+        noise_vars = [0.1, 0.25, 0.5, 0.75, 1, 2]
+        for j in range (6):
+            main(args, power, gen, loader, var=noise_vars[j])
