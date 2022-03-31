@@ -192,10 +192,10 @@ def main(args, num, generator, dev_loader):
             fold_ssim.append(metrics['ssim'][l * 72:(l + 1) * 72])
 
         # save_str = f"[Avg. PSNR: {np.mean(metrics['psnr']):.2f}] [Avg. SNR: {np.mean(metrics['snr']):.2f}] [Avg. SSIM: {np.mean(metrics['ssim']):.4f}], [Avg. APSD: {np.mean(metrics['apsd'])}], [Avg. Time: {np.mean(metrics['time']):.3f}]"
-        print(f'PSNR: {np.mean(fold_psnr)} \\pm {np.std(fold_psnr)}')
-        print(f'SNR: {np.mean(fold_snr)} \\pm {np.std(fold_snr)}')
-        print(f'SSIM: {np.mean(fold_ssim)} \\pm {np.std(fold_ssim)}')
-        print(f'APSD: {np.mean(metrics["apsd"])} \\pm {np.std(metrics["apsd"])}')
+        print(f'PSNR: {np.mean(fold_psnr)} \\pm {np.std(fold_psnr) / np.sqrt(26)}')
+        print(f'SNR: {np.mean(fold_snr)} \\pm {np.std(fold_snr) / np.sqrt(26)}')
+        print(f'SSIM: {np.mean(fold_ssim)} \\pm {np.std(fold_ssim) / np.sqrt(26)}')
+        print(f'APSD: {np.mean(metrics["apsd"])} \\pm {np.std(metrics["apsd"]) / np.sqrt(26)}')
 
 
 if __name__ == '__main__':
