@@ -72,12 +72,12 @@ def non_average_gen(generator, input_w_z, z, old_input, args, true_measures):
     return refined_out, finish
 
 
-def average_gen(generator, input_w_z, z, old_input, args, true_measures, num_code=1024):
+def average_gen(generator, input_w_z, z, old_input, args, true_measures, num_code=1024, var=1):
     start = time.perf_counter()
     average_gen = torch.zeros((input_w_z.shape[0], num_code, 16, 128, 128)).to(args.device)
 
     for j in range(num_code):
-        z = torch.FloatTensor(np.random.normal(size=(input_w_z.shape[0], args.latent_size), scale=np.sqrt(1))).to(
+        z = torch.FloatTensor(np.random.normal(size=(input_w_z.shape[0], args.latent_size), scale=np.sqrt(var))).to(
             args.device)
         output_gen = generator(input=input_w_z, z=z)
 
@@ -115,7 +115,7 @@ def get_gen(args, type='image'):
     return generator
 
 
-def main(args, num, generator, dev_loader):
+def main(args, num, generator, dev_loader, var=1):
     args.exp_dir.mkdir(parents=True, exist_ok=True)
 
     with open(f'trained_models/{args.network_input}/metrics_{args.z_location}.txt', 'w') as metric_file:
@@ -132,14 +132,13 @@ def main(args, num, generator, dev_loader):
 
             input = prep_input_2_chan(input, args.network_input, args)
             target_full = prep_input_2_chan(target_full, args.network_input, args)
-            z = torch.FloatTensor(np.random.normal(size=(input.shape[0], args.latent_size), scale=np.sqrt(1))).to(
-                args.device)
+            z = None
             old_input = input.to(args.device)
 
             with torch.no_grad():
                 input_w_z = input.to(args.device)
                 # refined_out, finish = non_average_gen(generator, input_w_z, z, old_input)
-                refined_out, finish, apsd = average_gen(generator, input_w_z, z, old_input, args, true_measures, num_code=num)
+                refined_out, finish, apsd = average_gen(generator, input_w_z, z, old_input, args, true_measures, num_code=num, var=var)
 
                 target_batch = prep_input_2_chan(target_full, args.network_input, args, disc=True).to(args.device)
                 output_batch = prep_input_2_chan(refined_out, args.network_input, args, disc=True).to(args.device)
@@ -217,7 +216,7 @@ if __name__ == '__main__':
     np.random.seed(args.seed)
     torch.manual_seed(args.seed)
     _, loader = create_data_loaders(args, val_only=True, big_test=True)
-    for net in range(6):
+    for net in range(1):
         net = net + 1
         print(f"VALIDATING ABLATION NETWORK {net}")
         args.in_chans = 16
@@ -230,7 +229,9 @@ if __name__ == '__main__':
 
         power = 128
         print(f"VALIDATING NUM CODE VECTORS: {power}")
-        main(args, power, gen, loader)
+        noise_vars = [0.1, 0.25, 0.5, 0.75, 1, 2, 4]
+        for noise_var in noise_vars:
+            main(args, power, gen, loader, var=noise_var)
 
         del gen
         print("\n\n\n")
