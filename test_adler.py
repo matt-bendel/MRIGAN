@@ -77,7 +77,7 @@ def average_gen(generator, input_w_z, z, old_input, args, true_measures, num_cod
     average_gen = torch.zeros((input_w_z.shape[0], num_code, 16, 128, 128)).to(args.device)
 
     for j in range(num_code):
-        z = torch.empty((input_w_z.size(0), 2, 128, 128)).normal_(mean=0, std=np.sqrt(var)).cuda()
+        z = torch.rand((input_w_z.size(0), 2, 128, 128)).cuda() #.normal_(mean=0, std=np.sqrt(var))
         output_gen = generator(torch.cat([input_w_z, z], dim=1))
 
         refined_out = readd_measures_im(output_gen, old_input, args,
@@ -97,7 +97,7 @@ def average_gen(generator, input_w_z, z, old_input, args, true_measures, num_cod
 
 def get_gen(args, type='image', actual_ad=True):
     checkpoint_file_gen = pathlib.Path(
-        f'/home/bendel.8/Git_Repos/full_scale_mrigan/MRIGAN/trained_models/ablation/image/7/generator_best_model.pt')
+        f'/home/bendel.8/Git_Repos/full_scale_mrigan/MRIGAN/trained_models/ablation/image/-1/generator_best_model.pt')
     if actual_ad:
         checkpoint_file_gen = pathlib.Path(
             f'/home/bendel.8/Git_Repos/full_scale_mrigan/MRIGAN/trained_models/adler/generator_best_model.pt')
@@ -226,7 +226,7 @@ if __name__ == '__main__':
         gen.eval()
 
         power = 128
-        print(f"VALIDATING ", "ADLER" if i != 0 else "(7)")
+        print(f"VALIDATING ", "ADLER" if i != 0 else "(1)")
         noise_vars = [0.1, 0.25, 0.5, 0.75, 1, 2]
-        for j in range (6):
+        for j in range (1):
             main(args, power, gen, loader, var=noise_vars[j])
