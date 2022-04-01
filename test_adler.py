@@ -227,6 +227,7 @@ if __name__ == '__main__':
 
         power = 128
         print(f"VALIDATING ", "ADLER" if i != 0 else "(1)")
-        noise_vars = [0.1, 0.25, 0.5, 0.75, 1, 2, 4]
+        # noise_vars = [0.1, 0.25, 0.5, 0.75, 1, 2, 4]
+        noise_vars = [1]
         for noise_var in noise_vars:
             main(args, power, gen, loader, var=noise_var)
