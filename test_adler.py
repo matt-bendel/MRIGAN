@@ -77,7 +77,7 @@ def average_gen(generator, input_w_z, z, old_input, args, true_measures, num_cod
     average_gen = torch.zeros((input_w_z.shape[0], num_code, 16, 128, 128)).to(args.device)
 
     for j in range(num_code):
-        z = torch.rand((input_w_z.size(0), 2, 128, 128)).cuda()  # .normal_(mean=0, std=np.sqrt(var))
+        z = torch.empty((input_w_z.size(0), 2, 128, 128)).normal_(mean=0, std=np.sqrt(var)).cuda()  #
         output_gen = generator(torch.cat([input_w_z, z], dim=1))
 
         refined_out = readd_measures_im(output_gen, old_input, args,
@@ -227,6 +227,6 @@ if __name__ == '__main__':
 
         power = 128
         print(f"VALIDATING ", "ADLER" if i != 0 else "(1)")
-        noise_vars = [0.1, 0.25, 0.5, 0.75, 1, 2]
-        for j in range(1):
-            main(args, power, gen, loader, var=noise_vars[j])
+        noise_vars = [0.1, 0.25, 0.5, 0.75, 1, 2, 4]
+        for noise_var in noise_vars:
+            main(args, power, gen, loader, var=noise_var)
