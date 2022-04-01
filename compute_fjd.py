@@ -85,7 +85,7 @@ class GANWrapper:
         # change the noise dimension as required
         if not self.args.adler:
             z = torch.cuda.FloatTensor(
-                np.random.normal(size=(batch_size, 512), scale=np.sqrt(1)))
+                np.random.normal(size=(batch_size, 512), scale=np.sqrt(self.noise_var)))
         else:
             z = torch.rand((batch_size, 2, 128, 128)).cuda()
 
@@ -227,14 +227,15 @@ def main(args):
 
     if args.patches and not args.inpaint:
         num_samps = 1
-        for i in range(1):
-            args.num_patches = 2**(i)
-            if args.num_patches == 1:
-                args.patches = False
-            else:
-                args.patches = True
-            print("PATCHES ", args.num_patches)
-            ref_loader, cond_loader = get_dataloaders(args)
+        noise_vars = [0.1, 0.25, 0.5, 0.75, 1, 2, 4]
+        args.num_patches = 1
+        if args.num_patches == 1:
+            args.patches = False
+        else:
+            args.patches = True
+        print("PATCHES ", args.num_patches)
+        ref_loader, cond_loader = get_dataloaders(args)
+        for noise_var in noise_vars:
             for j in range(1):
                 # if j == 0 or j == 5 or j == 6:
                 #     continue
@@ -250,7 +251,7 @@ def main(args):
                     args.in_chans = 16
                     args.out_chans = 16
                 gan = get_gen(args)
-                gan = GANWrapper(gan, args)
+                gan = GANWrapper(gan, args, noise_var=noise_var)
                 print("COMPUTING METRIC")
                 fjd_metric = FJDMetric(gan=gan,
                                        reference_loader=ref_loader,
@@ -275,8 +276,8 @@ def main(args):
                 del fjd_metric.reference_loader
                 del fjd_metric.condition_loader
                 del fjd_metric.gan
-                # cfid_val = fjd_metric.get_cfid_torch()
-                # print('CFID: ', cfid_val)
+                cfid_val = fjd_metric.get_cfid_torch()
+                print('CFID: ', cfid_val)
                 del fjd_metric
             del ref_loader
             del cond_loader
