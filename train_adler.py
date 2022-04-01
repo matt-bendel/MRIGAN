@@ -164,7 +164,7 @@ def average_gen(generator, input_w_z, old_input, args, true_measures):
     average_gen = torch.zeros(input_w_z.shape).to(args.device)
     gen_list = []
     for j in range(8):
-        z = torch.rand((input_w_z.size(0), 2, 128, 128)).cuda()
+        z = torch.randn((input_w_z.size(0), 2, 128, 128)).cuda()
         output_gen = generator(torch.cat([input_w_z, z], dim=1))
 
         refined_out = readd_measures_im(output_gen, old_input, args,
@@ -327,8 +327,8 @@ def main(args):
             input_w_z = input  # add_z_to_input(args, input)
 
             for j in range(args.num_iters_discriminator):
-                z1 = torch.rand((input_w_z.size(0), 2, 128, 128)).cuda()
-                z2 = torch.rand((input_w_z.size(0), 2, 128, 128)).cuda()
+                z1 = torch.randn((input_w_z.size(0), 2, 128, 128)).cuda()
+                z2 = torch.randn((input_w_z.size(0), 2, 128, 128)).cuda()
                 # ---------------------
                 #  Train Discriminator
                 # ---------------------
