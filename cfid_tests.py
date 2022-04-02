@@ -356,22 +356,21 @@ if __name__ == '__main__':
         cfids = []
         num_images = []
         # 117
-        for l in range(117):
-            read_dir = out_dir + f'image_embeds_model={1}_fold={l + 1}.pt'
-            # recon_embeds = torch.load(out_dir + f'image_embeds_model={1}_fold={l + 1}.pt').to(dtype=torch.float64)
-            # cond_embeds = torch.load(out_dir + f'cond_embeds__model={1}_fold={l + 1}.pt').to(dtype=torch.float64)
-            # gt_embeds = torch.load(out_dir + f'true_embeds__model={1}_fold={l + 1}.pt').to(dtype=torch.float64)
-            recon_embeds.append(torch.load(out_dir + f'image_embeds_model={1}_fold={l + 1}.pt').to(dtype=torch.float64))
-            cond_embeds.append(torch.load(out_dir + f'cond_embeds__model={1}_fold={l + 1}.pt').to(dtype=torch.float64))
-            gt_embeds.append(torch.load(out_dir + f'true_embeds__model={1}_fold={l + 1}.pt').to(dtype=torch.float64))
+        for l in range(26):
+            recon_embeds = torch.load(out_dir + f'image_embeds_model={-1}_fold={l + 1}.pt').to(dtype=torch.float64)
+            cond_embeds = torch.load(out_dir + f'cond_embeds__model={-1}_fold={l + 1}.pt').to(dtype=torch.float64)
+            gt_embeds = torch.load(out_dir + f'true_embeds__model={-1}_fold={l + 1}.pt').to(dtype=torch.float64)
+            # recon_embeds.append(torch.load(out_dir + f'image_embeds_model={1}_fold={l + 1}.pt').to(dtype=torch.float64))
+            # cond_embeds.append(torch.load(out_dir + f'cond_embeds__model={1}_fold={l + 1}.pt').to(dtype=torch.float64))
+            # gt_embeds.append(torch.load(out_dir + f'true_embeds__model={1}_fold={l + 1}.pt').to(dtype=torch.float64))
             cfid_svd, cdist1_svd, cdist2_svd = get_cfid_torch_svd(torch.cat(recon_embeds, dim=0), torch.cat(cond_embeds, dim=0), torch.cat(gt_embeds, dim=0))
             # cfid_svd, cdist1_svd, cdist2_svd = get_cfid_torch_svd(recon_embeds[l], cond_embeds[l], gt_embeds[l])
             cfids.append(cfid_svd)
             num_images.append(l*72 + 72)
 
-        # print(f'CFID: {np.mean(cfids)} +/- {np.std(cfids)}')
-        plt.stem(num_images, cfids)
-        plt.savefig('acfid_v_num_ims.png')
+        print(f'CFID: {np.mean(cfids)} +/- {np.std(cfids)}')
+        # plt.stem(num_images, cfids)
+        # plt.savefig('acfid_v_num_ims.png')
         # recon_embeds = torch.cat(recon_embeds, dim=0)
         # print(recon_embeds.shape)
         # cond_embeds = torch.cat(cond_embeds, dim=0)

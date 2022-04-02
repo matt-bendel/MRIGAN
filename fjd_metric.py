@@ -340,7 +340,7 @@ class FJDMetric:
 
         # TODO: REMOVE
         out_dir = f'/storage/fastMRI_brain_T2_embeddings/test/'
-        for l in range(117):
+        for l in range(26):
             mult_num = 72*self.samples_per_condition*(self.args.num_patches**2)
             if self.print:
                 self.print = False
