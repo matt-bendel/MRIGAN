@@ -280,53 +280,53 @@ class FJDMetric:
                                 image_embed.append(img_e.cpu().numpy())
                                 cond_embed.append(cond_e.cpu().numpy())
 
-        for i, data in tqdm(enumerate(self.reference_loader),
-                            desc='Computing generated distribution',
-                            total=len(self.reference_loader)):
-            if self.args.inpaint:
-                condition, gt, condition_im, true_im = data  # it is assumed data contains (image, condition)
-                true_im = true_im.to(self.args.device, dtype=torch.float)
-                gt = gt.to(self.args.device, dtype=torch.float)
-                condition = condition.to(self.args.device, dtype=torch.float)
-                condition_im = condition_im.to(self.args.device, dtype=torch.float)
-            else:
-                condition, condition_im, true_im = data  # it is assumed data contains (image, condition)
-                true_im = true_im.cuda()
-                condition = condition.cuda()
-                condition_im = condition_im.cuda()
-
-            with torch.no_grad():
-                for n in range(self.samples_per_condition):
-                    if self.args.noise_v_fjd:
-                        image = self.gan(true_im)
-                    else:
-                        image = self.gan(condition) if not self.args.inpaint else self.gan(condition, gt)
-
-                    if not self.args.patches:
-                        img_e = self.image_embedding(image)
-                        cond_e = self.condition_embedding(condition_im)
-                        true_e = self.image_embedding(true_im)
-
-                        if self.cuda:
-                            true_embed.append(true_e.to('cuda:2'))
-                            image_embed.append(img_e.to('cuda:1'))
-                            cond_embed.append(cond_e.to('cuda:1'))
-                        else:
-                            image_embed.append(img_e.cpu().numpy())
-                            cond_embed.append(cond_e.cpu().numpy())
-                    else:
-                        for j in range(self.args.num_patches ** 2):
-                            img_e = self.image_embedding(image[:, j, :, :, :])
-                            cond_e = self.condition_embedding(condition_im[:, j, :, :, :])
-                            true_e = self.image_embedding(true_im[:, j, :, :, :])
-
-                            if self.cuda:
-                                true_embed.append(true_e.to('cuda:2'))
-                                image_embed.append(img_e.to('cuda:1'))
-                                cond_embed.append(cond_e.to('cuda:1'))
-                            else:
-                                image_embed.append(img_e.cpu().numpy())
-                                cond_embed.append(cond_e.cpu().numpy())
+        # for i, data in tqdm(enumerate(self.reference_loader),
+        #                     desc='Computing generated distribution',
+        #                     total=len(self.reference_loader)):
+        #     if self.args.inpaint:
+        #         condition, gt, condition_im, true_im = data  # it is assumed data contains (image, condition)
+        #         true_im = true_im.to(self.args.device, dtype=torch.float)
+        #         gt = gt.to(self.args.device, dtype=torch.float)
+        #         condition = condition.to(self.args.device, dtype=torch.float)
+        #         condition_im = condition_im.to(self.args.device, dtype=torch.float)
+        #     else:
+        #         condition, condition_im, true_im = data  # it is assumed data contains (image, condition)
+        #         true_im = true_im.cuda()
+        #         condition = condition.cuda()
+        #         condition_im = condition_im.cuda()
+        #
+        #     with torch.no_grad():
+        #         for n in range(self.samples_per_condition):
+        #             if self.args.noise_v_fjd:
+        #                 image = self.gan(true_im)
+        #             else:
+        #                 image = self.gan(condition) if not self.args.inpaint else self.gan(condition, gt)
+        #
+        #             if not self.args.patches:
+        #                 img_e = self.image_embedding(image)
+        #                 cond_e = self.condition_embedding(condition_im)
+        #                 true_e = self.image_embedding(true_im)
+        #
+        #                 if self.cuda:
+        #                     true_embed.append(true_e.to('cuda:2'))
+        #                     image_embed.append(img_e.to('cuda:1'))
+        #                     cond_embed.append(cond_e.to('cuda:1'))
+        #                 else:
+        #                     image_embed.append(img_e.cpu().numpy())
+        #                     cond_embed.append(cond_e.cpu().numpy())
+        #             else:
+        #                 for j in range(self.args.num_patches ** 2):
+        #                     img_e = self.image_embedding(image[:, j, :, :, :])
+        #                     cond_e = self.condition_embedding(condition_im[:, j, :, :, :])
+        #                     true_e = self.image_embedding(true_im[:, j, :, :, :])
+        #
+        #                     if self.cuda:
+        #                         true_embed.append(true_e.to('cuda:2'))
+        #                         image_embed.append(img_e.to('cuda:1'))
+        #                         cond_embed.append(cond_e.to('cuda:1'))
+        #                     else:
+        #                         image_embed.append(img_e.cpu().numpy())
+        #                         cond_embed.append(cond_e.cpu().numpy())
 
         if self.cuda:
             true_embed = torch.cat(true_embed, dim=0)
