@@ -273,8 +273,6 @@ def main(args):
                 del gan
                 del fjd_metric.image_embedding
                 del fjd_metric.condition_embedding
-                del fjd_metric.reference_loader
-                del fjd_metric.condition_loader
                 del fjd_metric.gan
                 cfid_val = fjd_metric.get_cfid_torch()
                 print('CFID: ', cfid_val)
