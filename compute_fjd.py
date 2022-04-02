@@ -47,7 +47,7 @@ def get_gen(args):
         checkpoint_file_gen = pathlib.Path(
             f'/home/bendel.8/Git_Repos/full_scale_mrigan/MRIGAN/trained_models{string_for_file}/image/{args.z_location}/generator_best_model.pt')
 
-    if args.adler and args.z_location != 7:
+    if args.adler and args.z_location != -1:
         checkpoint_file_gen = pathlib.Path(
             f'/home/bendel.8/Git_Repos/full_scale_mrigan/MRIGAN/trained_models/adler/generator_best_model.pt')
 
@@ -227,7 +227,8 @@ def main(args):
 
     if args.patches and not args.inpaint:
         num_samps = 1
-        noise_vars = [0.1, 0.25, 0.5, 0.75, 1, 2, 4]
+        # noise_vars = [0.1, 0.25, 0.5, 0.75, 1, 2, 4]
+        noise_vars = [1]
         args.num_patches = 1
         if args.num_patches == 1:
             args.patches = False
@@ -240,8 +241,8 @@ def main(args):
                 # if j == 0 or j == 5 or j == 6:
                 #     continue
                 # j = 8
-                args.z_location = j+1
-                args.adler = True if j > 5 and j != 8 else False
+                args.z_location = -1
+                args.adler = True #if j > 5 and j != 8 else False
                 if j == 8:
                     args.inpaint = True
                     args.in_chans = 1
