@@ -234,8 +234,8 @@ def main(args):
         else:
             args.patches = True
         print("PATCHES ", args.num_patches)
+        ref_loader, cond_loader = get_dataloaders(args)
         for noise_var in noise_vars:
-            ref_loader, cond_loader = get_dataloaders(args)
             for j in range(1):
                 # if j == 0 or j == 5 or j == 6:
                 #     continue
@@ -277,8 +277,6 @@ def main(args):
                 cfid_val = fjd_metric.get_cfid_torch()
                 print('CFID: ', cfid_val)
                 del fjd_metric
-            del ref_loader
-            del cond_loader
         exit()
     else:
         ref_loader, cond_loader = get_dataloaders(args)
