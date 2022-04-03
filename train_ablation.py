@@ -293,7 +293,6 @@ def get_gen_supervised(args):
 def main(args):
     args.exp_dir.mkdir(parents=True, exist_ok=True)
 
-    args.adler = True
     args.in_chans = 16
     args.out_chans = 16
 
@@ -334,29 +333,33 @@ def main(args):
             input_w_z = input  # add_z_to_input(args, input)
 
             for j in range(args.num_iters_discriminator):
-                z1 = torch.rand((input_w_z.size(0), 2, 128, 128)).cuda()
-                z2 = torch.rand((input_w_z.size(0), 2, 128, 128)).cuda()
+                z = torch.rand((input_w_z.size(0), 2, 128, 128)).cuda()
                 # ---------------------
                 #  Train Discriminator
                 # ---------------------
                 optimizer_D.zero_grad()
 
                 input_w_z = input_w_z.to(args.device)
-                output_gen_1 = generator(torch.cat([input_w_z, z1], dim=1))
-                output_gen_2 = generator(torch.cat([input_w_z, z2], dim=1))
-
-                refined_out_1 = readd_measures_im(output_gen_1, old_input, args, true_measures=true_measures)
-                refined_out_2 = readd_measures_im(output_gen_2, old_input, args, true_measures=true_measures)
-
-                rand_num = np.random.randint(0, 2, 1)
-                if rand_num == 0:
-                    x_expect = torch.cat([target_full, refined_out_1], 1)
+                output_gen = generator(torch.cat([input_w_z, z], dim=1))
+                if args.network_input == 'kspace':
+                    # refined_out = output_gen + old_input[:, 0:16]
+                    refined_out = output_gen + old_input[:]
+                elif args.data_consistency:
+                    refined_out = readd_measures_im(output_gen, old_input, args,
+                                                    true_measures=true_measures)
                 else:
-                    x_expect = torch.cat([refined_out_1, target_full], 1)
+                    refined_out = output_gen
 
-                x_posterior_concat = torch.cat([refined_out_1, refined_out_2], 1)
-                real_pred = discriminator(input=x_expect, y=old_input)
-                fake_pred = discriminator(input=x_posterior_concat, y=old_input)
+                # TURN OUTPUT INTO IMAGE FOR DISCRIMINATION AND GET REAL IMAGES FOR DISCRIMINATION
+                disc_target_batch = prep_input_2_chan(target_full, args.network_input, args, disc=True,
+                                                      disc_image=not args.disc_kspace).to(
+                    args.device)
+                disc_output_batch = prep_input_2_chan(refined_out, args.network_input, args, disc=True,
+                                                      disc_image=not args.disc_kspace).to(args.device)
+
+                # MAKE PREDICTIONS
+                real_pred = discriminator(input=disc_target_batch, y=old_input)
+                fake_pred = discriminator(input=disc_output_batch, y=old_input)
 
                 real_acc = real_pred[real_pred > 0].shape[0]
                 fake_acc = fake_pred[fake_pred <= 0].shape[0]
@@ -364,8 +367,8 @@ def main(args):
                 batch_loss['d_acc'].append((real_acc + fake_acc) / (2 * real_pred.shape[0]))
 
                 # Gradient penalty
-                gradient_penalty = compute_gradient_penalty(discriminator, x_expect.data,
-                                                            x_posterior_concat.data, args, old_input.data)
+                gradient_penalty = compute_gradient_penalty(discriminator, disc_target_batch.data,
+                                                            disc_output_batch.data, args, old_input.data)
                 # Adversarial loss
                 d_loss = torch.mean(fake_pred) - torch.mean(
                     real_pred) + lambda_gp * gradient_penalty + 0.001 * torch.mean(real_pred ** 2)
@@ -376,61 +379,58 @@ def main(args):
             optimizer_G.zero_grad()
 
             # Generate a batch of images
-            z1 = torch.rand((input_w_z.size(0), args.num_z, 2, 128, 128)).cuda()
-            z2 = torch.rand((input_w_z.size(0), args.num_z, 2, 128, 128)).cuda()
-
-            output_gen_1 = torch.zeros(size=(
-                args.num_z, old_input.shape[0], old_input.shape[1], old_input.shape[2], old_input.shape[3])).to(
-                args.device)
-            output_gen_2 = torch.zeros(size=(
+            z = torch.rand((input_w_z.size(0), args.num_z, 2, 128, 128)).cuda()
+            output_gen = torch.zeros(size=(
                 args.num_z, old_input.shape[0], old_input.shape[1], old_input.shape[2], old_input.shape[3])).to(
                 args.device)
             for k in range(args.num_z):
-                output_gen_1[k, :, :, :, :] = generator(torch.cat([input_w_z, z1[:, k, :, :, :]], dim=1))
-                output_gen_2[k, :, :, :, :] = generator(torch.cat([input_w_z, z2[:, k, :, :, :]], dim=1))
+                output_gen[k, :, :, :, :] = generator(torch.cat([input_w_z, z[:, k, :, :, :]], dim=1))
 
-            if args.data_consistency:
-                refined_out_1 = torch.zeros(size=output_gen_1.shape).to(args.device)
-                refined_out_2 = torch.zeros(size=output_gen_2.shape).to(args.device)
-
+            if args.network_input == 'kspace':
+                refined_out = output_gen + old_input[:]
+            elif args.data_consistency:
+                refined_out = torch.zeros(size=output_gen.shape).to(args.device)
                 for k in range(args.num_z):
-                    refined_out_1[k, :, :, :, :] = readd_measures_im(output_gen_1[k], old_input, args, true_measures=true_measures)
-                    refined_out_2[k, :, :, :, :] = readd_measures_im(output_gen_2[k], old_input, args, true_measures=true_measures)
+                    refined_out[k, :, :, :, :] = readd_measures_im(output_gen[k], old_input, args, true_measures=true_measures)
             else:
-                refined_out_1 = output_gen_1
-                refined_out_2 = output_gen_2
+                refined_out = output_gen
 
-            refined_out_1 = refined_out_1.permute(1, 0, 2, 3, 4)
-            refined_out_2 = refined_out_2.permute(1, 0, 2, 3, 4)
+            disc_output_batch = torch.zeros(size=refined_out.shape).to(args.device)
+            for k in range(args.num_z):
+                disc_output_batch[k, :, :, :, :] = prep_input_2_chan(refined_out[k], args.network_input, args,
+                                                                     disc=True,
+                                                                     disc_image=not args.disc_kspace).to(
+                    args.device)
 
-            num_z_times_2_out = torch.zeros(input_w_z.size(0), args.num_z*2, input_w_z.size(1), input_w_z.size(2), input_w_z.size(3)).to(args.device)
-            for k in range (args.num_z*2):
-                if k < args.num_z:
-                    num_z_times_2_out[:, k, :, :, :] = refined_out_1[:, k, :, :, :]
-                else:
-                    num_z_times_2_out[:, k, :, :, :] = refined_out_2[:, k - args.num_z, :, :, :]
+            disc_inputs_gen = torch.zeros(
+                size=(old_input.shape[0], args.num_z, disc_output_batch.shape[2], disc_output_batch.shape[3],
+                      disc_output_batch.shape[4])
+            ).to(args.device)
+            for l in range(old_input.shape[0]):
+                for k in range(args.num_z):
+                    disc_inputs_gen[l, k, :, :, :] = disc_output_batch[k, l, :, :, :]
 
-            avg_recon = torch.mean(num_z_times_2_out, dim=1) if args.supervised else None
-
+            avg_recon = torch.mean(disc_inputs_gen, dim=1) if args.supervised else None
             # Loss measures generator's ability to fool the discriminator
             # Train on fake images
-            fake_pred = torch.zeros((args.num_z, old_input.shape[0])).to(args.device)
-            for k in range(args.num_z):
-                x_posterior_concat = torch.cat([refined_out_1[:, k, :, :, :], refined_out_2[:, k, :, :, :]], dim=1)
-                temp = discriminator(input=x_posterior_concat, y=old_input)
+            fake_pred = torch.zeros((old_input.shape[0], args.num_z)).to(args.device)
+            for k in range(old_input.shape[0]):
+                cond = torch.zeros(1, disc_inputs_gen.shape[2], disc_inputs_gen.shape[3], disc_inputs_gen.shape[4])
+                cond[0, :, :, :] = old_input[k, :, :, :]
+                cond = cond.repeat(args.num_z, 1, 1, 1)
+                temp = discriminator(input=disc_inputs_gen[k], y=cond)
                 fake_pred[k] = temp[:, 0]
 
             gen_pred_loss = torch.mean(fake_pred[0])
-            for k in range(args.num_z - 1):
+            for k in range(old_input.shape[0] - 1):
                 gen_pred_loss += torch.mean(fake_pred[k + 1])
 
-            var_weight = 0.01
-            adv_weight = 1e-6 if args.supervised else 1
-            ssim_weight = 0.84
+            var_weight = np.sqrt(2/(np.pi*args.num_z*(args.num_z+1)))
+            adv_weight = 1e-3
             g_loss = -adv_weight*torch.mean(gen_pred_loss) if args.adv_only else 0
-            g_loss += (1 - ssim_weight) * F.l1_loss(target_full, avg_recon) - ssim_weight * mssim_tensor(target_full,
-                                                                                                         avg_recon) if args.supervised else 0
-            g_loss += - var_weight * torch.mean(torch.var(num_z_times_2_out, dim=1), dim=(0, 1, 2, 3)) if args.var_loss else 0
+            g_loss += F.l1_loss(target_full, avg_recon) if args.supervised else 0
+            g_loss += - var_weight * torch.mean(torch.var(disc_inputs_gen, dim=1),
+                                                dim=(0, 1, 2, 3)) if args.var_loss else 0
 
             if g_loss.item() < -10:
                 exit()
