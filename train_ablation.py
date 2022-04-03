@@ -164,7 +164,7 @@ def average_gen(generator, input_w_z, old_input, args, true_measures):
     average_gen = torch.zeros(input_w_z.shape).to(args.device)
     gen_list = []
     for j in range(8):
-        z = torch.rand((input_w_z.size(0), 2, 128, 128)).cuda()
+        z = torch.randn((input_w_z.size(0), 2, 128, 128)).cuda()
         output_gen = generator(torch.cat([input_w_z, z], dim=1))
 
         if args.network_input == 'kspace':
@@ -333,7 +333,7 @@ def main(args):
             input_w_z = input  # add_z_to_input(args, input)
 
             for j in range(args.num_iters_discriminator):
-                z = torch.rand((input_w_z.size(0), 2, 128, 128)).cuda()
+                z = torch.randn((input_w_z.size(0), 2, 128, 128)).cuda()
                 # ---------------------
                 #  Train Discriminator
                 # ---------------------
@@ -379,7 +379,7 @@ def main(args):
             optimizer_G.zero_grad()
 
             # Generate a batch of images
-            z = torch.rand((input_w_z.size(0), args.num_z, 2, 128, 128)).cuda()
+            z = torch.randn((input_w_z.size(0), args.num_z, 2, 128, 128)).cuda()
             output_gen = torch.zeros(size=(
                 args.num_z, old_input.shape[0], old_input.shape[1], old_input.shape[2], old_input.shape[3])).to(
                 args.device)
