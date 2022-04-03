@@ -295,6 +295,7 @@ def main(args):
 
     args.in_chans = 16
     args.out_chans = 16
+    args.adler = True
 
     if args.resume:
         generator, optimizer_G, discriminator, optimizer_D, args, best_loss_val, best_loss_dis, start_epoch = get_gen_supervised(
