@@ -87,7 +87,7 @@ class GANWrapper:
             z = torch.cuda.FloatTensor(
                 np.random.normal(size=(batch_size, 512), scale=np.sqrt(self.noise_var)))
         else:
-            z = torch.rand((batch_size, 2, 128, 128)).cuda()
+            z = torch.randn((batch_size, 2, 128, 128)).cuda()
 
         return z
 
