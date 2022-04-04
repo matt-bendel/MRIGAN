@@ -368,7 +368,7 @@ if __name__ == '__main__':
             cfids.append(cfid_svd)
             num_images.append(l*72 + 72)
 
-        print(f'CFID: {np.mean(cfids)} +/- {np.std(cfids)}')
+        print(f'CFID: {np.mean(cfids)} +/- {np.std(cfids) / np.sqrt(26)}')
         # plt.stem(num_images, cfids)
         # plt.savefig('acfid_v_num_ims.png')
         # recon_embeds = torch.cat(recon_embeds, dim=0)
