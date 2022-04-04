@@ -47,7 +47,7 @@ def get_gen(args):
         checkpoint_file_gen = pathlib.Path(
             f'/home/bendel.8/Git_Repos/full_scale_mrigan/MRIGAN/trained_models{string_for_file}/image/{args.z_location}/generator_best_model.pt')
 
-    if args.adler and args.z_location != -1:
+    if args.adler and args.z_location != 8:
         checkpoint_file_gen = pathlib.Path(
             f'/home/bendel.8/Git_Repos/full_scale_mrigan/MRIGAN/trained_models/adler/generator_best_model.pt')
 
@@ -87,7 +87,7 @@ class GANWrapper:
             z = torch.cuda.FloatTensor(
                 np.random.normal(size=(batch_size, 512), scale=np.sqrt(self.noise_var)))
         else:
-            z = torch.empty((batch_size, 2, 128, 128)).normal_(mean=0, std=np.sqrt(0.5)).cuda()
+            z = torch.randn((batch_size, 2, 128, 128)).cuda() #.normal_(mean=0, std=np.sqrt(0.5))
 
         return z
 
