@@ -88,7 +88,7 @@ class GANWrapper:
             z = torch.cuda.FloatTensor(
                 np.random.normal(size=(batch_size, 512), scale=np.sqrt(self.noise_var)))
         else:
-            z = torch.empty((batch_size, 2, 128, 128)).normal_(mean=0, std=np.sqrt(0.25)).cuda() #
+            z = torch.empty((batch_size, 2, 128, 128)).normal_(mean=0, std=np.sqrt(1)).cuda()  #
 
         return z
 
@@ -238,12 +238,12 @@ def main(args):
         print("PATCHES ", args.num_patches)
         ref_loader, cond_loader = get_dataloaders(args)
         for noise_var in noise_vars:
-            for j in range(1):
+            for j in range(3):
                 # if j == 0 or j == 5 or j == 6:
                 #     continue
                 # j = 8
-                args.z_location = 9
-                args.adler = True #if j > 5 and j != 8 else False
+                args.z_location = 8 if j == 0 else 9 if j == 1 else 10
+                args.adler = True  # if j > 5 and j != 8 else False
                 if j == 8:
                     args.inpaint = True
                     args.in_chans = 1
