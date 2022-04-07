@@ -314,7 +314,7 @@ def main(args):
 
     train_loader, dev_loader = create_data_loaders(args)
 
-    for epoch in range(start_epoch, args.num_epochs):
+    for epoch in range(0, args.num_epochs):
         batch_loss = {
             'g_loss': [],
             'd_loss': [],
