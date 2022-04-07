@@ -350,12 +350,12 @@ if __name__ == '__main__':
     if True:
         out_dir = f'/storage/fastMRI_brain_T2_embeddings/test/'
 
-        recon_embeds = []
-        cond_embeds = []
-        gt_embeds = []
-        num_images = []
         # 117
         for j in range(3):
+            recon_embeds = []
+            cond_embeds = []
+            gt_embeds = []
+            num_images = []
             cfids = []
             loc = 8 if j == 0 else 9 if j == 1 else 10
             for l in range(26):
