@@ -238,11 +238,11 @@ def main(args):
         print("PATCHES ", args.num_patches)
         ref_loader, cond_loader = get_dataloaders(args)
         for noise_var in noise_vars:
-            for j in range(3):
+            for j in range(1):
                 # if j == 0 or j == 5 or j == 6:
                 #     continue
                 # j = 8
-                args.z_location = 8 if j == 0 else 9 if j == 1 else 10
+                args.z_location = 9
                 args.adler = True  # if j > 5 and j != 8 else False
                 if j == 8:
                     args.inpaint = True

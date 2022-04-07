@@ -313,7 +313,6 @@ def main(args):
     logging.info(discriminator)
 
     train_loader, dev_loader = create_data_loaders(args)
-    start_epoch = 0
 
     for epoch in range(start_epoch, args.num_epochs):
         batch_loss = {

@@ -351,7 +351,7 @@ class FJDMetric:
             torch.save(cond_embed[l*mult_num:(l+1)*mult_num], out_dir + f'cond_embeds__model={self.args.z_location}_fold={l+1}.pt')
             torch.save(true_embed[l*mult_num:(l+1)*mult_num], out_dir + f'true_embeds__model={self.args.z_location}_fold={l+1}.pt')
 
-        # exit()
+        exit()
 
         self.gen_embeds = image_embed
         del image_embed
