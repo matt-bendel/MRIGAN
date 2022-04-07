@@ -227,7 +227,7 @@ def main(args):
         exit()
 
     if args.patches and not args.inpaint:
-        num_samps = 1
+        num_samps = 32
         # noise_vars = [0.1, 0.25, 0.5, 0.75, 1, 2, 4]
         noise_vars = [1]
         args.num_patches = 1
@@ -276,8 +276,8 @@ def main(args):
                 del fjd_metric.image_embedding
                 del fjd_metric.condition_embedding
                 del fjd_metric.gan
-                cfid_val = fjd_metric.get_cfid_torch()
-                print('CFID: ', cfid_val)
+                # cfid_val = fjd_metric.get_cfid_torch()
+                # print('CFID: ', cfid_val)
                 del fjd_metric
         exit()
     else:
