@@ -353,10 +353,10 @@ if __name__ == '__main__':
         recon_embeds = []
         cond_embeds = []
         gt_embeds = []
-        cfids = []
         num_images = []
         # 117
         for j in range(3):
+            cfids = []
             loc = 8 if j == 0 else 9 if j == 1 else 10
             for l in range(26):
                 # recon_embeds = torch.load(out_dir + f'image_embeds_model={-1}_fold={l + 1}.pt').to(dtype=torch.float64)
