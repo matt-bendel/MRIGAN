@@ -227,7 +227,7 @@ def main(args):
         exit()
 
     if args.patches and not args.inpaint:
-        num_samps = 4
+        num_samps = 1
         # noise_vars = [0.1, 0.25, 0.5, 0.75, 1, 2, 4]
         noise_vars = [1]
         args.num_patches = 1
