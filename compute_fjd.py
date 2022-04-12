@@ -242,7 +242,7 @@ def main(args):
                 # if j == 0 or j == 5 or j == 6:
                 #     continue
                 # j = 8
-                args.z_location = 11
+                args.z_location = 10
                 args.adler = True  # if j > 5 and j != 8 else False
                 if j == 8:
                     args.inpaint = True
