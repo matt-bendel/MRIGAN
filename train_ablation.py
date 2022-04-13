@@ -430,8 +430,8 @@ def main(args):
             adv_weight = 1e-3 #1e-4 FOR L1
             g_loss = -adv_weight*torch.mean(gen_pred_loss)
             g_loss += F.mse_loss(avg_recon, target_full) if args.supervised else 0
-            g_loss += -var_weight * torch.mean(torch.var(disc_inputs_gen, dim=1, unbiased=True),
-                                                dim=(0, 1, 2, 3)) if args.var_loss else 0
+            # g_loss += -var_weight * torch.mean(torch.var(disc_inputs_gen, dim=1, unbiased=True),
+            #                                     dim=(0, 1, 2, 3)) if args.var_loss else 0
             # g_loss += F.l1_loss(target_full, avg_recon) if args.supervised else 0
             # g_loss += - std_weight * torch.mean(torch.std(disc_inputs_gen, dim=1, unbiased=True),
             #                                     dim=(0, 1, 2, 3)) if args.var_loss else 0
