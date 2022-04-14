@@ -101,7 +101,7 @@ def average_gen(generator, input_w_z, z, old_input, args, true_measures, num_cod
     ssims = []
 
     for j in range(num_code):
-        z = torch.randn((input_w_z.size(0), 2, 128, 128)).cuda()  # .normal_(mean=0, std=np.sqrt(var))
+        z = torch.rand((input_w_z.size(0), 2, 128, 128)).cuda()  # .normal_(mean=0, std=np.sqrt(var))
         output_gen = generator(torch.cat([input_w_z, z], dim=1))
 
         refined_out = readd_measures_im(output_gen, old_input, args,
@@ -251,6 +251,7 @@ if __name__ == '__main__':
     args.data_consistency = True
 
     for i in range(1):
+        i = 1
         gen = get_gen(args, actual_ad=True if i != 0 else False)
         gen.eval()
 
