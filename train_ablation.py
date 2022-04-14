@@ -117,7 +117,8 @@ def save_model(args, epoch, model, optimizer, best_dev_loss, is_new_best, m_type
 
     if is_new_best:
         shutil.copyfile(args.exp_dir / 'ablation' / args.network_input / str(args.z_location) / f'{m_type}_model.pt',
-                        args.exp_dir / 'ablation' / args.network_input / str(args.z_location) / f'{m_type}_best_model.pt'
+                        args.exp_dir / 'ablation' / args.network_input / str(
+                            args.z_location) / f'{m_type}_best_model.pt'
                         )
 
 
@@ -161,7 +162,8 @@ def average(gen_tensor):
 
 
 def average_gen(generator, input_w_z, old_input, args, true_measures):
-    average_gen = torch.zeros(input_w_z.shape).to(args.device)
+    average_gen = torch.zeros(input_w_z.shape[0], 8, input_w_z.shape[1], input_w_z.shape[2], input_w_z.shape[3]).to(
+        args.device)
     gen_list = []
     for j in range(8):
         z = torch.randn((input_w_z.size(0), 2, 128, 128)).cuda()
@@ -177,9 +179,10 @@ def average_gen(generator, input_w_z, old_input, args, true_measures):
             refined_out = output_gen
 
         gen_list.append(refined_out)
-        average_gen = torch.add(average_gen, refined_out)
+        average_gen[:, j, :, :, :] = refined_out
 
-    return torch.div(average_gen, 8), gen_list
+    return torch.mean(average_gen, dim=1), gen_list, torch.mean(torch.std(average_gen, dim=1),
+                                                                dim=(0, 1, 2, 3)).cpu().numpy()
 
 
 def generate_image(fig, target, image, method, image_ind, rows, cols, kspace=False, disc_num=False):
@@ -391,7 +394,8 @@ def main(args):
             elif args.data_consistency:
                 refined_out = torch.zeros(size=output_gen.shape).to(args.device)
                 for k in range(args.num_z):
-                    refined_out[k, :, :, :, :] = readd_measures_im(output_gen[k], old_input, args, true_measures=true_measures)
+                    refined_out[k, :, :, :, :] = readd_measures_im(output_gen[k], old_input, args,
+                                                                   true_measures=true_measures)
             else:
                 refined_out = output_gen
 
@@ -425,10 +429,10 @@ def main(args):
             for k in range(old_input.shape[0] - 1):
                 gen_pred_loss += torch.mean(fake_pred[k + 1])
 
-            std_weight = np.sqrt(2/(np.pi*args.num_z*(args.num_z+1)))
+            std_weight = np.sqrt(2 / (np.pi * args.num_z * (args.num_z + 1)))
             var_weight = 0.01
-            adv_weight = 1e-3 #1e-4 FOR L1
-            g_loss = -adv_weight*torch.mean(gen_pred_loss)
+            adv_weight = 1e-3  # 1e-4 FOR L1
+            g_loss = -adv_weight * torch.mean(gen_pred_loss)
             g_loss += F.mse_loss(avg_recon, target_full) if args.supervised else 0
             # g_loss += -var_weight * torch.mean(torch.var(disc_inputs_gen, dim=1, unbiased=True),
             #                                     dim=(0, 1, 2, 3)) if args.var_loss else 0
@@ -450,7 +454,8 @@ def main(args):
 
         losses = {
             'psnr': [],
-            'ssim': []
+            'ssim': [],
+            'apsd': []
         }
 
         for i, data in enumerate(dev_loader):
@@ -462,7 +467,8 @@ def main(args):
                 target_full = prep_input_2_chan(target_full, args.network_input, args).to(args.device)
                 true_measures = true_measures.to(args.device)
 
-                output_gen, gen_list = average_gen(generator, input, input, args, true_measures)
+                output_gen, gen_list, apsd = average_gen(generator, input, input, args, true_measures)
+                losses["apsd"].append(apsd)
 
                 ims = prep_input_2_chan(output_gen, args.network_input, args, disc=True,
                                         disc_image=not args.disc_kspace)
@@ -549,7 +555,7 @@ def main(args):
         save_str = f"END OF EPOCH {epoch + 1}: [Average D loss: {GLOBAL_LOSS_DICT['d_loss'][epoch - start_epoch]:.4f}] [Average D Acc: {GLOBAL_LOSS_DICT['d_acc'][epoch - start_epoch]:.4f}] [Average G loss: {GLOBAL_LOSS_DICT['g_loss'][epoch - start_epoch]:.4f}]\n"
         print(save_str)
 
-        save_str_2 = f"[Avg PSNR: {np.mean(losses['psnr']):.2f}] [Avg SSIM: {np.mean(losses['ssim']):.4f}]"
+        save_str_2 = f"[Avg PSNR: {np.mean(losses['psnr']):.2f}] [Avg SSIM: {np.mean(losses['ssim']):.4f}] [APSD: {np.mean(losses['apsd'])}]"
         print(save_str_2)
 
         save_model(args, epoch, generator, optimizer_G, best_loss_val, best_model, 'generator')
