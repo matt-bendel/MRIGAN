@@ -69,25 +69,30 @@ class GANS:
             'gens': [],
             'dc': [],
         }
-        for i in range(8):
+        for i in range(4):
             print(i)
-            if i == 7:
+            if i == 0:
                 self.gens['gens'].append(self.get_adler(args))
                 self.gens['dc'].append(True)
-            elif i == 6:
-                self.gens['gens'].append(self.get_adler(args, ours=True))
+            elif i == 1:
+                num = 9
+                self.gens['gens'].append(self.get_adler(args, ours=True, num=num))
                 self.gens['dc'].append(True)
-            else:
-                num = i + 1
-                self.gens['gens'].append(self.get_gen(args, num))
-                self.gens['dc'].append(False if num == 5 else True)
+            elif i == 2:
+                num = 12
+                self.gens['gens'].append(self.get_adler(args, ours=True, num=num))
+                self.gens['dc'].append(True)
+            elif i == 3:
+                num = 11
+                self.gens['gens'].append(self.get_adler(args, ours=True, num=num))
+                self.gens['dc'].append(True)
 
-    def get_adler(self, args, ours=False):
+    def get_adler(self, args, ours=False, num=None):
         checkpoint_file_gen = pathlib.Path(
             f'/home/bendel.8/Git_Repos/full_scale_mrigan/MRIGAN/trained_models/adler/generator_best_model.pt')
         if ours:
             checkpoint_file_gen = pathlib.Path(
-                f'/home/bendel.8/Git_Repos/full_scale_mrigan/MRIGAN/trained_models/ablation/image/7/generator_best_model.pt')
+                f'/home/bendel.8/Git_Repos/full_scale_mrigan/MRIGAN/trained_models/ablation/image/{num}/generator_best_model.pt')
         checkpoint_gen = torch.load(checkpoint_file_gen, map_location=torch.device('cuda'))
         args.adler = True
         generator = build_model(args)
@@ -139,10 +144,10 @@ class GANS:
             'g2': [],
             'g3': [],
             'g4': [],
-            'g5': [],
-            'g6': [],
-            'g7': [],
-            'g8': [],
+            # 'g5': [],
+            # 'g6': [],
+            # 'g7': [],
+            # 'g8': [],
         }
 
         avg = {
@@ -150,10 +155,10 @@ class GANS:
             'g2': None,
             'g3': None,
             'g4': None,
-            'g5': None,
-            'g6': None,
-            'g7': None,
-            'g8': None,
+            # 'g5': None,
+            # 'g6': None,
+            # 'g7': None,
+            # 'g8': None,
         }
 
         std_devs = {
@@ -161,18 +166,17 @@ class GANS:
             'g2': None,
             'g3': None,
             'g4': None,
-            'g5': None,
-            'g6': None,
-            'g7': None,
-            'g8': None,
+            # 'g5': None,
+            # 'g6': None,
+            # 'g7': None,
+            # 'g8': None,
         }
 
         batch_size = y.size(0)
         for i in range(len(self.gens['gens'])):
             gen_num = i + 1
             avg_tensor = torch.zeros(32, 16, 128, 128).to(self.args.device)
-            if i == 6 or i == 7:
-                self.adler = True
+            self.adler = True
 
             for j in range(32):
                 z = self.get_noise(batch_size)
@@ -186,8 +190,6 @@ class GANS:
                 final_im = transforms.root_sum_of_squares(complex_abs(temp*std[2] + mean[2])).cpu().numpy()
 
                 recons[f'g{gen_num}'].append(final_im)
-
-            self.adler = False
 
             mean_recon = torch.mean(avg_tensor, dim=0)
             temp = torch.zeros(8, 128, 128, 2).to(self.args.device)
@@ -278,13 +280,13 @@ def get_colorbar(fig, im, ax, left=False):
 
 def create_mean_error_plots(avg, std_devs, gt):
     num_rows = 3
-    num_cols = 9
+    num_cols = 5
 
-    fig = plt.figure(figsize=(9*3, 9))
+    fig = plt.figure()
     fig.subplots_adjust(wspace=0, hspace=0.05)
     generate_image(fig, gt, gt, 'GT', 1, num_rows, num_cols)
 
-    labels = ['Full', '-Adversarial', '-Supervised', '-Variance Reward', '-DC', '-DI', 'Full (2)', 'Adler']
+    labels = ['Adv. (Adler)', 'Adv. + MSE (Elad)', 'Adv. + MSE + Var. Reward (Ours)', 'Adv. + L1 + Std. Dev. Reward (Ours)']
     im_er, ax_er = None, None
     im_std, ax_std = None, None
 
@@ -305,20 +307,20 @@ def create_mean_error_plots(avg, std_devs, gt):
 
 def create_z_compare_plots(recons, gt):
     num_rows = 5
-    num_cols = 9
+    num_cols = 5
 
-    fig = plt.figure(figsize=(9*1.8, 9))
+    fig = plt.figure()
     fig.subplots_adjust(wspace=0, hspace=0.05)
     generate_image(fig, gt, gt, 'GT', 1, num_rows, num_cols)
 
-    labels = ['Full', '-Adversarial', '-Supervised', '-Variance Reward', '-DC', '-DI', 'Full (2)', 'Adler']
+    labels = ['Adv. (Adler)', 'Adv. + MSE (Elad)', 'Adv. + MSE + Var. Reward (Ours)', 'Adv. + L1 + Std. Dev. Reward (Ours)']
 
     for i in range(num_cols - 1):
         generate_error_map(fig, gt, recons[f'g{i + 1}'][0], i + 2, num_rows, num_cols, title=labels[i])
-        generate_error_map(fig, gt, recons[f'g{i + 1}'][1], i + 11, num_rows, num_cols)
-        generate_error_map(fig, gt, recons[f'g{i + 1}'][2], i + 20, num_rows, num_cols)
-        generate_error_map(fig, gt, recons[f'g{i + 1}'][3], i + 29, num_rows, num_cols)
-        generate_error_map(fig, gt, recons[f'g{i + 1}'][4], i + 38, num_rows, num_cols)
+        generate_error_map(fig, gt, recons[f'g{i + 1}'][1], i + 7, num_rows, num_cols)
+        generate_error_map(fig, gt, recons[f'g{i + 1}'][2], i + 12, num_rows, num_cols)
+        generate_error_map(fig, gt, recons[f'g{i + 1}'][3], i + 17, num_rows, num_cols)
+        generate_error_map(fig, gt, recons[f'g{i + 1}'][4], i + 22, num_rows, num_cols)
 
     plt.savefig(f'/home/bendel.8/Git_Repos/full_scale_mrigan/MRIGAN/ablation_plots/5_z.png')
 
@@ -327,9 +329,9 @@ def gif_im(gt, gen_ims, index, type):
     fig = plt.figure(figsize=(12, 4))
     fig.subplots_adjust(wspace=0, hspace=0.05)
     num_rows = 2
-    num_cols = 8
+    num_cols = 4
 
-    labels = ['Full', '-Adversarial', '-Supervised', '-Variance Reward', '-DC', '-DI', 'Full (2)', 'Adler']
+    labels = ['Adv. (Adler)', 'Adv. + MSE (Elad)', 'Adv. + MSE + Var. Reward (Ours)', 'Adv. + L1 + Std. Dev. Reward (Ours)']
 
     im_er, ax_er = None, None
     for i in range(num_cols):
