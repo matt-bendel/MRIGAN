@@ -213,7 +213,7 @@ def generate_image(fig, target, image, method, image_ind, rows, cols, kspace=Fal
             ax.set_title(method, size=10)
 
         ax.text(1, 0.85, f'PSNR: {psnr_val:.2f}\nSNR: {snr_val:.2f}\nSSIM: {ssim_val:.4f}', transform=ax.transAxes,
-                horizontalalignment='right', verticalalignment='center', fontsize='xx-small', color='yellow')
+                horizontalalignment='right', verticalalignment='center', fontsize='xxx-small', color='yellow')
 
     if method == 'Std. Dev':
         im = ax.imshow(image, cmap='viridis', vmin=0)
@@ -286,7 +286,7 @@ def create_mean_error_plots(avg, std_devs, gt):
     fig.subplots_adjust(wspace=0, hspace=0.05)
     generate_image(fig, gt, gt, 'GT', 1, num_rows, num_cols)
 
-    labels = ['Adv. (Adler)', 'Adv. + MSE (Elad)', 'Adv. + MSE + Var. Reward (Ours)', 'Adv. + L1 + Std. Dev. Reward (Ours)']
+    labels = ['Model (1)', 'Model (2)', 'Model (3)', 'Model (4)']
     im_er, ax_er = None, None
     im_std, ax_std = None, None
 
@@ -313,7 +313,7 @@ def create_z_compare_plots(recons, gt):
     fig.subplots_adjust(wspace=0, hspace=0.05)
     generate_image(fig, gt, gt, 'GT', 1, num_rows, num_cols)
 
-    labels = ['Adv. (Adler)', 'Adv. + MSE (Elad)', 'Adv. + MSE + Var. Reward (Ours)', 'Adv. + L1 + Std. Dev. Reward (Ours)']
+    labels = ['Model (1)', 'Model (2)', 'Model (3)', 'Model (4)']
 
     for i in range(num_cols - 1):
         generate_error_map(fig, gt, recons[f'g{i + 1}'][0], i + 2, num_rows, num_cols, title=labels[i])
@@ -331,7 +331,7 @@ def gif_im(gt, gen_ims, index, type):
     num_rows = 2
     num_cols = 4
 
-    labels = ['Adv. (Adler)', 'Adv. + MSE (Elad)', 'Adv. + MSE + Var. Reward (Ours)', 'Adv. + L1 + Std. Dev. Reward (Ours)']
+    labels = ['Model (1)', 'Model (2)', 'Model (3)', 'Model (4)']
 
     im_er, ax_er = None, None
     for i in range(num_cols):
