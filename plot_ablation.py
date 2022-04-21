@@ -227,7 +227,7 @@ def generate_image(fig, target, image, method, image_ind, rows, cols, kspace=Fal
                 horizontalalignment='right', verticalalignment='center', fontsize='xx-small', color='yellow')
 
     if method == 'Std. Dev':
-        im = ax.imshow(image, cmap='viridis', vmin=0, vmax=7.5e-5)
+        im = ax.imshow(image, cmap='viridis', vmin=0, vmax=5e-5)
         ax.set_xticks([])
         ax.set_yticks([])
     else:
