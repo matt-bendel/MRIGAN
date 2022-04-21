@@ -336,7 +336,7 @@ def gif_im(gt, gen_ims, index, type):
     im_er, ax_er = None, None
     for i in range(num_cols):
         generate_image(fig, gt, gen_ims[f'g{i + 1}'][index], labels[i], i + 1, num_rows, num_cols)
-        im_er, ax_er = generate_error_map(fig, gt, gen_ims[f'g{i + 1}'][index], i + 9, num_rows, num_cols)
+        im_er, ax_er = generate_error_map(fig, gt, gen_ims[f'g{i + 1}'][index], i + 5, num_rows, num_cols)
 
     get_colorbar(fig, im_er, ax_er)
     plt.title(f'Z - {index + 1}', size=8)
