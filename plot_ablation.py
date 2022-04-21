@@ -283,6 +283,7 @@ def get_colorbar(fig, im, ax, left=False):
 
     cbar = fig.colorbar(im, cax=cbar_ax, format='%.2e')  # Generate colorbar
     cbar.ax.tick_params(labelsize=8)
+    cbar.ax.locator_params(nbins=5)
 
     if left:
         cbar_ax.yaxis.tick_left()
