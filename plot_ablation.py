@@ -213,10 +213,10 @@ def generate_image(fig, target, image, method, image_ind, rows, cols, kspace=Fal
             ax.set_title(method, size=10)
 
         ax.text(1, 0.85, f'PSNR: {psnr_val:.2f}\nSNR: {snr_val:.2f}\nSSIM: {ssim_val:.4f}', transform=ax.transAxes,
-                horizontalalignment='right', verticalalignment='center', fontsize='xxx-small', color='yellow')
+                horizontalalignment='right', verticalalignment='top', fontsize='xx-small', color='yellow')
 
     if method == 'Std. Dev':
-        im = ax.imshow(image, cmap='viridis', vmin=0)
+        im = ax.imshow(image, cmap='viridis', vmin=0, vmax=10e-5)
         ax.set_xticks([])
         ax.set_yticks([])
     else:
