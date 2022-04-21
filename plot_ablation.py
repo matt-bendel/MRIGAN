@@ -326,7 +326,7 @@ def create_z_compare_plots(recons, gt):
 
 
 def gif_im(gt, gen_ims, index, type):
-    fig = plt.figure(figsize=(12, 4))
+    fig = plt.figure()
     fig.subplots_adjust(wspace=0, hspace=0.05)
     num_rows = 2
     num_cols = 4
