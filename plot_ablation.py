@@ -373,10 +373,11 @@ def main(generators, dev_loader):
         input = prep_input_2_chan(input, args.network_input, args).to(args.device)
         target_full = prep_input_2_chan(target_full, args.network_input, args).to(args.device)
 
+        plot_ind = 0
         temp = torch.zeros(8, 128, 128, 2).to(args.device)
-        temp[:, :, :, 0] = target_full[2, 0:8, :, :]
-        temp[:, :, :, 1] = target_full[2, 8:16, :, :]
-        gt = transforms.root_sum_of_squares(complex_abs(temp*std[2] + mean[2])).cpu().numpy()
+        temp[:, :, :, 0] = target_full[plot_ind, 0:8, :, :]
+        temp[:, :, :, 1] = target_full[plot_ind, 8:16, :, :]
+        gt = transforms.root_sum_of_squares(complex_abs(temp*std[plot_ind] + mean[plot_ind])).cpu().numpy()
 
         with torch.no_grad():
             recons, avg, std_devs = generators(input, mean, std)
