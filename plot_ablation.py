@@ -314,7 +314,7 @@ def create_mean_error_plots(avg, std_devs, gt):
     get_colorbar(fig, im_er, ax_er, left=True)
     get_colorbar(fig, im_std, ax_std, left=True)
 
-    plt.savefig(f'/home/bendel.8/Git_Repos/full_scale_mrigan/MRIGAN/ablation_plots/mean_error.png')
+    plt.savefig(f'/home/bendel.8/Git_Repos/full_scale_mrigan/MRIGAN/ablation_plots/mean_error.png', bbox_inches='tight')
 
 
 def create_z_compare_plots(recons, gt):
