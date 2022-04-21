@@ -138,7 +138,7 @@ class GANS:
         std_dev = std_dev / args.num_z
         return np.sqrt(std_dev)
 
-    def __call__(self, y, mean, std):
+    def __call__(self, y, mean, std, plot_ind):
         recons = {
             'g1': [],
             'g2': [],
@@ -182,12 +182,12 @@ class GANS:
                 z = self.get_noise(batch_size)
                 samples = self.gens['gens'][i](y, z) if not self.adler else self.gens['gens'][i](torch.cat([y, z], dim=1))
                 samples = readd_measures_im(samples, y, args, true_measures=y) if self.gens['dc'][i] else samples
-                avg_tensor[j, :, :, :] = samples[2, :, :, :]
+                avg_tensor[j, :, :, :] = samples[plot_ind, :, :, :]
 
                 temp = torch.zeros(8, 128, 128, 2).to(self.args.device)
-                temp[:, :, :, 0] = samples[2, 0:8, :, :]
-                temp[:, :, :, 1] = samples[2, 8:16, :, :]
-                final_im = transforms.root_sum_of_squares(complex_abs(temp*std[2] + mean[2])).cpu().numpy()
+                temp[:, :, :, 0] = samples[plot_ind, 0:8, :, :]
+                temp[:, :, :, 1] = samples[plot_ind, 8:16, :, :]
+                final_im = transforms.root_sum_of_squares(complex_abs(temp*std[plot_ind] + mean[plot_ind])).cpu().numpy()
 
                 recons[f'g{gen_num}'].append(final_im)
 
@@ -195,7 +195,7 @@ class GANS:
             temp = torch.zeros(8, 128, 128, 2).to(self.args.device)
             temp[:, :, :, 0] = mean_recon[0:8, :, :]
             temp[:, :, :, 1] = mean_recon[8:16, :, :]
-            avg[f'g{gen_num}'] = transforms.root_sum_of_squares(complex_abs(temp*std[2] + mean[2])).cpu().numpy()
+            avg[f'g{gen_num}'] = transforms.root_sum_of_squares(complex_abs(temp*std[plot_ind] + mean[plot_ind])).cpu().numpy()
 
             std_devs[f'g{gen_num}'] = self.compute_std_dev(recons[f'g{gen_num}'], avg[f'g{gen_num}'])
 
@@ -374,14 +374,14 @@ def main(generators, dev_loader):
         input = prep_input_2_chan(input, args.network_input, args).to(args.device)
         target_full = prep_input_2_chan(target_full, args.network_input, args).to(args.device)
 
-        plot_ind = 0
+        plot_inds = 0
         temp = torch.zeros(8, 128, 128, 2).to(args.device)
-        temp[:, :, :, 0] = target_full[plot_ind, 0:8, :, :]
-        temp[:, :, :, 1] = target_full[plot_ind, 8:16, :, :]
-        gt = transforms.root_sum_of_squares(complex_abs(temp*std[plot_ind] + mean[plot_ind])).cpu().numpy()
+        temp[:, :, :, 0] = target_full[plot_inds, 0:8, :, :]
+        temp[:, :, :, 1] = target_full[plot_inds, 8:16, :, :]
+        gt = transforms.root_sum_of_squares(complex_abs(temp*std[plot_inds] + mean[plot_inds])).cpu().numpy()
 
         with torch.no_grad():
-            recons, avg, std_devs = generators(input, mean, std)
+            recons, avg, std_devs = generators(input, mean, std, plot_inds)
 
             create_mean_error_plots(avg, std_devs, gt)
             create_z_compare_plots(recons, gt)
