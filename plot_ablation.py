@@ -258,7 +258,7 @@ def generate_error_map(fig, target, recon, image_ind, rows, cols, relative=False
         im = ax.imshow(k * error, cmap='bwr', origin='lower', vmin=-0.0001, vmax=0.0001)  # Plot image
         plt.gca().invert_yaxis()
     else:
-        im = ax.imshow(k * error, cmap='jet', vmax=1) if kspace else ax.imshow(k * error, cmap='jet', vmax=0.0001)
+        im = ax.imshow(k * error, cmap='jet', vmax=1) if kspace else ax.imshow(k * error, cmap='jet', vmin=0, vmax=0.0001)
 
     if title != None:
         ax.set_title(title, size=10)
