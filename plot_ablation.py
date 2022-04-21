@@ -212,11 +212,22 @@ def generate_image(fig, target, image, method, image_ind, rows, cols, kspace=Fal
         if method != None:
             ax.set_title(method, size=10)
 
-        ax.text(1, 0.85, f'PSNR: {psnr_val:.2f}\nSNR: {snr_val:.2f}\nSSIM: {ssim_val:.4f}', transform=ax.transAxes,
-                horizontalalignment='right', verticalalignment='top', fontsize='xx-small', color='yellow')
+        # padding = 5
+        # ax.annotate(
+        #     s=f'PSNR: {psnr_val:.2f}\nSNR: {snr_val:.2f}\nSSIM: {ssim_val:.4f}',
+        #     fontsize='xx-small',
+        #     xy=(0, 0),
+        #     xytext=(padding - 1, -(padding - 1)),
+        #     textcoords='offset pixels',
+        #     # bbox=dict(facecolor='white', alpha=1, pad=padding),
+        #     va='top',
+        #     ha='right',
+        # )
+        ax.text(1, 0.8, f'PSNR: {psnr_val:.2f}\nSNR: {snr_val:.2f}\nSSIM: {ssim_val:.4f}', transform=ax.transAxes,
+                horizontalalignment='right', verticalalignment='center', fontsize='xx-small', color='yellow')
 
     if method == 'Std. Dev':
-        im = ax.imshow(image, cmap='viridis', vmin=0, vmax=10e-5)
+        im = ax.imshow(image, cmap='viridis', vmin=0, vmax=7.5e-5)
         ax.set_xticks([])
         ax.set_yticks([])
     else:
