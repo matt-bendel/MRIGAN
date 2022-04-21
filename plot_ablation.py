@@ -293,11 +293,11 @@ def create_mean_error_plots(avg, std_devs, gt):
     for i in range(num_cols - 1):
         generate_image(fig, gt, avg[f'g{i + 1}'], labels[i], i + 2, num_rows, num_cols)
         if i == 0:
-            im_er, ax_er = generate_error_map(fig, gt, avg[f'g{i + 1}'], i + 11, num_rows, num_cols)
-            im_std, ax_std = generate_image(fig, gt, std_devs[f'g{i + 1}'], 'Std. Dev', i + 20, num_rows, num_cols)
+            im_er, ax_er = generate_error_map(fig, gt, avg[f'g{i + 1}'], i + 7, num_rows, num_cols)
+            im_std, ax_std = generate_image(fig, gt, std_devs[f'g{i + 1}'], 'Std. Dev', i + 12, num_rows, num_cols)
         else:
-            generate_error_map(fig, gt, avg[f'g{i + 1}'], i + 11, num_rows, num_cols)
-            generate_image(fig, gt, std_devs[f'g{i + 1}'], 'Std. Dev', i + 20, num_rows, num_cols)
+            generate_error_map(fig, gt, avg[f'g{i + 1}'], i + 7, num_rows, num_cols)
+            generate_image(fig, gt, std_devs[f'g{i + 1}'], 'Std. Dev', i + 12, num_rows, num_cols)
 
     get_colorbar(fig, im_er, ax_er, left=True)
     get_colorbar(fig, im_std, ax_std, left=True)
