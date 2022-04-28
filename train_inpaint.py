@@ -147,9 +147,8 @@ def average_gen(generator, input_w_z, args, target=None, inds=None):
     gens = torch.zeros(size=(input_w_z.shape[0], 8, input_w_z.shape[1], input_w_z.shape[2], input_w_z.shape[3])).to(
         device=args.device, dtype=torch.float)
     for j in range(8):
-        z = torch.FloatTensor(np.random.normal(size=(input_w_z.shape[0], args.latent_size), scale=np.sqrt(1))).to(
-            device=args.device, dtype=torch.float)
-        output_gen = generator(input=input_w_z, z=z)
+        z = torch.randn((input_w_z.size(0), 2, 128, 128)).cuda()
+        output_gen = generator(torch.cat([input_w_z, z]))
         output_gen[inds] = target[inds]
         gens[:, j, :, :, :] = output_gen
 
@@ -304,15 +303,14 @@ def main(args):
             target = target.to(device=args.device, dtype=torch.float)
 
             for j in range(args.num_iters_discriminator):
-                z = torch.FloatTensor(
-                    np.random.normal(size=(input.shape[0], args.latent_size), scale=np.sqrt(1))).to(device=args.device,
-                                                                                                    dtype=torch.float)
+                z = torch.randn((input.size(0), 2, 128, 128)).cuda()
+
                 # ---------------------
                 #  Train Discriminator
                 # ---------------------
                 optimizer_D.zero_grad()
 
-                output_gen = generator(input, z)
+                output_gen = generator(torch.cat([input, z], dim=1))
                 output_gen[inds] = target[inds]
 
                 # MAKE PREDICTIONS
@@ -337,14 +335,13 @@ def main(args):
             optimizer_G.zero_grad()
 
             # Generate a batch of images
-            z = torch.FloatTensor(
-                np.random.normal(size=(args.num_z, input.shape[0], args.latent_size), scale=np.sqrt(1))).to(
-                args.device)
+            z = torch.randn((input.size(0), args.num_z, 2, 128, 128)).cuda()
+
             output_gen = torch.zeros(size=(
                 args.num_z, input.shape[0], input.shape[1], input.shape[2], input.shape[3])).to(
                 args.device)
             for k in range(args.num_z):
-                output_gen[k, :, :, :, :] = generator(input, z[k])
+                output_gen[k, :, :, :, :] = generator(torch.cat([input, z[k]]))
                 # output_gen[k, :, :, :, 0:64] = target[:, :, :, 0:64]
                 output_gen[k, inds] = target[inds]
 

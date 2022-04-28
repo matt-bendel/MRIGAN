@@ -61,9 +61,8 @@ def average_gen(generator, input_w_z, args, target=None, inds=None, power_num=12
     average_gen = torch.zeros((input_w_z.shape[0], power_num, 1, 128, 128)).to(args.device)
 
     for j in range(power_num):
-        z = torch.FloatTensor(np.random.normal(size=(input_w_z.shape[0], args.latent_size), scale=np.sqrt(1))).to(
-            args.device, dtype=torch.float)
-        output_gen = generator(input=input_w_z, z=z)
+        z = torch.randn((input_w_z.size(0), 2, 128, 128)).cuda()
+        output_gen = generator(torch.cat([input_w_z, z]))
         output_gen[inds] = target[inds]
         average_gen[:, j, :, :, :] = output_gen
 

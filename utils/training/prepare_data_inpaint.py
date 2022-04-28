@@ -69,10 +69,10 @@ class DataTransform:
 
         # rand_start_col = randrange(0, end)
         # rand_start_row = randrange(0, end)
-        rand_start_row = (n - square_length) // 2
-        rand_start_col = (n - square_length) // 2
+        rand_start_row = n // 2
+        rand_start_col = n // 2
 
-        input_tensor[:, rand_start_row:rand_start_row + square_length, rand_start_col:rand_start_col + square_length] = 0
+        input_tensor[:, rand_start_row:rand_start_row + 15, rand_start_col:n] = 0
         # input_tensor[:, :, 64:128] = 0
 
         normalized_input, mean, std = transforms.normalize_instance(input_tensor)

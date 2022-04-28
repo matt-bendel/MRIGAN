@@ -122,7 +122,7 @@ def average_gen(generator, input_w_z, z, old_input, args, true_measures, num_cod
 
 def get_gen(args, type='image', actual_ad=True):
     checkpoint_file_gen = pathlib.Path(
-        f'/home/bendel.8/Git_Repos/full_scale_mrigan/MRIGAN/trained_models/ablation/image/14/generator_best_model.pt')
+        f'/home/bendel.8/Git_Repos/full_scale_mrigan/MRIGAN/trained_models/ablation/image/15/generator_best_model.pt')
     if actual_ad:
         checkpoint_file_gen = pathlib.Path(
             f'/home/bendel.8/Git_Repos/full_scale_mrigan/MRIGAN/trained_models/adler/generator_best_model.pt')
