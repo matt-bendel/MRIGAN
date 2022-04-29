@@ -65,8 +65,8 @@ for filename in os.listdir(ref_directory):
             new_filename = recon_directory + filename + f'|langevin|slide_idx_{i}_R={R}_sample={j}_outputs.pt'
             recon_object = torch.load(new_filename)
             print(recon_object['mvue'].shape)
-            print(torch.max(complex_abs(recon_object['mvue'][0].permute(1,2,0))))
-            print(torch.max(recon_object['gt'][0][0].abs()))
+            print(torch.min(complex_abs(recon_object['mvue'][0].permute(1,2,0))))
+            print(torch.min(recon_object['gt'][0][0].abs()))
             exit()
             recons[j] = complex_abs(recon_object['mvue'][0].permute(1,2,0)).cpu().numpy()
 
