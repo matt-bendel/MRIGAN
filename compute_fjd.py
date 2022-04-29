@@ -191,15 +191,15 @@ def main(args):
     inception_embedding = InceptionEmbedding(parallel=True)
     print("GETTING GENERATOR")
     max = 6 if not args.inpaint and not args.adler else 1
-    Langevin = False
+    Langevin = True
     cfid_test = False
 
     if Langevin:
         print("COMPUTING METRIC")
-        args.patches = True
-        for i in range(4):
-            args.num_patches = 4
-            num_samps = 1 if i == 0 or i == 2 else 32
+        args.patches = False
+        for i in range(2):
+            args.num_patches = 1
+            num_samps = 1
             args.z_location = 4 if i < 2 else 8
             print("PATCHES ", args.num_patches ** 2)
             print('NUM SAMPS: ', num_samps)
@@ -215,10 +215,11 @@ def main(args):
                                                        samples_per_condition=num_samps,
                                                        cuda=True,
                                                        args=args)
-            fid = fjd_metric.get_fid()
-            fjd = fjd_metric.get_fjd(alpha=1.097)
-            print('FID: ', fid)
-            print('FJD: ', fjd)
+            # fid = fjd_metric.get_fid()
+            # fjd = fjd_metric.get_fjd(alpha=1.097)
+            # print('FID: ', fid)
+            # print('FJD: ', fjd)
+            fjd_metric._get_generated_distribution()
             cfid_val = fjd_metric.get_cfid_torch()
             print('CFID: ', cfid_val)
             del fjd_metric
