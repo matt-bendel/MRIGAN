@@ -239,10 +239,7 @@ class FJDMetric:
 
     def _get_patches(self, im_tensor):
         ret_im = 2 * (im_tensor - torch.min(im_tensor)) / (torch.max(im_tensor) - torch.min(im_tensor)) - 1
-        ret_im = ret_im.repeat(3, 1, 1)
-
-        if self.args.num_patches == 1:
-            return ret_im
+        return ret_im.repeat(3, 1, 1)
 
         new_im = torch.zeros(self.args.num_patches ** 2, 3, 384 // (self.args.num_patches),
                              384 // (self.args.num_patches))
@@ -280,9 +277,9 @@ class FJDMetric:
                             continue
 
                         # recon = unnormalize(recon_object['mvue'], recon_object['zfr'])
-                        im_patches = self._get_patches(complex_abs(recon_object['mvue'][0].permute(1, 2, 0)))
+                        im_patches = self._get_patches(complex_abs(recon_object['mvue'][0].permute(1, 2, 0))).to(dtype=torch.float)
                         cond_patches = self._get_patches(recon_object['zfr'][0].abs()).to(dtype=torch.float)
-                        true_patches = self._get_patches(recon_object['gt'][0][0].abs())
+                        true_patches = self._get_patches(recon_object['gt'][0][0].abs()).to(dtype=torch.float)
 
                         for k in range(self.args.num_patches):
                             if self.args.num_patches == 1:
