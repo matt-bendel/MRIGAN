@@ -44,11 +44,11 @@ def ssim(
 
     return ssim
 
-R = 8
+R = 4
 
 # assign directory
 ref_directory = '/storage/fastMRI_brain/data/small_T2_test'
-recon_directory = f'/storage/fastMRI_brain/Langevin_Recons_R={8}/'
+recon_directory = f'/storage/fastMRI_brain/Langevin_Recons_R={R}/'
 # iterate over files in
 # that directory
 
@@ -57,15 +57,22 @@ ssim_vals = []
 snr_vals = []
 apsd_vals = []
 
+exceptions = False
 for filename in os.listdir(ref_directory):
     for i in range(6):
         recons = np.zeros((32, 384, 384))
         recon_object = None
-        for j in range(1):
-            new_filename = recon_directory + filename + f'|langevin|slide_idx_{i}_R={R}_sample={j}_outputs.pt'
-            recon_object = torch.load(new_filename)
+        for j in range(32):
+            try:
+                new_filename = recon_directory + filename + f'|langevin|slide_idx_{i}_R={R}_sample={j}_outputs.pt'
+                recon_object = torch.load(new_filename)
+            except:
+                exceptions = True
+                continue
             recons[j] = complex_abs(recon_object['mvue'][0].permute(1,2,0)).cpu().numpy()
 
+        if exceptions:
+            continue
         mean = np.mean(recons, axis=0)
         gt = recon_object['gt'][0][0].abs().cpu().numpy()
         apsd = np.mean(np.std(recons, axis=0), axis=(0, 1))
