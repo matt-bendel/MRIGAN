@@ -8,6 +8,7 @@ from utils.math import complex_abs
 from typing import Optional
 from skimage.metrics import peak_signal_noise_ratio, structural_similarity
 
+
 def psnr(
         gt: np.ndarray, pred: np.ndarray, maxval: Optional[float] = None
 ) -> np.ndarray:
@@ -44,12 +45,14 @@ def ssim(
 
     return ssim
 
+
 def unnormalize(gen_img, estimated_mvue):
     '''
         Estimate mvue from coils and normalize with 99% percentile.
     '''
     scaling = torch.quantile(estimated_mvue.abs(), 0.99)
     return gen_img / scaling
+
 
 R = 4
 
@@ -78,7 +81,7 @@ for filename in os.listdir(ref_directory):
                 continue
             # temp_recon = unnormalize(recon_object['mvue'], recon_object['zfr'])
 
-            recons[j] = complex_abs(recon_object['mvue'][0].permute(1,2,0)).cpu().numpy()
+            recons[j] = complex_abs(recon_object['mvue'][0].permute(1, 2, 0)).cpu().numpy()
 
         if exceptions:
             exceptions = False
@@ -103,4 +106,3 @@ print('APSD: ', np.median(apsd_vals))
 print('PSNR: ', np.median(psnr_vals))
 print('SNR: ', np.median(snr_vals))
 print('SSIM: ', np.median(ssim_vals))
-

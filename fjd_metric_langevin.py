@@ -162,12 +162,14 @@ def sample_covariance_torch(a, b):
     N = a.shape[0]
     return torch.matmul(torch.transpose(a, 0, 1), b) / N
 
+
 def unnormalize(gen_img, estimated_mvue):
     '''
         Estimate mvue from coils and normalize with 99% percentile.
     '''
     scaling = torch.quantile(estimated_mvue.abs(), 0.99)
     return gen_img / scaling
+
 
 class FJDMetric:
     """Helper function for calculating FJD metric.
@@ -271,7 +273,7 @@ class FJDMetric:
                     for j in range(self.samples_per_condition):
                         recon_object = None
                         try:
-                            new_filename = recon_directory + fname + f'|langevin|slide_idx_{i}_R={R}_sample={j}_outputs.pt'
+                            new_filename = recon_directory + fname + f'|langevin|slide_idx_{i}_R={R}_sample={j+3}_outputs.pt'
                             recon_object = torch.load(new_filename)
                         except:
                             continue
