@@ -204,7 +204,7 @@ def main(args):
             print("PATCHES ", args.num_patches ** 2)
             print('NUM SAMPS: ', num_samps)
             print('R=', args.z_location)
-            ref_loader, cond_loader = prepare_data_fid_langevin.create_data_loaders(args)
+            ref_loader, cond_loader = None, None
             fjd_metric = fjd_metric_langevin.FJDMetric(gan=None,
                                                        reference_loader=ref_loader,
                                                        condition_loader=cond_loader,
