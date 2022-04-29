@@ -9,7 +9,8 @@ import torchgeometry as tg
 
 from utils.math import complex_abs
 
-#TODO: ADAPT METHODS TO TORCH
+
+# TODO: ADAPT METHODS TO TORCH
 def symmetric_matrix_square_root(mat, eps=1e-10):
     """Compute square root of a symmetric matrix.
     Note that this is different from an elementwise square root. We want to
@@ -30,6 +31,7 @@ def symmetric_matrix_square_root(mat, eps=1e-10):
     # (when referencing the equation A = U S V^T)
     # This is unlike Numpy which returns v = V^T
     return tf.matmul(tf.matmul(u, tf.linalg.tensor_diag(si)), v, transpose_b=True)
+
 
 def symmetric_matrix_square_root_torch(mat, eps=1e-10):
     """Compute square root of a symmetric matrix.
@@ -53,6 +55,7 @@ def symmetric_matrix_square_root_torch(mat, eps=1e-10):
     # (when referencing the equation A = U S V^T)
     # This is unlike Numpy which returns v = V^T
     return torch.matmul(torch.matmul(u, torch.diag(si)), v)
+
 
 def trace_sqrt_product(sigma, sigma_v):
     """Find the trace of the positive sqrt of product of covariance matrices.
@@ -90,6 +93,7 @@ def trace_sqrt_product(sigma, sigma_v):
 
     return tf.linalg.trace(symmetric_matrix_square_root(sqrt_a_sigmav_a))
 
+
 def trace_sqrt_product_torch(sigma, sigma_v):
     """Find the trace of the positive sqrt of product of covariance matrices.
     '_symmetric_matrix_square_root' only works for symmetric matrices, so we
@@ -126,6 +130,7 @@ def trace_sqrt_product_torch(sigma, sigma_v):
 
     return torch.trace(symmetric_matrix_square_root_torch(sqrt_a_sigmav_a))
 
+
 # **Estimators**
 #
 def sample_covariance(a, b, invert=False):
@@ -144,6 +149,7 @@ def sample_covariance(a, b, invert=False):
     else:
         return C
 
+
 def sample_covariance_torch(a, b):
     '''
     Sample covariance estimating
@@ -155,6 +161,7 @@ def sample_covariance_torch(a, b):
     m = a.shape[1]
     N = a.shape[0]
     return torch.matmul(torch.transpose(a, 0, 1), b) / N
+
 
 class FJDMetric:
     """Helper function for calculating FJD metric.
@@ -223,7 +230,7 @@ class FJDMetric:
         return self.alpha
 
     def _get_patches(self, im_tensor):
-        im_tensor = 2*(im_tensor - torch.min(im_tensor))/(torch.max(im_tensor) - torch.min(im_tensor)) - 1
+        im_tensor = 2 * (im_tensor - torch.min(im_tensor)) / (torch.max(im_tensor) - torch.min(im_tensor)) - 1
         im_tensor = im_tensor.repeat(3, 1, 1)
         if self.args.num_patches == 1:
             return im_tensor
@@ -256,13 +263,15 @@ class FJDMetric:
             with torch.no_grad():
                 for i in range(6):
                     for j in range(self.samples_per_condition):
+                        recon_object = None
                         try:
                             new_filename = recon_directory + fname + f'|langevin|slide_idx_{i}_R={R}_sample={j}_outputs.pt'
+                            recon_object = torch.load(new_filename)
                         except:
                             continue
-                        recon_object = torch.load(new_filename)
 
-                        im_patches = self._get_patches(complex_abs(recon_object['mvue'][0].permute(1, 2, 0))).to(dtype=torch.float)
+                        im_patches = self._get_patches(complex_abs(recon_object['mvue'][0].permute(1, 2, 0))).to(
+                            dtype=torch.float)
                         cond_patches = self._get_patches(recon_object['zfr'][0].abs()).to(dtype=torch.float)
                         true_patches = self._get_patches(recon_object['gt'][0][0].abs()).to(dtype=torch.float)
 
@@ -514,7 +523,8 @@ class FJDMetric:
         return fjd
 
     def get_cfid_torch(self, resample=True):
-        y_predict, x_true, y_true = self.gen_embeds.to(dtype=torch.float64), self.cond_embeds.to(dtype=torch.float64), self.true_embeds.to(dtype=torch.float64)
+        y_predict, x_true, y_true = self.gen_embeds.to(dtype=torch.float64), self.cond_embeds.to(
+            dtype=torch.float64), self.true_embeds.to(dtype=torch.float64)
 
         # mean estimations
         y_true = y_true.to(x_true.device)
