@@ -238,7 +238,6 @@ class FJDMetric:
         return self.alpha
 
     def _get_patches(self, im_tensor):
-        print(torch.max(im_tensor))
         ret_im = 2 * (im_tensor - torch.min(im_tensor)) / (torch.max(im_tensor) - torch.min(im_tensor)) - 1
         ret_im = ret_im.repeat(3, 1, 1)
 
@@ -281,12 +280,9 @@ class FJDMetric:
                             continue
 
                         # recon = unnormalize(recon_object['mvue'], recon_object['zfr'])
-                        im_patches = self._get_patches(complex_abs(recon_object['mvue'][0].permute(1, 2, 0))).to(
-                            dtype=torch.float)
+                        im_patches = self._get_patches(complex_abs(recon_object['mvue'][0].permute(1, 2, 0)))
                         cond_patches = self._get_patches(recon_object['zfr'][0].abs()).to(dtype=torch.float)
-                        true_patches = self._get_patches(recon_object['gt'][0][0].abs()).to(dtype=torch.float)
-                        print(np.isnan(im_patches.cpu().numpy()))
-                        exit()
+                        true_patches = self._get_patches(recon_object['gt'][0][0].abs())
 
                         for k in range(self.args.num_patches):
                             if self.args.num_patches == 1:
@@ -306,14 +302,6 @@ class FJDMetric:
                                 image_embed.append(img_e.cpu().numpy())
                                 cond_embed.append(cond_e.cpu().numpy())
 
-                            del img_e
-                            del cond_e
-                            del true_e
-
-                        del im_patches
-                        del cond_patches
-                        del true_patches
-
         if self.cuda:
             true_embed = torch.cat(true_embed, dim=0)
             image_embed = torch.cat(image_embed, dim=0)
@@ -329,18 +317,13 @@ class FJDMetric:
             cond_embed = np.concatenate(cond_embed, axis=0)
 
         self.gen_embeds = image_embed
-        del image_embed
-
         self.cond_embeds = cond_embed
-        del cond_embed
-
         self.true_embeds = true_embed
-        del true_embed
 
-        mu_fake, sigma_fake = self._get_joint_statistics(self.gen_embeds, self.cond_embeds)
-
-        self.mu_fake, self.sigma_fake = mu_fake, sigma_fake
-        return mu_fake, sigma_fake
+        # mu_fake, sigma_fake = self._get_joint_statistics(self.gen_embeds, self.cond_embeds)
+        #
+        # self.mu_fake, self.sigma_fake = mu_fake, sigma_fake
+        # return mu_fake, sigma_fake
 
     def _get_reference_distribution(self):
         if self.reference_stats_path:
