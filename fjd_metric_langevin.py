@@ -256,7 +256,10 @@ class FJDMetric:
             with torch.no_grad():
                 for i in range(6):
                     for j in range(self.samples_per_condition):
-                        new_filename = recon_directory + fname + f'|langevin|slide_idx_{i}_R={R}_sample={j}_outputs.pt'
+                        try:
+                            new_filename = recon_directory + fname + f'|langevin|slide_idx_{i}_R={R}_sample={j}_outputs.pt'
+                        except:
+                            continue
                         recon_object = torch.load(new_filename)
 
                         im_patches = self._get_patches(complex_abs(recon_object['mvue'][0].permute(1, 2, 0))).to(dtype=torch.float)
