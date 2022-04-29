@@ -81,6 +81,7 @@ for filename in os.listdir(ref_directory):
             recons[j] = complex_abs(recon_object['mvue'][0].permute(1,2,0)).cpu().numpy()
 
         if exceptions:
+            exceptions = False
             continue
         mean = np.mean(recons, axis=0)
         gt = recon_object['gt'][0][0].abs().cpu().numpy()

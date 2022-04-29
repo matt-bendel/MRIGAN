@@ -312,6 +312,12 @@ class FJDMetric:
             true_embed = torch.cat(true_embed, dim=0)
             image_embed = torch.cat(image_embed, dim=0)
             cond_embed = torch.cat(cond_embed, dim=0)
+
+            idx = torch.randperm(true_embed.shape[0])
+
+            true_embed = true_embed[idx, :]
+            image_embed = image_embed[idx, :]
+            cond_embed = cond_embed[idx, :]
         else:
             image_embed = np.concatenate(image_embed, axis=0)
             cond_embed = np.concatenate(cond_embed, axis=0)
