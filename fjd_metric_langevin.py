@@ -162,6 +162,12 @@ def sample_covariance_torch(a, b):
     N = a.shape[0]
     return torch.matmul(torch.transpose(a, 0, 1), b) / N
 
+def unnormalize(gen_img, estimated_mvue):
+    '''
+        Estimate mvue from coils and normalize with 99% percentile.
+    '''
+    scaling = torch.quantile(estimated_mvue.abs(), 0.99)
+    return gen_img / scaling
 
 class FJDMetric:
     """Helper function for calculating FJD metric.
@@ -270,7 +276,8 @@ class FJDMetric:
                         except:
                             continue
 
-                        im_patches = self._get_patches(complex_abs(recon_object['mvue'][0].permute(1, 2, 0))).to(
+                        recon = unnormalize(recon_object['mvue'], recon_object['zfr'])
+                        im_patches = self._get_patches(complex_abs(recon[0].permute(1, 2, 0))).to(
                             dtype=torch.float)
                         cond_patches = self._get_patches(recon_object['zfr'][0].abs()).to(dtype=torch.float)
                         true_patches = self._get_patches(recon_object['gt'][0][0].abs()).to(dtype=torch.float)
