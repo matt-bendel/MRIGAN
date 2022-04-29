@@ -44,6 +44,13 @@ def ssim(
 
     return ssim
 
+def unnormalize(gen_img, estimated_mvue):
+    '''
+        Estimate mvue from coils and normalize with 99% percentile.
+    '''
+    scaling = torch.quantile(estimated_mvue.abs(), 0.99)
+    return gen_img / scaling
+
 R = 4
 
 # assign directory
@@ -69,6 +76,8 @@ for filename in os.listdir(ref_directory):
             except:
                 exceptions = True
                 continue
+            temp_recon = unnormalize(recon_object['mvue'], recon_object['zfr'])
+
             recons[j] = complex_abs(recon_object['mvue'][0].permute(1,2,0)).cpu().numpy()
 
         if exceptions:
