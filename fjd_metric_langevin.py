@@ -236,7 +236,7 @@ class FJDMetric:
         return self.alpha
 
     def _get_patches(self, im_tensor):
-        # im_tensor = 2 * (im_tensor - torch.min(im_tensor)) / (torch.max(im_tensor) - torch.min(im_tensor)) - 1
+        im_tensor = 2 * (im_tensor - torch.min(im_tensor)) / (torch.max(im_tensor) - torch.min(im_tensor)) - 1
         im_tensor = im_tensor.repeat(3, 1, 1)
         if self.args.num_patches == 1:
             return im_tensor
@@ -276,8 +276,8 @@ class FJDMetric:
                         except:
                             continue
 
-                        # recon = unnormalize(recon_object['mvue'], recon_object['zfr'])
-                        im_patches = self._get_patches(complex_abs(recon_object['mvue'][0].permute(1, 2, 0))).to(
+                        recon = unnormalize(recon_object['mvue'], recon_object['zfr'])
+                        im_patches = self._get_patches(complex_abs(recon[0].permute(1, 2, 0))).to(
                             dtype=torch.float)
                         cond_patches = self._get_patches(recon_object['zfr'][0].abs()).to(dtype=torch.float)
                         true_patches = self._get_patches(recon_object['gt'][0][0].abs()).to(dtype=torch.float)
