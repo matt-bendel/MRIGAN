@@ -236,7 +236,7 @@ class FJDMetric:
         return self.alpha
 
     def _get_patches(self, im_tensor):
-        im_tensor = 2 * (im_tensor - torch.min(im_tensor)) / (torch.max(im_tensor) - torch.min(im_tensor)) - 1
+        # im_tensor = 2 * (im_tensor - torch.min(im_tensor)) / (torch.max(im_tensor) - torch.min(im_tensor)) - 1
         im_tensor = im_tensor.repeat(3, 1, 1)
         if self.args.num_patches == 1:
             return im_tensor
@@ -254,7 +254,7 @@ class FJDMetric:
             new_im[i, :, :, :] = im_tensor[:, ind * 384 // (self.args.num_patches):(ind + 1) * 384 // (
                 self.args.num_patches), col:col + 384 // (self.args.num_patches)]
 
-            return new_im
+        return new_im
 
     def _get_generated_distribution(self, cfid=False):
         image_embed = []
