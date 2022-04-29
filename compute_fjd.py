@@ -200,7 +200,7 @@ def main(args):
         for i in range(2):
             args.num_patches = 1
             num_samps = 1
-            args.z_location = 4 if i < 2 else 8
+            args.z_location = 4 if i < 1 else 8
             print("PATCHES ", args.num_patches ** 2)
             print('NUM SAMPS: ', num_samps)
             print('R=', args.z_location)
