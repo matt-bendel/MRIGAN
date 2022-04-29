@@ -61,13 +61,9 @@ for filename in os.listdir(ref_directory):
     for i in range(6):
         recons = np.zeros((32, 384, 384))
         recon_object = None
-        for j in range(32):
+        for j in range(1):
             new_filename = recon_directory + filename + f'|langevin|slide_idx_{i}_R={R}_sample={j}_outputs.pt'
             recon_object = torch.load(new_filename)
-            print(recon_object['mvue'].shape)
-            print(torch.min(complex_abs(recon_object['mvue'][0].permute(1,2,0))))
-            print(torch.min(recon_object['gt'][0][0].abs()))
-            exit()
             recons[j] = complex_abs(recon_object['mvue'][0].permute(1,2,0)).cpu().numpy()
 
         mean = np.mean(recons, axis=0)
