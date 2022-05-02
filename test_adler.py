@@ -98,7 +98,7 @@ def average_gen(generator, input_w_z, z, old_input, args, true_measures, num_cod
                 std=False):
     start = time.perf_counter()
     average_gen = torch.zeros((input_w_z.shape[0], num_code, 16, 128, 128)).to(args.device)
-    ssims = []
+    # ssims = []
 
     for j in range(num_code):
         z = torch.randn((input_w_z.size(0), 2, 128, 128)).cuda()  # .normal_(mean=0, std=np.sqrt(var))
@@ -106,7 +106,7 @@ def average_gen(generator, input_w_z, z, old_input, args, true_measures, num_cod
 
         refined_out = readd_measures_im(output_gen, old_input, args,
                                         true_measures=true_measures)
-        ssims.append(get_gen_ssims(refined_out, gt, mean, std))
+        # ssims.append(get_gen_ssims(refined_out, gt, mean, std))
 
         average_gen[:, j, :, :, :] = refined_out
 
@@ -117,12 +117,12 @@ def average_gen(generator, input_w_z, z, old_input, args, true_measures, num_cod
     ret = torch.mean(average_gen, dim=1)
     del average_gen
 
-    return ret, finish, apsd, ssims
+    return ret, finish, apsd #ssims
 
 
 def get_gen(args, type='image', actual_ad=True):
     checkpoint_file_gen = pathlib.Path(
-        f'/home/bendel.8/Git_Repos/full_scale_mrigan/MRIGAN/trained_models/ablation/image/15/generator_best_model.pt')
+        f'/home/bendel.8/Git_Repos/full_scale_mrigan/MRIGAN/trained_models/ablation/image/114/generator_best_model.pt')
     if actual_ad:
         checkpoint_file_gen = pathlib.Path(
             f'/home/bendel.8/Git_Repos/full_scale_mrigan/MRIGAN/trained_models/adler/generator_best_model.pt')
@@ -162,7 +162,7 @@ def main(args, num, generator, dev_loader, var=1):
             with torch.no_grad():
                 input_w_z = input.to(args.device)
                 # refined_out, finish = non_average_gen(generator, input_w_z, z, old_input)
-                refined_out, finish, apsd, ssim_list = average_gen(generator, input_w_z, z, old_input, args,
+                refined_out, finish, apsd = average_gen(generator, input_w_z, z, old_input, args,
                                                                    true_measures,
                                                                    num_code=num, var=var, gt=target_full, mean=mean, std=std)
 
@@ -171,7 +171,7 @@ def main(args, num, generator, dev_loader, var=1):
 
                 metrics['time'].append(finish / output_batch.shape[0])
                 metrics['apsd'].append(apsd)
-                metrics['ind_ssim'].append(np.mean(ssim_list))
+                # metrics['ind_ssim'].append(np.mean(ssim_list))
 
                 batch_metrics = {
                     'psnr': [],
@@ -223,7 +223,7 @@ def main(args, num, generator, dev_loader, var=1):
         print(f'SNR: {np.mean(fold_snr)} \\pm {np.std(fold_snr) / np.sqrt(26)}')
         print(f'SSIM: {np.mean(fold_ssim)} \\pm {np.std(fold_ssim) / np.sqrt(26)}')
         print(f'APSD: {np.mean(metrics["apsd"])} \\pm {np.std(metrics["apsd"]) / np.sqrt(26)}')
-        print(f'IND SSIM: {np.mean(metrics["ind_ssim"])} \\pm {np.std(metrics["ind_ssim"]) / np.sqrt(26)}')
+        # print(f'IND SSIM: {np.mean(metrics["ind_ssim"])} \\pm {np.std(metrics["ind_ssim"]) / np.sqrt(26)}')
 
 
 if __name__ == '__main__':
